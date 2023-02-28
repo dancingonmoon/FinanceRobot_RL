@@ -293,7 +293,7 @@ class FQLAgent():
     build_model: 自建的深度学习模型,在model.compile,或者自定义单步训练后,做变量输入;该模型将在learn_env中训练,同一模型(训练后参数),再到valid_env中验证;
     """
 
-    def __init__(self, build_model, gamma=0.95, learn_env=None, valid_env=None, validation=True, batch_size=128):
+    def __init__(self, build_model, gamma=0.95, , tau=1e-3, learn_env=None, valid_env=None, validation=True, replay_batch_size=2000, target_network_update_freq=2000, fit_batch_size=128):
         self.learn_env = learn_env
         self.valid_env = valid_env
         self.epsilon = 1.0
@@ -330,8 +330,8 @@ class FQLAgent():
         """
         if tf.random.uniform((1,), maxval=1) <= self.epsilon:
             return self.learn_env.action_space.sample()
-        action = self.model.predict(state)[0, 0]  # (N,1,2)->(2,) ;
-        return np.argmax(action)
+        actions = self.Q(state)  
+        return tf.math.argmax(actions, axis=-1).numpy()[0, 0] # (N,1,2)->(2,) ;
 
     def softupdate(self, Q, Q_target, tau=1e-3):
         """Soft update model parameters.
@@ -343,8 +343,8 @@ class FQLAgent():
             Q_target (Target model): weights will be copied to
             tau (float): interpolation parameter 
         """
-        Weights_Q = Lunar_Agent.Q.get_weights()
-        Weights_Q_target = Lunar_Agent.Q_target.get_weights()
+        Weights_Q = self.Q.get_weights()
+        Weights_Q_target = self.Q_target.get_weights()
 
         ws_q_target = []
         for w_q, w_q_target in zip(Weights_Q, Weights_Q_target):
@@ -418,8 +418,7 @@ class FQLAgent():
         reward_batch = tf.convert_to_tensor(batch_Exp.reward, dtype=tf.float32)  # (N,)
         next_state_batch = tf.convert_to_tensor(
             batch_Exp.next_state, dtype=tf.float32)  # (N,lags,obs_space_n)
-        undone_batch = tf.logical_not(tf.logical_or(
-            batch_Exp.terminated, batch_Exp.truncated))  # (N,)
+        undone_batch = tf.logical_not(batch_Exp.done)  # (N,)
         # undone_batch原为(N,)bool类型,需要转成float才能参与算术运算
         undone_batch = tf.cast(undone_batch, dtype=tf.float32)
 
@@ -475,7 +474,6 @@ class FQLAgent():
         # undone_batch原为(N,)bool类型,需要转成float才能参与算术运算
         undone_batch = tf.cast(undone_batch, dtype=tf.float32)
 
-        
         # (N,lags,action_space_n) -> (N,lags) ->(N,)
         Q_next_state = tf.math.reduce_max(
             self.Q_target(next_state_batch), axis=-1)[:, 0]
@@ -492,7 +490,7 @@ class FQLAgent():
         # print('TD_Q_target.shape:{}'.format(TD_Q_target.shape))
         # TD_Q_target = tf.expand_dims(TD_Q_target,axis=1) #(N,) -> (N,lags=1)
         Qvalue_action_pair = self.Q_target(state_batch)
-        Qvalue_action_pair = Qvalue_action_pair.numpy() #numpy可以item assignment,而tensor不可以
+        Qvalue_action_pair = Qvalue_action_pair.numpy()  # numpy可以item assignment,而tensor不可以
         # Qvalue_action_pair = self.Q_target.predict(
         #     state_batch, verbose=0)  # (N,lags,action_space_n) predict输出的是numpy
         # 以下尝试使用tf.gather方法失败,因为Qvalue_action_pair需要对其中的某些元素赋值,其它值不变化.tf.gather是挑选出条件值
@@ -525,8 +523,7 @@ class FQLAgent():
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-            
-        
+
     def learn(self, episodes, callbacks):
         """
         args:
@@ -562,11 +559,11 @@ class FQLAgent():
                     treward = _ + 1
                     self.trewards.append(treward)
                     # 这里不可以取平均值吗? np.average()
-                    average = sum(self.trewards[-25:])/25
+                    average = np.mean(self.trewards[-25:])
                     profit_rate = self.learn_env.performance
                     self.averages.append(average)
                     self.performances.append(profit_rate)
-                    self.aperformances.append(sum(self.performances[-25:])/25)
+                    self.aperformances.append(np.mean(self.performances[-25:]))
 
                     self.max_treward = max(self.max_treward, treward)
                     time_assumed = (time.time() - start_time)/60
@@ -593,7 +590,7 @@ class FQLAgent():
         for i in range(10000):
             # learn_env.act(state)有根据epsilon做随机,验证集还是直接用model输出Q值,再argmax选动作
             action = tf.math.argmax(self.Q(
-                    state), axis=-1).numpy()[0, 0]
+                state), axis=-1).numpy()[0, 0]
             next_state, reward, done, info = self.valid_env.step(
                 action)
             state = next_state
