@@ -15,6 +15,8 @@ import numpy as np
 import pandas as pd
 
 # Dataset生成函数:
+
+
 def gen(data):
     """
     交易数据生成器;
@@ -87,6 +89,8 @@ def Dataset_Generator(
     return dataset.batch(Batch_size, drop_remainder=True).prefetch(1)
 
 # 金融沙箱- 模仿OpenAI GYM环境,创建Fiance类, 即,交易市场环境
+
+
 class observation_space:
     """
     args:
@@ -233,7 +237,7 @@ class Finance_Environment:
         reward_2 = abs(return_step) if correct else -abs(return_step)
         self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
         self.bar += 1
-        self.accuracy = self.treward /             self.bar  # accurancy: 正确决策action的比例;
+        self.accuracy = self.treward / self.bar  # accurancy: 正确决策action的比例;
         # performance: 以 1*exp(reward_2),反应的是总收益率
         self.performance *= np.exp(reward_2)
         # if self.bar >= self.dataset_len-1:  # bar从0->dataset_len,不包括dataset_len
@@ -261,23 +265,27 @@ class Finance_Environment:
 # 重写基于Finance类Env的Finance Agent,实现改进了的Agent在模拟的交易环境中,逐次从历史交易数据中学习正确的策略动作,使得action Q值Pari(短期收益+长期收益)总是依最佳策略执行
 
 # 定义一个训练模型,用于DQN强化学习网络中的基础模型,可以替换成其它模型:
+
+
 def build_model(input_shape, hidden_unit=24, lr=0.001):
-        """
-        构建模型,model输入为多样本的state的tensor,shape(N,lags,features);此处模型为最简单的3层全连接DNN,可以用其它模型替换.
-        """
-        model = tf.keras.Sequential()
-        model.add(Dense(
-            hidden_unit, input_shape=input_shape, activation='relu'))
-        # (N,lags,features)->(N,lags,hidden_units)
-        model.add(Dense(hidden_unit, activation='relu'))
-        model.add(Dropout(0.3))
-        model.add(Dense(2, activation='linear'))  # (N,lags,2)
-        model.add(AveragePooling1D(pool_size=input_shape[0],
-                  strides=1, padding='valid'))  # (N,1,2)
-        model.compile(loss='mse', optimizer=RMSprop(learning_rate=lr))
-        return model  # output.shape:(N,1,2)
+    """
+    构建模型,model输入为多样本的state的tensor,shape(N,lags,features);此处模型为最简单的3层全连接DNN,可以用其它模型替换.
+    """
+    model = tf.keras.Sequential()
+    model.add(Dense(
+        hidden_unit, input_shape=input_shape, activation='relu'))
+    # (N,lags,features)->(N,lags,hidden_units)
+    model.add(Dense(hidden_unit, activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(Dense(2, activation='linear'))  # (N,lags,2)
+    model.add(AveragePooling1D(pool_size=input_shape[0],
+              strides=1, padding='valid'))  # (N,1,2)
+    model.compile(loss='mse', optimizer=RMSprop(learning_rate=lr))
+    return model  # output.shape:(N,1,2)
 
 # 基于Finance类Env的Finance Agent:
+
+
 class FQLAgent():
     """
     learn_env: 装载有训练集数据,模拟训练集数据交易环境;
@@ -292,7 +300,11 @@ class FQLAgent():
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
         self.gamma = gamma
-        self.batch_size = batch_size
+        self.tau = tau
+
+        self.replay_batch_size = replay_batch_size
+        self.fit_batch_size = fit_batch_size
+        # self.batch_size = batch_size
         self.max_treward = 0
         self.trewards = []
         self.averages = []
@@ -300,8 +312,15 @@ class FQLAgent():
         self.aperformances = []
         self.vperformances = []
         self.memory = deque(maxlen=2000)
-        # self.model = self._build_model(hidden_unit, optimizer, lr)
-        self.model = build_model
+        self.experience = namedtuple(
+            'Experience', ['state', 'action', 'reward', 'next_state', 'done'])
+
+        self.Q = build_model  # Q Network model
+        self.Q_target = build_model  # Q_target Network model ;同一模型,将有不同的weights;
+        self.step_num = 0  # 用于每步训练计数,计数器初始化
+        self.loss = []
+        self.optimizer = Adam(learning_rate=5e-4)
+
         self.validation = validation
 
     def act(self, state):
@@ -314,39 +333,201 @@ class FQLAgent():
         action = self.model.predict(state)[0, 0]  # (N,1,2)->(2,) ;
         return np.argmax(action)
 
-    def replay(self,callbacks=None):
+    def softupdate(self, Q, Q_target, tau=1e-3):
+        """Soft update model parameters.
+        θ_target = τ*θ_local + (1 - τ)*θ_target
+
+        Params
+        ======
+            Q (tensorflow model): weights will be copied from
+            Q_target (Target model): weights will be copied to
+            tau (float): interpolation parameter 
+        """
+        Weights_Q = Lunar_Agent.Q.get_weights()
+        Weights_Q_target = Lunar_Agent.Q_target.get_weights()
+
+        ws_q_target = []
+        for w_q, w_q_target in zip(Weights_Q, Weights_Q_target):
+            w_q_target = (1-tau) * w_q_target + tau * w_q
+            ws_q_target.append(w_q_target)
+
+        Q_target.set_weights(ws_q_target)
+
+        return Q_target
+
+    @tf.function  # 该 @tf.function 将追踪-编译 train_step 到 TF 图中，以便更快地执行。
+    def train_step(self, experience_dataset):
+        # 求导,根据导数优化变量
+        with tf.GradientTape() as tape:
+            loss_value = self.loss_func(experience_dataset)
+        gradients = tape.gradient(loss_value, self.Q.trainable_variables)
+        self.optimizer.apply_gradients(zip(gradients, self.Q.trainable_variables))
+
+        return loss_value
+
+    def loss_func(self, experience_dataset):
+        """
+        自定义loss函数,
+        args:
+            state_batch: 一组历史经验中,包含replay_batch_size个state的tensor,shape:(N,lags,tiled_layer,obs_space_n)
+            action_batch: shape:(N,)
+            reward_batch: shape:(N,)
+            next_state_batch: shape:(N,lags,tiled_layer,obs_space_n)
+            undone_batch: shape: (N,) bool类型,需要转成float才能参与算术运算;
+        """
+        state_batch = experience_dataset[0]
+        action_batch = experience_dataset[1]
+        reward_batch = experience_dataset[2]
+        next_state_batch = experience_dataset[3]
+        undone_batch = experience_dataset[4]
+
+        Q_next_state = tf.math.reduce_max(
+            self.Q_target(next_state_batch), axis=-1)[:, 0]
+
+        TD_Q_target = reward_batch + self.gamma * Q_next_state * undone_batch
+        # print('TD_Q_target.shape:{}'.format(TD_Q_target.shape))
+        Qvalue_action_pair = self.Q_target(state_batch)  # (N,lags,action_space_n)
+
+        # tf.gather(batch_dims=1)相当于对(N,lags,action_space_n)的首维N进行遍历循环,每个循环tf.gather:(lags,action_space_n)->(lags,);再stack合并成(N,1)
+        Q_predict = tf.gather(Qvalue_action_pair,
+                              indices=action_batch, axis=-1, batch_dims=1)[:, 0]
+
+        loss_value = tf.keras.losses.mse(TD_Q_target, Q_predict)
+
+        return loss_value
+
+    def replay_train_step(self,):
+        """
+        使用tensorflow自定义训练的方法,自定义单步训练,loss函数中的y_true,y_predict采用模型输出指定action的Qvalue.
+        从memory(历史经验),提取一次batch,学习,更新模型,相当于一个batch的训练
+        args:
+            callbacks: keras定义的callbacks,用列表装入多个callbacks
+        """
+        batch = random.sample(
+            self.memory, self.replay_batch_size)  # 从memory里面,随机取出repla_batch_size个样本;
+
+        # batch中每个样本,生成,state,action_Qvalue_pair;再组合成dataset,包括(X_dataset,Y_dataset)
+
+        # 星号拆包,送入命名元组,获得field name, (N,lags,field_names)
+        batch_Exp = self.experience(*zip(*batch))
+        state_batch = tf.convert_to_tensor(
+            batch_Exp.state, dtype=tf.float32)  # (N,lags,obs_space_n)
+        action_batch = tf.convert_to_tensor(
+            batch_Exp.action)  # (N,) 最后一维的值表示action_space的序列
+
+        reward_batch = tf.convert_to_tensor(batch_Exp.reward, dtype=tf.float32)  # (N,)
+        next_state_batch = tf.convert_to_tensor(
+            batch_Exp.next_state, dtype=tf.float32)  # (N,lags,obs_space_n)
+        undone_batch = tf.logical_not(tf.logical_or(
+            batch_Exp.terminated, batch_Exp.truncated))  # (N,)
+        # undone_batch原为(N,)bool类型,需要转成float才能参与算术运算
+        undone_batch = tf.cast(undone_batch, dtype=tf.float32)
+
+        state_batch = tf.data.Dataset.from_tensor_slices(state_batch)
+        action_batch = tf.data.Dataset.from_tensor_slices(action_batch)
+        reward_batch = tf.data.Dataset.from_tensor_slices(reward_batch)
+        next_state_batch = tf.data.Dataset.from_tensor_slices(next_state_batch)
+        undone_batch = tf.data.Dataset.from_tensor_slices(undone_batch)
+
+        experience_dataset = tf.data.Dataset.zip((state_batch, action_batch, reward_batch, next_state_batch, undone_batch)).batch(
+            self.fit_batch_size).prefetch(1)
+
+        # 训练一次,优化一次weights:
+        for experience_dataset_batch in experience_dataset:
+            train_loss_avg = tf.keras.metrics.Mean()  # metrics类初始化
+            # 并不是模型的输出计算loss,而是loss指定action的Qvalue_action_pair
+            loss_value = self.train_step(experience_dataset_batch)
+            # Track progress
+            train_loss_avg.update_state(loss_value)  # Add current batch loss
+
+        # 采用soft update的方法,soft update Q target Network:
+        self.softupdate(self.Q, self.Q_target, self.tau)
+
+        self.loss.append(train_loss_avg.result())
+        print('step_num: {} | loss: {:.4f} '.format(
+            self.step_num, train_loss_avg.result()))
+
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+
+    def replay(self, callbacks=None):
         """
         从memory(历史经验),提取一次batch,学习,更新模型,相当于一个batch的训练
         args:
             callbacks: keras定义的callbacks,用列表装入多个callbacks
         """
         batch = random.sample(
-            self.memory, self.batch_size)  # 从memory里面,随机取出batch_size个样本;
+            self.memory, self.replay_batch_size)  # 从memory里面,随机取出repla_batch_size个样本;
 
-        for state, action, reward, next_state, Done in batch:
-            # print('state={},action={},reward={},next_state={}'.format(
-            #     state, action, reward, next_state))
+        # batch中每个样本,生成,state,action_Qvalue_pair;再组合成dataset,包括(X_dataset,Y_dataset)
 
-            if not Done:
-                # 即是假定目前state下的模型是最佳策略;模型对next_state的输出,即获得远期收益,加上reward(近期收益),得到当前state的全部收益Q值;
-                Q_target = reward + self.gamma *                     np.max(self.model.predict(next_state)[0, 0])
+        # 星号拆包,送入命名元组,获得field name, (N,lags,field_names)
+        batch_Exp = self.experience(*zip(*batch))
+        state_batch = tf.convert_to_tensor(
+            batch_Exp.state, dtype=tf.float32)  # (N,lags,obs_space_n)
+        action_batch = tf.convert_to_tensor(
+            batch_Exp.action)  # (N,) 最后一维的值表示action_space的序列
 
-            else:
-                Q_target = reward
-            # 当前state的模型输出,代表当前state的Q值;上面已经基于next_state做出本state的Q值更精确推算,故而需要更新:
-            action_Qvalue_pair = self.model.predict(state)
+        reward_batch = tf.convert_to_tensor(batch_Exp.reward, dtype=tf.float32)  # (N,)
+        next_state_batch = tf.convert_to_tensor(
+            batch_Exp.next_state, dtype=tf.float32)  # (N,lags,obs_space_n)
+        undone_batch = tf.logical_not(batch_Exp.done)  # (N,)
+        # undone_batch原为(N,)bool类型,需要转成float才能参与算术运算
+        undone_batch = tf.cast(undone_batch, dtype=tf.float32)
 
-            # 将远期收益考虑入Q值后的本state的Q值,更新到原来的Q值元组(元组包括动作空间中两个action的各自Q值);batch中随机采样的experience replay(历史经验),是假设为历史最佳策略,所以,里面的action是Q值最大的action;即更新这个Q值最大action对应的Q值
-            action_Qvalue_pair[0, 0, action] = Q_target
-            self.model.fit(state, action_Qvalue_pair, epochs=1,
-                           callbacks=callbacks,
-                           verbose=False)  # 获得一个样本的更新,立即训练模型,更新模型 verbose=0关闭每个样本进度条
-            # 直到全部batch,更新完毕(从历史经验中学习)
-            
+        
+        # (N,lags,action_space_n) -> (N,lags) ->(N,)
+        Q_next_state = tf.math.reduce_max(
+            self.Q_target(next_state_batch), axis=-1)[:, 0]
+        # print('state_batch.shape:{}'.format(state_batch.shape))
+        # print('next_state_batch.shape:{}'.format(next_state_batch.shape))
+        # print('Q_target(next_state_batch).shape:{}'.format(self.Q_target(next_state_batch).shape))
+        # print('max(Q_target(next_state_batch)).shape:{}'.format(tf.math.reduce_max(self.Q_target(next_state_batch),axis=-1).shape))
+        # print('Q_next_state.shape:{}'.format(Q_next_state.shape))
+        # print('undone_batch.shape:{}'.format(undone_batch.shape))
+        # print('reward_batch.shape:{}'.format(reward_batch.shape))
+
+        # (N,);都是(N,)的矩阵算术运算.
+        TD_Q_target = reward_batch + self.gamma * Q_next_state * undone_batch
+        # print('TD_Q_target.shape:{}'.format(TD_Q_target.shape))
+        # TD_Q_target = tf.expand_dims(TD_Q_target,axis=1) #(N,) -> (N,lags=1)
+        Qvalue_action_pair = self.Q_target(state_batch)
+        Qvalue_action_pair = Qvalue_action_pair.numpy() #numpy可以item assignment,而tensor不可以
+        # Qvalue_action_pair = self.Q_target.predict(
+        #     state_batch, verbose=0)  # (N,lags,action_space_n) predict输出的是numpy
+        # 以下尝试使用tf.gather方法失败,因为Qvalue_action_pair需要对其中的某些元素赋值,其它值不变化.tf.gather是挑选出条件值
+        # # tf.gather(batch_dims=1)相当于对(N,lags,action_space_n)的首维N进行遍历循环,每个循环tf.gather:(lags,action_space_n)->(lags,1);再stack合并成(N,lags,1)
+        # Qvalue_action_pair = tf.gather(Qvalue_action_pair,indices=action_batch,batch_dims=1)
+        # Qvalue_action_pair = TD_Q_target #更新
+        # tf.vectorized_map(lambda i,a: Qvalue_action_pair[i,:,a]=TD_Q_target[i], enumerate(action_batch))
+        # 或者采用遍历循环的方法,仍然未逃离for循环 :
+        for i, a in enumerate(action_batch):
+            Qvalue_action_pair[i, :, a] = TD_Q_target[i]
+
+        # print('Qvalue_action_pair.shape:{}'.format(Qvalue_action_pair.shape))
+        X_dataset = tf.data.Dataset.from_tensor_slices(state_batch)
+        y_dataset = tf.data.Dataset.from_tensor_slices(Qvalue_action_pair)
+        Xy_dataset = tf.data.Dataset.zip((X_dataset, y_dataset)).batch(
+            self.fit_batch_size).prefetch(1)
+        # epochs = int(self.replay_batch_size/self.fit_batch_size) + 1
+
+        # Dataset,训练(从历史经验中学习);epochs=1 而不是replay_batch_size/fit_batch_size,因为每一个epoch都是所有dateset全部训练一次
+        history = self.Q.fit(Xy_dataset, epochs=1,
+                             callbacks=callbacks,
+                             verbose=False)  # 获得一个dataset样本的更新,立即训练模型,更新模型 verbose=0关闭每个样本进度条
+
+        # 采用soft update的方法,soft update Q target Network:
+        self.softupdate(self.Q, self.Q_target, self.tau)
+
+        self.loss.append(history.history['loss'])
+        print('step_num: {} | loss: {:.4f} '.format(
+            self.step_num, history.history['loss'][0]))
+
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-
-    def learn(self, episodes,callbacks):
+            
+        
+    def learn(self, episodes, callbacks):
         """
         args:
             episodes: 训练轮数;
@@ -369,8 +550,11 @@ class FQLAgent():
                 #     episode, _, self.learn_env.bar))
                 # print('learn_env.next_state:{}'.format(next_state))
                 # next_state = tf.expand_dims(next_state, 0)
-                self.memory.append(
-                    [state, action, reward, next_state, done])  # 注:最后一条样本因为没有next(),在env.step方法输出的state是原state
+                experience = self.experience(
+                    state, action, reward, next_state, done)
+                self.memory.append(experience)
+                # self.memory.append(
+                #     [state, action, reward, next_state, done])  # 注:最后一条样本因为没有next(),在env.step方法输出的state是原state
                 # print('memory.len:{}, memory[-1]:{}'.format(len(self.memory),self.memory[-1]))
                 # print('memory.len:{},done:{}'.format(len(self.memory), done))
                 state = next_state
@@ -398,7 +582,7 @@ class FQLAgent():
                 self.validate(episode, episodes)
 
             # 开始模型更新,即从样本数据中学习一次:
-            if len(self.memory) > self.batch_size:  # memory的样本数超过batch,即开始从历史经验中学习
+            if len(self.memory) > self.replay_batch_size:  # memory的样本数超过batch,即开始从历史经验中学习
                 self.replay(callbacks)
 
     def validate(self, episode, episodes):
@@ -408,7 +592,8 @@ class FQLAgent():
 
         for i in range(10000):
             # learn_env.act(state)有根据epsilon做随机,验证集还是直接用model输出Q值,再argmax选动作
-            action = np.argmax(self.model.predict(state)[0, 0])
+            action = tf.math.argmax(self.Q(
+                    state), axis=-1).numpy()[0, 0]
             next_state, reward, done, info = self.valid_env.step(
                 action)
             state = next_state
@@ -425,8 +610,10 @@ class FQLAgent():
 
 # agent的向量化backtesting,注意的是:
 # 其就训练后的模型,做出了每个样本的预测,根据预测后的action_Qvalue队,预测了策略action,根据action,增加了一列头寸
+
+
 def Backtesting_vector(agent_model, env, price_Scaler=None, log_return_Scaler=None,
-                      price_column=-1, log_return_column=0, Mark_return_column=6):
+                       price_column=-1, log_return_column=0, Mark_return_column=6):
     """
     arg:
         agent_model: agent中训练后的model,这样预测出的才有backtest的意义;
@@ -444,7 +631,7 @@ def Backtesting_vector(agent_model, env, price_Scaler=None, log_return_Scaler=No
     env.min_accuracy = 0.0
     env.min_performance = 0.0
 
-    env_data = env.dataset2data(price_Scaler=price_Scaler,log_return_Scaler=log_return_Scaler,
+    env_data = env.dataset2data(price_Scaler=price_Scaler, log_return_Scaler=log_return_Scaler,
                                 price_column=price_column,
                                 log_return_column=log_return_column,
                                 Mark_return_column=Mark_return_column)
@@ -464,11 +651,14 @@ def Backtesting_vector(agent_model, env, price_Scaler=None, log_return_Scaler=No
 
     # strategy_return = np.roll(positions, 1)*env.leverage *env_data[:, 1]  # data[:,1]:log_return
     # print('positions.shape:{};env_data[:,1].shape:{}'.format(positions.shape,env_data[:,1].shape))
-    strategy_return = positions * env.leverage * env_data[:, 1]  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
+    strategy_return = positions * env.leverage * \
+        env_data[:, 1]  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
     env_data = np.c_[env_data, strategy_return, positions]  # (N,6)
     return env_data
 
 # 基于事件的回测 Event_based Backtest
+
+
 class Backtesting_event:
     """
     Event based Backtesting
@@ -546,7 +736,8 @@ class Backtesting_event:
             price = gprice
         if units is None:
             MinUnit_1Position = 10 ** self.MinUnit_1Position
-            units = int(amount / price / MinUnit_1Position) * MinUnit_1Position  # 获得低于指定位数小数的值;
+            units = int(amount / price / MinUnit_1Position) * \
+                MinUnit_1Position  # 获得低于指定位数小数的值;
             # print('units({})=int(amount({})/price({}))'.format(units, amount, price))
             # units = amount / price  # alternative handling
         self.current_balance -= (1 + self.ptc) * units * price + self.ftc
@@ -569,7 +760,8 @@ class Backtesting_event:
             price = gprice
         if units is None:
             MinUnit_1Position = 10 ** self.MinUnit_1Position
-            units = int(amount / price / MinUnit_1Position) * MinUnit_1Position  # 获得低于指定位数小数的值;
+            units = int(amount / price / MinUnit_1Position) * \
+                MinUnit_1Position  # 获得低于指定位数小数的值;
             # units = amount / price  # altermative handling
         self.current_balance += (1 - self.ptc) * units * price - self.ftc
         self.units -= units
@@ -802,8 +994,8 @@ class Backtesting_event:
         self.close_out(bar)
 
 
-# 自建线性模型二,受论文(AreTransformerReallyMatter)启发而就;      
-# 1. 时间序列拆解: seasonal, trend        
+# 自建线性模型二,受论文(AreTransformerReallyMatter)启发而就;
+# 1. 时间序列拆解: seasonal, trend
 class series_decomp(tf.keras.layers.Layer):
     """
     Series decomposition block
@@ -827,8 +1019,10 @@ class series_decomp(tf.keras.layers.Layer):
         res = x - moving_mean  # shape remains unchanged
         # print(moving_mean.shape)
         return res, moving_mean
-    
-# 2. 结合分解后的seasonal/trend,进入Feed Forward前向反馈网络,再输出到指定的形状:    
+
+# 2. 结合分解后的seasonal/trend,进入Feed Forward前向反馈网络,再输出到指定的形状:
+
+
 class Decompose_FF_Linear(tf.keras.Model):
     """
     Decomposition-Feed Forward-Liner,该模型用于DQN网络中,基础模型,预测股市买卖动作;
@@ -854,7 +1048,7 @@ class Decompose_FF_Linear(tf.keras.Model):
         # Feed Forward
         FF_hidden = 4 * in_features
         self.FF_Seasonal_Dense0 = tf.keras.layers.Dense(FF_hidden, activation='relu')
-        self.FF_Seasonal_Dense1 = tf.keras.layers.Dense(in_features,activation='relu')
+        self.FF_Seasonal_Dense1 = tf.keras.layers.Dense(in_features, activation='relu')
         self.FF_dropout = tf.keras.layers.Dropout(dropout)
         # Conv1D:
         self.Conv1D_Seasonal = tf.keras.layers.Conv1D(
