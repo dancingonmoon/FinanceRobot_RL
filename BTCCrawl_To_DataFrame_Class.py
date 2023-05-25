@@ -18,6 +18,7 @@ import pandas as pd
 import requests
 from IPython.display import display
 
+
 # 注: 可以使用的exchangeId (exchange=huobi)有:
 # ["alterdice" "bibox" "bigone" "bilaxy" "binance" "binanceus" "bitfinex" "bithumbglobal" "bitmax" "bitso" #"bitstamp" "btcturk" "coinex" "coinsbit" "cointiger" "crypto" "currency-com" "dex-trade" "digifinex" "exmarkets" #"exmo" "gate" "gdax" "hitbtc" "huobi" "indodax" "kickex" "kraken" "kucoin" "kuna" "lbank" "max-exchange" #"mercatox" "okcoin" "paribu" "poloniex" "probit" "qryptos" "quoine" "therocktrading" "tidex" "wazirx" "whitebit" #"zb"  ]
 # poloniex交易所到2022年8月1日数据停止
@@ -37,8 +38,9 @@ def Datetime2Timstamp13bit(datetime):
         timestamp : 13bit
     """
     timestamp = pd.Timestamp(datetime, tz='UTC', unit='ns').value
-    timestamp = int(timestamp/1000000)
+    timestamp = int(timestamp / 1000000)
     return timestamp
+
 
 from configparser import ConfigParser
 
@@ -52,21 +54,21 @@ def get_api_key(config_file_path):
         两个str,分别是ape_key,api_secret
     """
     config = ConfigParser()
-    config.read(config_file_path,encoding="utf-8") #utf-8支持中文
+    config.read(config_file_path, encoding="utf-8")  # utf-8支持中文
     return config["keys"]["api_key"], config["keys"]["api_secret"]
 
 
 class BTC_data_acquire:
     def __init__(
-        self,
-        URL,
-        StartDate,
-        EndDate,
-        Directory,
-        BTC_json='BTC_h12.json',
-        BinanceBTC_json='BinanceBTC_h12.json',
-        binance_api_key=None,
-        binance_api_secret=None
+            self,
+            URL,
+            StartDate,
+            EndDate,
+            Directory,
+            BTC_json='BTC_h12.json',
+            BinanceBTC_json='BinanceBTC_h12.json',
+            binance_api_key=None,
+            binance_api_secret=None
     ):
         """
         从BTC网站上爬取数据,然后生成DataFrame,再计算RSI,合并成DataFrame
@@ -104,7 +106,7 @@ class BTC_data_acquire:
             '''
         # 从硬盘上读取以历史BTC数据
         # Binance API是基于UTC时区,在转换成时间戳于json写入再读出,失去了时区属性;'
-        Data = pd.read_json(self.Directory+self.BinanceBTC_json)
+        Data = pd.read_json(self.Directory + self.BinanceBTC_json)
         # 1)先恢复UTC时区属性 2) 与爬取数据合并后,再转换到Asia/Shanghai时区
         Data.index = Data.index.tz_localize('UTC')
 
@@ -164,8 +166,8 @@ class BTC_data_acquire:
             data.index = data.index.sort_values()  # sort方法缺省升序排列
 
             # 爬取的最新数据,与硬盘上历史数据合并后,重新存储Json
-            Data.to_json(self.Directory+self.BinanceBTC_json)
-            print('BTC数据合并存入:{}'.format(self.Directory+self.BinanceBTC_json))
+            Data.to_json(self.Directory + self.BinanceBTC_json)
+            print('BTC数据合并存入:{}'.format(self.Directory + self.BinanceBTC_json))
         else:
             print('从json中读出Data.info:{}'.format(Data.info()))
 
@@ -179,7 +181,7 @@ class BTC_data_acquire:
         return Data
 
     def crawl_DataFrame(
-        self,
+            self,
     ):
         """
         从BTC网站上爬取数据,输出网站原始数据不予处理.
@@ -226,7 +228,7 @@ class BTC_data_acquire:
             DataFrame.index: 时间戳;DataFrame.clolums: [open,high,low,close,volumn]
         '''
         # 从硬盘上读取以历史BTC数据
-        Data = pd.read_json(self.Directory+self.BTC_json)
+        Data = pd.read_json(self.Directory + self.BTC_json)
 
         if FromWeb:
             Candle = self.crawl_DataFrame()
@@ -238,7 +240,7 @@ class BTC_data_acquire:
             # display(Data.tail(2))
             # Data.info()
             # 更新(添加)存储的Json文件数据
-            #Data_update = pd.read_json(Folder_base+'BTC_h8_20210825_20210903.json')
+            # Data_update = pd.read_json(Folder_base+'BTC_h8_20210825_20210903.json')
             # 添加 上面API读出的数据: Candle
             Data_update = Candle
             Data = pd.concat([Data, Data_update], join='inner')
@@ -253,7 +255,7 @@ class BTC_data_acquire:
 
             # 爬取的最新数据,与硬盘上历史数据合并后,重新存储Json
             Data.to_json(self.Directory + self.BTC_json)
-            print('BTC数据合并存入:{}'.format(self.Directory+self.BTC_json))
+            print('BTC数据合并存入:{}'.format(self.Directory + self.BTC_json))
         else:
             print('从json中读出Data.info:{}'.format(Data.info()))
 
@@ -316,7 +318,7 @@ class BTC_data_acquire:
         # 定义观测数据X
         if Market_Factor:
             X = Data[['d_return', 'd_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
-                     'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
+                      'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
                       'low_pre_close', 'high', 'low', 'open', 'close']]
             # X.rename(columns={0:'d_amplitude','close':'d_return'},inplace=True)
 
@@ -357,13 +359,13 @@ class BTC_data_acquire:
         if minute_level:
             X['minute'] = X.index.minute
             # 将year/month/day/weekday/hour/minute列,转移到最前面
-            X_columns = X.columns[(X.columns.shape[0]-6):].tolist() + \
-                X.columns[:(X.columns.shape[0]-6)].tolist()
+            X_columns = X.columns[(X.columns.shape[0] - 6):].tolist() + \
+                        X.columns[:(X.columns.shape[0] - 6)].tolist()
             X = X[X_columns]
         else:  # 否则,抛弃minute,到hour为止;
             # 将year/month/day/weekday/hour列,转移到最前面
-            X_columns = X.columns[(X.columns.shape[0]-5):].tolist() + \
-                X.columns[:(X.columns.shape[0]-5)].tolist()
+            X_columns = X.columns[(X.columns.shape[0] - 5):].tolist() + \
+                        X.columns[:(X.columns.shape[0] - 5)].tolist()
             X = X[X_columns]
 
         display(X.describe())
@@ -391,7 +393,7 @@ class BTC_data_acquire:
             rsies: RSI数据列;
         '''
         length = len(t)
-        rsies = [np.nan]*length
+        rsies = [np.nan] * length
         # 数据长度不超过周期，无法计算；
         if length <= periods:
             return rsies
@@ -400,34 +402,34 @@ class BTC_data_acquire:
         down_avg = 0
 
         # 首先计算第一个RSI，用前periods+1个数据，构成periods个价差序列;
-        first_t = t[:periods+1]
+        first_t = t[:periods + 1]
         for i in range(1, len(first_t)):
             # 价格上涨;
-            if first_t[i] >= first_t[i-1]:
-                up_avg += first_t[i] - first_t[i-1]
+            if first_t[i] >= first_t[i - 1]:
+                up_avg += first_t[i] - first_t[i - 1]
             # 价格下跌;
             else:
-                down_avg += first_t[i-1] - first_t[i]
+                down_avg += first_t[i - 1] - first_t[i]
         up_avg = up_avg / periods
         down_avg = down_avg / periods
         rs = up_avg / down_avg
-        rsies[periods] = 100 - 100/(1+rs)
+        rsies[periods] = 100 - 100 / (1 + rs)
 
         # 后面的将使用快速计算；
-        for j in range(periods+1, length):
+        for j in range(periods + 1, length):
             up = 0
             down = 0
-            if t[j] >= t[j-1]:
-                up = t[j] - t[j-1]
+            if t[j] >= t[j - 1]:
+                up = t[j] - t[j - 1]
                 down = 0
             else:
                 up = 0
-                down = t[j-1] - t[j]
+                down = t[j - 1] - t[j]
             # 类似移动平均的计算公式;
-            up_avg = (up_avg*(periods - 1) + up)/periods
-            down_avg = (down_avg*(periods - 1) + down)/periods
-            rs = up_avg/down_avg
-            rsies[j] = 100 - 100/(1+rs)
+            up_avg = (up_avg * (periods - 1) + up) / periods
+            down_avg = (down_avg * (periods - 1) + down) / periods
+            rs = up_avg / down_avg
+            rsies[j] = 100 - 100 / (1 + rs)
         return rsies
 
     def SingleCloseCol_addfeatures(self, FromWeb, close_colName, lags=5, window=20):
@@ -532,7 +534,7 @@ class BTC_data_acquire:
 
         """
         if by_BinanceAPI:
-            data = self.BinanceAPI_2_DF(FromWeb=FromWeb,interval=interval)  # 默认interval= '12h'
+            data = self.BinanceAPI_2_DF(FromWeb=FromWeb, interval=interval)  # 默认interval= '12h'
         else:
             data = self.GenDF_Frjson_FrWeb(FromWeb=FromWeb)
         # 1 只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
@@ -592,14 +594,14 @@ class BTC_data_acquire:
 
             # H12代表12小时的数据,24小时,则每两个序列表示一天
             # DayH = 24/12
-            interval_unit = int(interval[:-1]) # interval字符串,例如: 12h
+            interval_unit = int(interval[:-1])  # interval字符串,例如: 12h
             time_unit = interval[-1]
             if time_unit == 'h':
-                DayScale = 24/interval_unit
+                DayScale = 24 / interval_unit
             elif time_unit == 'd':
-                DayScale = 24/(interval_unit*24)
+                DayScale = 24 / (interval_unit * 24)
             elif time_unit == 'm':
-                DayScale = 24/(interval_unit/60)
+                DayScale = 24 / (interval_unit / 60)
             else:
                 print(f"the interval({interval}) you input is with Invalid Time Unit")
 
@@ -615,17 +617,17 @@ class BTC_data_acquire:
             # BinanceAPI通道来的数据,有列: [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
             # volume:成交量(单位为手);amount:成交量(单位为金额),特征缩减,amount取消;同理,bid_amount取消;
             if by_BinanceAPI:
-                X = data[features_afterLags + [ 'volume', RSI_columnName, 'Log_close_weeklag',
+                X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag',
                                                'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
                                                'low_pre_close', 'num_trades', 'bid_volume', close_colName]]
             else:
-                X = data[features_afterLags + [ 'volume', RSI_columnName, 'Log_close_weeklag',
+                X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag',
                                                'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
                                                'low_pre_close', close_colName]]
         else:
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
-            X = data[features_afterLags+[close_colName]]
+            X = data[features_afterLags + [close_colName]]
 
         # X.dropna(inplace=True)
 
@@ -636,7 +638,7 @@ class BTC_data_acquire:
         return X
 
     def OHLC_ClosePriceFeatures(self, by_BinanceAPI, FromWeb, close_colName='close', lags=5, window=20,
-                                        DayH=2, OHLC=True, weekdays=7):
+                                DayH=2, OHLC=True, weekdays=7):
         """
         1.
         只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
@@ -743,7 +745,8 @@ class BTC_data_acquire:
             if by_BinanceAPI:
                 X = data[features_afterLags + ['d_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
                                                'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', 'high', 'low', 'open', 'amount', 'num_trades', 'bid_volume', 'bid_amount', close_colName]]
+                                               'low_pre_close', 'high', 'low', 'open', 'amount', 'num_trades',
+                                               'bid_volume', 'bid_amount', close_colName]]
             else:
                 X = data[features_afterLags + ['d_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
                                                'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
@@ -751,7 +754,7 @@ class BTC_data_acquire:
         else:
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
-            X = data[features_afterLags+[close_colName]]
+            X = data[features_afterLags + [close_colName]]
 
         # X.dropna(inplace=True)
 
@@ -760,4 +763,3 @@ class BTC_data_acquire:
         display(X.head(2))
         display(X.tail(2))
         return X
-
