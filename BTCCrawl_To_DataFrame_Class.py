@@ -17,7 +17,6 @@ import numpy as np
 import pandas as pd
 import requests
 from IPython.display import display
-from jsonpath import jsonpath
 
 # 注: 可以使用的exchangeId (exchange=huobi)有:
 # ["alterdice" "bibox" "bigone" "bilaxy" "binance" "binanceus" "bitfinex" "bithumbglobal" "bitmax" "bitso" #"bitstamp" "btcturk" "coinex" "coinsbit" "cointiger" "crypto" "currency-com" "dex-trade" "digifinex" "exmarkets" #"exmo" "gate" "gdax" "hitbtc" "huobi" "indodax" "kickex" "kraken" "kucoin" "kuna" "lbank" "max-exchange" #"mercatox" "okcoin" "paribu" "poloniex" "probit" "qryptos" "quoine" "therocktrading" "tidex" "wazirx" "whitebit" #"zb"  ]
@@ -41,8 +40,6 @@ def Datetime2Timstamp13bit(datetime):
     timestamp = int(timestamp/1000000)
     return timestamp
 
-import os
-import pathlib
 from configparser import ConfigParser
 
 
@@ -389,7 +386,7 @@ class BTC_data_acquire:
 
         Args:
             t : 计算RSI的数据列,为1维DataFrame系列;
-            period: RSI观察的窗口值,缺省为10;
+            periods: RSI观察的窗口值,缺省为10;
         Returns:
             rsies: RSI数据列;
         '''
@@ -493,7 +490,7 @@ class BTC_data_acquire:
         return df
 
     def MarketFactor_ClosePriceFeatures(self, by_BinanceAPI, FromWeb, close_colName='close', lags=5, window=20,
-                                        DayH=2, MarketFactor=True, weekdays=7):
+                                        interval='12h', DayH=2, MarketFactor=True, weekdays=7):
         """
         1.
         只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
@@ -522,7 +519,9 @@ class BTC_data_acquire:
         Args:
             by_BinanceAPI : 是否使用BinanceAPI通道,True时走BinanceAPI;False时,走CoinCapAPI,或其它header类似的API.
             FromWeb: 是否从网站上爬取(True);或者从存储的json文件中读取;
-            DayH: H12代表12小时的数据,日24小时,则每两个序列表示一天;DayH=24/12
+            interval:  (str) – the interval of kline, e.g 1m, 5m, 1h, 1d, etc. (仅适用于BinanceAPI)
+                        '12h'代表12小时的数据,日24小时,则每两个序列表示一天;'6h'代表6小时的数据,则每4个序列表示一天;
+            DayH: H12代表12小时的数据,日24小时,则每两个序列表示一天;DayH=24/12;新版弃而不用,改为通过interval自动计算;
             Market_Factor: 是否输出新增加的Market_Factor指标;Market_Factor=False时,仅输出close单列运算演化的列;
             weekdays: 一周有几天;周末休市是5天;全天候是7天;
 
@@ -533,7 +532,7 @@ class BTC_data_acquire:
 
         """
         if by_BinanceAPI:
-            data = self.BinanceAPI_2_DF(FromWeb=FromWeb)  # 默认interval= '12h'
+            data = self.BinanceAPI_2_DF(FromWeb=FromWeb,interval=interval)  # 默认interval= '12h'
         else:
             data = self.GenDF_Frjson_FrWeb(FromWeb=FromWeb)
         # 1 只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
@@ -572,8 +571,8 @@ class BTC_data_acquire:
 
         # 2 添加与市场相关的MarketFactor,
         if MarketFactor:
-            # 日振幅:
-            data['d_amplitude'] = data['high'] - data['low']
+            # # 日振幅: 特征太多,取消
+            # data['d_amplitude'] = data['high'] - data['low']
 
             # log{Today's Close Price - (T-5) day's close price};
             data['Log_close_weeklag'] = np.log(
@@ -593,7 +592,18 @@ class BTC_data_acquire:
 
             # H12代表12小时的数据,24小时,则每两个序列表示一天
             # DayH = 24/12
-            RSI_period = int(weekdays * DayH)
+            interval_unit = int(interval[:-1]) # interval字符串,例如: 12h
+            time_unit = interval[-1]
+            if time_unit == 'h':
+                DayScale = 24/interval_unit
+            elif time_unit == 'd':
+                DayScale = 24/(interval_unit*24)
+            elif time_unit == 'm':
+                DayScale = 24/(interval_unit/60)
+            else:
+                print(f"the interval({interval}) you input is with Invalid Time Unit")
+
+            RSI_period = int(weekdays * DayScale)
             RSI = self.RSI(data[close_colName], periods=RSI_period)
             RSI_columnName = 'RSI_' + str(weekdays)
             data[RSI_columnName] = RSI
@@ -602,15 +612,16 @@ class BTC_data_acquire:
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
 
-            # BinanceAPI通道来的数据,有列: [open,high,low,close,volumn,amount,num_trades,bid_volume,bid_amount]
+            # BinanceAPI通道来的数据,有列: [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
+            # volume:成交量(单位为手);amount:成交量(单位为金额),特征缩减,amount取消;同理,bid_amount取消;
             if by_BinanceAPI:
-                X = data[features_afterLags + ['d_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
+                X = data[features_afterLags + [ 'volume', RSI_columnName, 'Log_close_weeklag',
                                                'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', 'high', 'low', 'open', 'amount', 'num_trades', 'bid_volume', 'bid_amount', close_colName]]
+                                               'low_pre_close', 'num_trades', 'bid_volume', close_colName]]
             else:
-                X = data[features_afterLags + ['d_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
+                X = data[features_afterLags + [ 'volume', RSI_columnName, 'Log_close_weeklag',
                                                'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', 'high', 'low', 'open', close_colName]]
+                                               'low_pre_close', close_colName]]
         else:
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
@@ -623,3 +634,4 @@ class BTC_data_acquire:
         display(X.head(2))
         display(X.tail(2))
         return X
+

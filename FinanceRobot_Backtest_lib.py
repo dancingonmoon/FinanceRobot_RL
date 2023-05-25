@@ -14,9 +14,8 @@ from tqdm import tqdm
 import numpy as np
 import pandas as pd
 
+
 # Dataset生成函数:
-
-
 def gen(data):
     """
     交易数据生成器;
@@ -41,13 +40,13 @@ def gen_date(date_list):
 
 
 def Dataset_Generator(
-    data,
-    data_features_num,
-    date_list,
-    lags,
-    Batch_size,
-    shuffle=False,
-    buffer_size=10000,
+        data,
+        data_features_num,
+        date_list,
+        lags,
+        Batch_size,
+        shuffle=False,
+        buffer_size=10000,
 ):
     """
     从交易数据Dataframe,生成dataset, 没有target数据;因为DQN模型的Target为Q_value,是action_Qvalue求得的;
@@ -89,8 +88,126 @@ def Dataset_Generator(
     return dataset.batch(Batch_size, drop_remainder=True).prefetch(1)
 
 
-# 金融沙箱- 模仿OpenAI GYM环境,创建Fiance类, 即,交易市场环境
+def data_normalization(data, lookback,
+                       normalize_columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]):
+    """
+    将data (N,features),进行函数变换,实现每个mean=0,std=1的标准化;
+    利用tf.keras.layers.Normalization().adapt()方法,获取每个ds元素的mean与std,
+    然后将,ds每个元素的最后一个数值,标准化成新的数值;
+    :param:
+        data: pandas, (N,features);
+        lookback: int, 往回lookback的t时刻;在lookback的时间段内,采样mean,std,以将lookback的最后时刻数据标准化;
+        normalize_columns = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+        normalization_columns: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+        Binance采集的Data列可能为:
+        ['log_return', 'Roll_price_sma', 'Roll_price_min', 'Roll_price_max',
+       'Roll_return_mom', 'Roll_return_std', 'Mark_return', 'volume', 'RSI_7',
+       'Log_close_weeklag', 'Log_high_low', 'Log_open_weeklag',
+       'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades',
+       'bid_volume', 'close']
+    :return:
+        data: pandas, (N-lookback,features);
+    """
 
+    data_tobeNormalized = data[data.columns[normalize_columns]]
+    # axis=0, across the row; window为time_offset时,需要时固定的时间长度,1Y是不确定的长度
+    rolling_mean = data_tobeNormalized.rolling(window=lookback, min_periods=lookback, axis=0).mean()
+    rolling_std = data_tobeNormalized.rolling(window=lookback, min_periods=lookback, axis=0).std()
+    rolling_mean.dropna(inplace=True)  # 去除N/A,即,去除window长度不到lookback的数据行;
+    rolling_std.dropna(inplace=True)  # 去除N/A,即,去除window长度不到lookback的数据行;
+    data_tobeNormalized = data_tobeNormalized.loc[rolling_mean.index]
+    data_tobeNormalized = (data_tobeNormalized - rolling_mean) / (rolling_std + 1e-8)
+
+    data = data.loc[data_tobeNormalized.index]
+    data[data.columns[normalize_columns]] = data_tobeNormalized
+
+    return data
+
+
+
+
+# Dataset Transformation Functions:
+def dataset_transform(ds):
+    """
+    将dataset的每个元素,进行函数变换,实现每个mean=0,std=1的标准化;
+    利用tf.keras.layers.Normalization().adapt()方法,获取每个ds元素的mean与std,
+    然后将,ds每个元素的最后一个数值,标准化成新的数值;
+    :param ds:
+        dataset的每个元素: 每个元素为包含lookback的数据,每个数据为(N,features)
+    :return:
+        dataset转换后的元素: 每个元素为初始dataset每个元素lookback个数值的最后一个数值,再适用lookback数据内mean,std之后的转换;
+    """
+    normalization_layer = tf.keras.layers.Normalization(axis=-1)
+    normalization_layer.adapt(ds)  # 获得mean, std
+    normalized_x = normalization_layer(ds[-1:])  # (1,features)
+
+    return normalized_x
+
+
+# Dataset Generation, then Normalization Preprocessing:
+def dataset_gerator_normalized(
+        data,
+        data_features_num,
+        date_list,
+        lags,
+        Batch_size,
+        shuffle=False,
+        buffer_size=10000,
+        lookback=252,
+        normalization_column=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+):
+    """
+    1.从交易数据Dataframe,生成dataset, 无需target数据;用于强化学习;
+    2. Normalization Preprocessing: 对价格相关的特征,采用252天lookback,标准化为mean=0,std=1;
+    args:
+        data: Dataframe格式的数据(N,features);
+        data_features_num:Data的features的数量;
+        lags: 样本延时的数量,即dataset window的大小; lags>=1;
+        Batch_size:
+        shuffle: bool ; 是否shuffle;保持原交易数据的顺序,所以,不能shuffle;缺省为False
+        lookback: Normalization时,回看lookback的天数;default=252;
+        normalization_column: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+        典型的Data列可能为:
+        ['log_return', 'Roll_price_sma', 'Roll_price_min', 'Roll_price_max',
+       'Roll_return_mom', 'Roll_return_std', 'Mark_return', 'volume', 'RSI_7',
+       'Log_close_weeklag', 'Log_high_low', 'Log_open_weeklag',
+       'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades',
+       'bid_volume', 'close']
+    out:
+        xs: xs.shape:(date,(N,lags,features));元组,包含date(字符串),以及8个特征的data;date字符串记录交易日的时间戳(例如: "2022-11-19 12:00:00")
+    """
+    output_signature = tf.TensorSpec((data_features_num), tf.float32)
+    xs = tf.data.Dataset.from_generator(
+        gen,
+        output_signature=output_signature,
+        args=(data,),
+    )  # args用于给gen传递参数,必须是元组的形式传入参数;
+
+    xs = xs.window(lookback, shift=1, drop_remainder=True)
+    xs = xs.flat_map(lambda w: w.batch(lookback))
+    xs = xs.apply(dataset_transform)
+
+    date = tf.data.Dataset.from_generator(
+        gen_date,
+        output_signature=tf.TensorSpec((), tf.string),
+        # date_list如果是datetime64类型,需要提前转化string: date_list.astrype('string')
+        args=(date_list,),
+    )  # args用于给gen传递参数,必须是元组的形式传入参数;
+
+    xs = xs.window(lags, shift=1, drop_remainder=True)
+    xs = xs.flat_map(lambda w: w.batch(lags, drop_remainder=True))
+
+    date = date.window(lags, shift=1, drop_remainder=True)
+    date = date.flat_map(lambda w: w.batch(lags, drop_remainder=True))
+
+    dataset = tf.data.Dataset.zip((date, xs))
+    if shuffle == True:
+        dataset.shuffle(buffer_size)
+
+    return dataset.batch(Batch_size, drop_remainder=True).prefetch(1)
+
+
+# 金融沙箱- 模仿OpenAI GYM环境,创建Fiance类, 即,交易市场环境
 
 class observation_space:
     """
@@ -126,11 +243,11 @@ class Finance_Environment:
     """
 
     def __init__(
-        self,
-        dataset,
-        leverage=1,
-        min_performance=0.85,
-        min_accuracy=0.5,
+            self,
+            dataset,
+            leverage=1,
+            min_performance=0.85,
+            min_accuracy=0.5,
     ):
         """
         args:
@@ -151,12 +268,12 @@ class Finance_Environment:
         self.action_space = action_space(2)  # 假定涨跌两个动作;
 
     def dataset2data(
-        self,
-        price_Scaler=None,
-        log_return_Scaler=None,
-        price_column=-1,
-        log_return_column=0,
-        Mark_return_column=6,
+            self,
+            price_Scaler=None,
+            log_return_Scaler=None,
+            price_column=-1,
+            log_return_column=0,
+            Mark_return_column=6,
     ):
         """
         将environment的dataset,还原出numpy类型的data:包括列:date,log_return,Mark_return,close,
@@ -178,8 +295,8 @@ class Finance_Environment:
         price = []
 
         for day, Data in tqdm(
-            self.dataset,
-            total=self.dataset_len,
+                self.dataset,
+                total=self.dataset_len,
         ):
             # 1.date:
             day = day[0, -1].numpy()  # 读取date str; lags=-1最后一个时序
@@ -218,6 +335,8 @@ class Finance_Environment:
     def get_state(self, bar):
         # Dataset类型,获得Dataset中,指定序列号的的element, ((N,date),(N,lags,features))
         element = [d for i, d in enumerate(iter(self.dataset)) if i == bar][0]
+        # 此处待查,疑问有2: a)列表表达式内元素,是否应该就是((N,date),(N,lags,features)),那么[][0]代表什么呢? 哦, 找到的第0个值,待确认;
+        # 疑问2: b)if i == bar 寻找到的仅仅是,self.dataset内某个batch的序列号,是否确认是某一条交易数据呢?
         state = element[1]  # (N,lags,features)
         return state
 
@@ -270,11 +389,11 @@ class Finance_Environment:
         elif reward_1 == 1:
             done = False
         elif (
-            self.performance < self.min_performance and self.bar > 15
+                self.performance < self.min_performance and self.bar > 15
         ):  # 当最佳策略reward=0,总收益率低于最小值,步数(时刻)大于(15)次时,结束;即,执行策略action(15)次以后,收益率仍小于最小收益率,action策略仍然是显亏损,就中止结束
             done = True
         elif (
-            self.accuracy < self.min_accuracy and self.bar > 15
+                self.accuracy < self.min_accuracy and self.bar > 15
         ):  # 当执行(15)步以后,产生收益的action的次数,仍低于最小次数时,结束中止,停止训练;
             done = True
         else:
@@ -319,17 +438,17 @@ class FQLAgent:
     """
 
     def __init__(
-        self,
-        build_model,
-        learning_rate=5e-4,
-        gamma=0.95,
-        tau=1e-3,
-        learn_env=None,
-        valid_env=None,
-        validation=True,
-        replay_batch_size=2000,
-        target_network_update_freq=2000,
-        fit_batch_size=128,
+            self,
+            build_model,
+            learning_rate=5e-4,
+            gamma=0.95,
+            tau=1e-3,
+            learn_env=None,
+            valid_env=None,
+            validation=True,
+            replay_batch_size=2000,
+            target_network_update_freq=2000,
+            fit_batch_size=128,
     ):
         self.learn_env = learn_env
         self.valid_env = valid_env
@@ -420,8 +539,8 @@ class FQLAgent:
         undone_batch = experience_dataset[4]
 
         Q_next_state = tf.math.reduce_max(self.Q_target(next_state_batch), axis=-1)[
-            :, 0
-        ]
+                       :, 0
+                       ]
 
         TD_Q_target = reward_batch + self.gamma * Q_next_state * undone_batch
         # print('TD_Q_target.shape:{}'.format(TD_Q_target.shape))
@@ -437,7 +556,7 @@ class FQLAgent:
         return loss_value
 
     def replay_train_step(
-        self,
+            self,
     ):
         """
         使用tensorflow自定义训练的方法,自定义单步训练,loss函数中的y_true,y_predict采用模型输出指定action的Qvalue.
@@ -541,8 +660,8 @@ class FQLAgent:
 
         # (N,lags,action_space_n) -> (N,lags) ->(N,)
         Q_next_state = tf.math.reduce_max(self.Q_target(next_state_batch), axis=-1)[
-            :, 0
-        ]
+                       :, 0
+                       ]
         # print('state_batch.shape:{}'.format(state_batch.shape))
         # print('next_state_batch.shape:{}'.format(next_state_batch.shape))
         # print('Q_target(next_state_batch).shape:{}'.format(self.Q_target(next_state_batch).shape))
@@ -662,7 +781,7 @@ class FQLAgent:
 
             # 开始模型更新,即从样本数据中学习一次:
             if (
-                len(self.memory) > self.replay_batch_size
+                    len(self.memory) > self.replay_batch_size
             ):  # memory的样本数超过batch,即开始从历史经验中学习
                 self.replay(callbacks)
 
@@ -693,13 +812,13 @@ class FQLAgent:
 
 
 def Backtesting_vector(
-    agent_model,
-    env,
-    price_Scaler=None,
-    log_return_Scaler=None,
-    price_column=-1,
-    log_return_column=0,
-    Mark_return_column=6,
+        agent_model,
+        env,
+        price_Scaler=None,
+        log_return_Scaler=None,
+        price_column=-1,
+        log_return_column=0,
+        Mark_return_column=6,
 ):
     """
     arg:
@@ -742,7 +861,7 @@ def Backtesting_vector(
     # strategy_return = np.roll(positions, 1)*env.leverage *env_data[:, 1]  # data[:,1]:log_return
     # print('positions.shape:{};env_data[:,1].shape:{}'.format(positions.shape,env_data[:,1].shape))
     strategy_return = (
-        positions * env.leverage * env_data[:, 1]
+            positions * env.leverage * env_data[:, 1]
     )  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
     env_data = np.c_[env_data, strategy_return, positions]  # (N,6)
     return env_data
@@ -757,16 +876,16 @@ class Backtesting_event:
     """
 
     def __init__(
-        self,
-        env,
-        model,
-        amount,
-        percent_commission,
-        fixed_commission,
-        verbose=False,
-        price_Scaler=None,
-        log_return_Scaler=None,
-        MinUnit_1Position=0,
+            self,
+            env,
+            model,
+            amount,
+            percent_commission,
+            fixed_commission,
+            verbose=False,
+            price_Scaler=None,
+            log_return_Scaler=None,
+            MinUnit_1Position=0,
     ):
         """
         args:
@@ -839,9 +958,9 @@ class Backtesting_event:
         if gprice is not None:
             price = gprice
         if units is None:
-            MinUnit_1Position = 10**self.MinUnit_1Position
+            MinUnit_1Position = 10 ** self.MinUnit_1Position
             units = (
-                int(amount / price / MinUnit_1Position) * MinUnit_1Position
+                    int(amount / price / MinUnit_1Position) * MinUnit_1Position
             )  # 获得低于指定位数小数的值;
             # print('units({})=int(amount({})/price({}))'.format(units, amount, price))
             # units = amount / price  # alternative handling
@@ -870,9 +989,9 @@ class Backtesting_event:
         if gprice is not None:
             price = gprice
         if units is None:
-            MinUnit_1Position = 10**self.MinUnit_1Position
+            MinUnit_1Position = 10 ** self.MinUnit_1Position
             units = (
-                int(amount / price / MinUnit_1Position) * MinUnit_1Position
+                    int(amount / price / MinUnit_1Position) * MinUnit_1Position
             )  # 获得低于指定位数小数的值;
             # units = amount / price  # altermative handling
         self.current_balance += (1 - self.ptc) * units * price - self.ftc
@@ -930,7 +1049,7 @@ class Backtesting_event:
                     print(50 * "-")
                     print(f"{date} | *** GOING LONG ***")
                 if (
-                    self.position == -1
+                        self.position == -1
                 ):  # 买单的价格是前一交易日的收盘价,所以bar-1,意味着买单的价格; #self.position=-1,表明手中有空头,先买空头,再买多头
                     self.place_buy_order(bar - 1, units=-self.units, gprice=None)
                 self.place_buy_order(
@@ -982,12 +1101,12 @@ class Backtesting_event:
         self.close_out(bar)
 
     def backtest_strategy_WH_RM(
-        self,
-        StopLoss=None,
-        TrailStopLoss=None,
-        TakeProfit=None,
-        wait=5,
-        guarantee=False,
+            self,
+            StopLoss=None,
+            TrailStopLoss=None,
+            TakeProfit=None,
+            wait=5,
+            guarantee=False,
     ):
         """Event-based backtesting of the trading bot's performance.
             Incl. stop loss, trailing stop loss and take profit.
@@ -1184,14 +1303,14 @@ class Decompose_FF_Linear(tf.keras.Model):
     """
 
     def __init__(
-        self,
-        seq_len,
-        in_features,
-        out_features,
-        kernel_size=25,
-        dropout=0.3,
-        name="Decompose_FF_Linear",
-        **kwargs,
+            self,
+            seq_len,
+            in_features,
+            out_features,
+            kernel_size=25,
+            dropout=0.3,
+            name="Decompose_FF_Linear",
+            **kwargs,
     ):
         """
         seq_len: 输入序列长度;
