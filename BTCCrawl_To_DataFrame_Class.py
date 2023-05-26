@@ -492,8 +492,12 @@ class BTC_data_acquire:
         return df
 
     def MarketFactor_ClosePriceFeatures(self, by_BinanceAPI, FromWeb, close_colName='close', lags=5, window=20,
-                                        interval='12h', DayH=2, MarketFactor=True, weekdays=7):
+                                        horizon=5, interval='12h', DayH=2, MarketFactor=True, weekdays=7):
         """
+        实现: 1) 收集收盘价以及衍生特征,再加上OHLC关键特征; 2) 鉴于有文章发现reward函数,在预测后5个交易日比预测第二个交易日效果更好,
+        增加horizon参数,增添一个log_return特征(避免标准化/归一化),来表示horizon之后的t_horizon时刻的收盘价与t时刻(当前时刻)的收盘价的log_return.
+        该horizon_log_retrun 不能作为特征列,仅作为Finance Environment中,设计reward function使用;
+        并且,horizon_log_return最后horizon几个时刻值是NaN,并为作为异常值删去,这是因为这几个horizon时刻,包含各个训练用features的state是存在合理值.
         1.
         只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
         log_return: np.log(df/df.shift()) 相邻时序收盘价格比值,取对数,反映收益;
@@ -502,8 +506,8 @@ class BTC_data_acquire:
         Roll_price_max: 收盘价Rolling指定window后,对window内取max,即: 滚动最大值;
         Roll_return_momt: log_return的Rolling指定window后,对window内取mean,即: 动量;
         Roll_return_std: log_return的Rolling指定window后,对window内取std,即: 滚动波动率;
-        Mark_return : log_return正值取1,负值取0;即:收益正负标记;
-        以上7列,再每列滑动lags时序,生成lags*7列,列名: lag1_columnname.
+        (Mark_return : log_return正值取1,负值取0;即:收益正负标记; 已取消)
+        以上6列,再每列滑动lags时序,生成lags*7列,列名: lag1_columnname.
         2.
         添加与市场相关的MarketFactor,包括:
         除基础的指标: ['d_amplitude', 'volume', 'RSI14', 'high', 'low', 'open','close']之外,
@@ -521,6 +525,7 @@ class BTC_data_acquire:
         Args:
             by_BinanceAPI : 是否使用BinanceAPI通道,True时走BinanceAPI;False时,走CoinCapAPI,或其它header类似的API.
             FromWeb: 是否从网站上爬取(True);或者从存储的json文件中读取;
+            horizon: 当前t时刻之后的t_horizon时刻,用于预测或者关注reward的t_horizon时刻与t时刻的log_return;
             interval:  (str) – the interval of kline, e.g 1m, 5m, 1h, 1d, etc. (仅适用于BinanceAPI)
                         '12h'代表12小时的数据,日24小时,则每两个序列表示一天;'6h'代表6小时的数据,则每4个序列表示一天;
             DayH: H12代表12小时的数据,日24小时,则每两个序列表示一天;DayH=24/12;新版弃而不用,改为通过interval自动计算;
@@ -552,7 +557,7 @@ class BTC_data_acquire:
         data["Roll_return_mom"] = data["log_return"].rolling(window).mean()  # 动量;
         data["Roll_return_std"] = data["log_return"].rolling(window).std()  # 滚动波动率
         data.dropna(inplace=True)
-        data["Mark_return"] = np.where(data["log_return"] > 0, 1, 0)
+        # data["Mark_return"] = np.where(data["log_return"] > 0, 1, 0)
         features = [
             "log_return",
             "Roll_price_sma",
@@ -560,7 +565,7 @@ class BTC_data_acquire:
             "Roll_price_max",
             "Roll_return_mom",
             "Roll_return_std",
-            "Mark_return",
+            # "Mark_return",
             close_colName,
         ]
         features_afterLags = features[:]  # 实现浅copy,分配不同的内存,否则features.append陷入死循环
@@ -570,6 +575,8 @@ class BTC_data_acquire:
                 features_afterLags.append(col)
                 data[col] = data[f].shift(lag)
                 data.dropna(inplace=True)
+
+        # data["log_return_unnormalized"] = data["log_return"] # 复制该列,列入non_state_features,不参与normalization;
 
         # 2 添加与市场相关的MarketFactor,
         if MarketFactor:
@@ -614,152 +621,34 @@ class BTC_data_acquire:
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
 
+            # 交易数据的最后horizon个时刻,假设交易数据最后的时刻为T,则(T - horizon, T)的horizon段内的horizon_log_return列数据为:NaN;
+            # NaN仍然保留,并未删去; 因为(T-horizon,T)的state是存在的;也基于同样的原因,该列放在所有dropna之后,并且不能作为features进入训练;
+            data["horizon_log_return"] = np.log(data[close_colName].shift(-horizon) / data[close_colName])  # 收益率(对数)
+
             # BinanceAPI通道来的数据,有列: [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
             # volume:成交量(单位为手);amount:成交量(单位为金额),特征缩减,amount取消;同理,bid_amount取消;
             if by_BinanceAPI:
-                X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag',
-                                               'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', 'num_trades', 'bid_volume', close_colName]]
+                X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag', 'Log_high_low',
+                                               'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
+                                               'low_pre_close', 'num_trades', 'bid_volume',
+                                               'horizon_log_return', close_colName]]
             else:
-                X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag',
-                                               'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', close_colName]]
+                X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag', 'Log_high_low',
+                                               'Log_open_weeklag', 'open_pre_close', 'high_pre_close','low_pre_close',
+                                               'horizon_log_return',close_colName]]
         else:
 
-            features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
-            X = data[features_afterLags + [close_colName]]
+            # 交易数据的最后horizon个时刻,假设交易数据最后的时刻为T,则(T - horizon, T)的horizon段内的horizon_log_return列数据为:NaN;
+            # NaN仍然保留,并未删去; 因为(T-horizon,T)的state是存在的;也基于同样的原因,该列放在所有dropna之后,并且不能作为features进入训练;
+            data["horizon_log_return"] = np.log(data[close_colName].shift(-horizon) / data[close_colName])  # 收益率(对数)
 
-        # X.dropna(inplace=True)
+            features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
+            X = data[features_afterLags + ["horizon_log_return"] + [close_colName]]
+
 
         display(X.describe())
-        # type(X)
         display(X.head(2))
         display(X.tail(2))
         return X
 
-    def OHLC_ClosePriceFeatures(self, by_BinanceAPI, FromWeb, close_colName='close', lags=5, window=20,
-                                DayH=2, OHLC=True, weekdays=7):
-        """
-        1.
-        只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
-        log_return: np.log(df/df.shift()) 相邻时序收盘价格比值,取对数,反映收益;
-        Roll_price_sma: 收盘价Rolling指定window后,对window内取mean,即: simple moving average;
-        Roll_price_min: 收盘价Rolling指定window后,对window内取min,即: 滚动最小值;
-        Roll_price_max: 收盘价Rolling指定window后,对window内取max,即: 滚动最大值;
-        Roll_return_momt: log_return的Rolling指定window后,对window内取mean,即: 动量;
-        Roll_return_std: log_return的Rolling指定window后,对window内取std,即: 滚动波动率;
-        Mark_return : log_return正值取1,负值取0;即:收益正负标记;
-        以上7列,再每列滑动lags时序,生成lags*7列,列名: lag1_columnname.
-        2.
-        添加与市场相关的OHLC基本数据,包括:
-        除基础的指标: [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount] (for Binance)
 
-        3.
-        最后1列,为收盘价列;列名:close_colName;
-        (4. lookback=252,均值为0,标准差为1,的normalization; 252为天,以后再处理)
-
-        Args:
-            by_BinanceAPI : 是否使用BinanceAPI通道,True时走BinanceAPI;False时,走CoinCapAPI,或其它header类似的API.
-            FromWeb: 是否从网站上爬取(True);或者从存储的json文件中读取;
-            DayH: H12代表12小时的数据,日24小时,则每两个序列表示一天;DayH=24/12; H4代表每4小时的数据,则6个数据代表一天24小时,
-            Market_Factor: 是否输出新增加的Market_Factor指标;Market_Factor=False时,仅输出close单列运算演化的列;
-            weekdays: 一周有几天;周末休市是5天;全天候是7天;
-
-            (股票数据DataFrame,包含有收盘价的列,列名为:'close_colName' (例如:'close');)
-            close_colName: 股票数据中收盘价的列名;
-            lags: 延时滑动的时序数;
-            window: Rolling的window大小
-
-        """
-        if by_BinanceAPI:
-            data = self.BinanceAPI_2_DF(FromWeb=FromWeb)  # 默认interval= '12h'
-        else:
-            data = self.GenDF_Frjson_FrWeb(FromWeb=FromWeb)
-        # 1 只观察股票数据中的收盘价,并将收盘价做以下处理,生成各个特征:
-        # df = pd.DataFrame(data[close_colName])  # 原DataFrame中,除收盘价以外的其它列舍弃;
-        # df.dropna(inplace=True)
-        data["log_return"] = np.log(
-            data[close_colName] / data[close_colName].shift())  # 收益率(对数)
-        data["Roll_price_sma"] = (
-            data[close_colName].rolling(window).mean()
-        )  # simple moving average
-        data["Roll_price_min"] = (
-            data[close_colName].rolling(window).min()
-        )  # 滚动最小值与滚动最大值、动量以及滚动波动率
-        data["Roll_price_max"] = data[close_colName].rolling(window).max()  # 滚动最大值;
-        data["Roll_return_mom"] = data["log_return"].rolling(window).mean()  # 动量;
-        data["Roll_return_std"] = data["log_return"].rolling(window).std()  # 滚动波动率
-        data.dropna(inplace=True)
-        data["Mark_return"] = np.where(data["log_return"] > 0, 1, 0)
-        features = [
-            "log_return",
-            "Roll_price_sma",
-            "Roll_price_min",
-            "Roll_price_max",
-            "Roll_return_mom",
-            "Roll_return_std",
-            "Mark_return",
-            close_colName,
-        ]
-        features_afterLags = features[:]  # 实现浅copy,分配不同的内存,否则features.append陷入死循环
-        for f in features:
-            for lag in range(1, lags + 1):  # 收盘价列不再滑动延时;
-                col = "{}_lag{}".format(f, lag)
-                features_afterLags.append(col)
-                data[col] = data[f].shift(lag)
-                data.dropna(inplace=True)
-
-        # 2 添加与市场相关的MarketFactor,
-        if MarketFactor:
-            # 日振幅:
-            data['d_amplitude'] = data['high'] - data['low']
-
-            # log{Today's Close Price - (T-5) day's close price};
-            data['Log_close_weeklag'] = np.log(
-                data[close_colName] / data[close_colName].shift(periods=weekdays))
-            # log{high/low};
-            data['Log_high_low'] = np.log(data['high'] / data['low'])
-            # log{Today's Open Price - (T-5) day's open price};
-            data['Log_open_weeklag'] = np.log(
-                data['open'] / data['open'].shift(periods=weekdays))
-
-            # Open/Previous Close;
-            data['open_pre_close'] = data['open'] / data[close_colName].shift()
-            # High/Previous Close;
-            data['high_pre_close'] = data['high'] / data[close_colName].shift()
-            # Low/Previous Close
-            data['low_pre_close'] = data['low'] / data[close_colName].shift()
-
-            # H12代表12小时的数据,24小时,则每两个序列表示一天
-            # DayH = 24/12
-            RSI_period = int(weekdays * DayH)
-            RSI = self.RSI(data[close_colName], periods=RSI_period)
-            RSI_columnName = 'RSI_' + str(weekdays)
-            data[RSI_columnName] = RSI
-
-            data.dropna(inplace=True)
-
-            features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
-
-            # BinanceAPI通道来的数据,有列: [open,high,low,close,volumn,amount,num_trades,bid_volume,bid_amount]
-            if by_BinanceAPI:
-                X = data[features_afterLags + ['d_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
-                                               'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', 'high', 'low', 'open', 'amount', 'num_trades',
-                                               'bid_volume', 'bid_amount', close_colName]]
-            else:
-                X = data[features_afterLags + ['d_amplitude', 'volume', RSI_columnName, 'Log_close_weeklag',
-                                               'Log_high_low', 'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
-                                               'low_pre_close', 'high', 'low', 'open', close_colName]]
-        else:
-
-            features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
-            X = data[features_afterLags + [close_colName]]
-
-        # X.dropna(inplace=True)
-
-        display(X.describe())
-        # type(X)
-        display(X.head(2))
-        display(X.tail(2))
-        return X

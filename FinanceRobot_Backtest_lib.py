@@ -3,8 +3,8 @@
 
 import tensorflow as tf
 from collections import deque, namedtuple
-from tensorflow.keras.optimizers import Adam, RMSprop
-from tensorflow.keras.layers import Dense, Dropout, AveragePooling1D
+from keras.optimizers import Adam, RMSprop
+from keras.layers import Dense, Dropout, AveragePooling1D
 import random
 import time
 
@@ -41,33 +41,43 @@ def gen_date(date_list):
 
 def Dataset_Generator(
         data,
-        data_features_num,
-        date_list,
-        lags,
-        Batch_size,
+        data_columns_state=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+        data_columns_non_state=[-2, -1],
+        lags=20,
+        Batch_size=32,
         shuffle=False,
-        buffer_size=10000,
-):
+        buffer_size=10000, ):
     """
-    从交易数据Dataframe,生成dataset, 没有target数据;因为DQN模型的Target为Q_value,是action_Qvalue求得的;
+    从交易数据Dataframe,生成dataset;
     args:
         data: Dataframe格式的数据(N,features);
-        data_features_num:Data的features的数量;
+        data_columns:Data的列的数量(包括features,以及不转入state_space的列,如horizon_log_return,close);
         lags: 样本延时的数量,即dataset window的大小; lags>=1;
         Batch_size:
         shuffle: bool ; 是否shuffle;保持原交易数据的顺序,所以,不能shuffle;缺省为False
     out:
-        xs: xs.shape:(date,(N,lags,features));元组,包含date(字符串),以及8个特征的data;date字符串记录交易日的时间戳(例如: "2022-11-19 12:00:00")
+        xs: xs.shape:(date,(N,lags,state_features),(N,lags,non_state_features));元组,包含date(字符串),以及data_state,data_non_state;
+            date字符串记录交易日的时间戳(例如: "2022-11-19 12:00:00")
     """
-    output_signature = tf.TensorSpec((data_features_num), tf.float64)  # data原始为8个特征,8列;
-    # gen_f = gen(data)
-    xs = tf.data.Dataset.from_generator(
-        gen,
-        output_signature=output_signature,
-        args=(data,),
-    )  # args用于给gen传递参数,必须是元组的形式传入参数;
-    # x_y = tf.data.Dataset.from_tensor_slices(data)
+    data_state = data[data.columns[data_columns_state]]
+    data_non_state = data[data.columns[data_columns_non_state]]
 
+    output_signature_state = tf.TensorSpec((len(data_columns_state),), tf.float32)
+    output_signature_non_state = tf.TensorSpec((len(data_columns_non_state),), tf.float32)
+
+    xs_state = tf.data.Dataset.from_generator(
+        gen,
+        output_signature=output_signature_state,
+        args=(data_state,),
+    )  # args用于给gen传递参数,必须是元组的形式传入参数;
+
+    xs_non_state = tf.data.Dataset.from_generator(
+        gen,
+        output_signature=output_signature_non_state,
+        args=(data_non_state,),
+    )  # args用于给gen传递参数,必须是元组的形式传入参数;
+
+    date_list = data.index.astype('string')
     date = tf.data.Dataset.from_generator(
         gen_date,
         output_signature=tf.TensorSpec((), tf.string),
@@ -75,21 +85,24 @@ def Dataset_Generator(
         args=(date_list,),
     )  # args用于给gen传递参数,必须是元组的形式传入参数;
 
-    xs = xs.window(lags, shift=1, drop_remainder=True)
-    xs = xs.flat_map(lambda w: w.batch(lags, drop_remainder=True))
+    xs_state = xs_state.window(lags, shift=1, drop_remainder=True)
+    xs_state = xs_state.flat_map(lambda w: w.batch(lags, drop_remainder=True))
+
+    xs_non_state = xs_non_state.window(lags, shift=1, drop_remainder=True)
+    xs_non_state = xs_non_state.flat_map(lambda w: w.batch(lags, drop_remainder=True))
 
     date = date.window(lags, shift=1, drop_remainder=True)
     date = date.flat_map(lambda w: w.batch(lags, drop_remainder=True))
 
-    dataset = tf.data.Dataset.zip((date, xs))
+    dataset = tf.data.Dataset.zip((date, xs_state, xs_non_state))
     if shuffle == True:
         dataset.shuffle(buffer_size)
 
     return dataset.batch(Batch_size, drop_remainder=True).prefetch(1)
 
 
-def data_normalization(data, lookback,
-                       normalize_columns=[0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]):
+def data_normalization(data, lookback=252,
+                       normalize_columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]):
     """
     将data (N,features),进行函数变换,实现每个mean=0,std=1的标准化;
     利用tf.keras.layers.Normalization().adapt()方法,获取每个ds元素的mean与std,
@@ -97,13 +110,14 @@ def data_normalization(data, lookback,
     :param:
         data: pandas, (N,features);
         lookback: int, 往回lookback的t时刻;在lookback的时间段内,采样mean,std,以将lookback的最后时刻数据标准化;
-        normalize_columns: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,7,8,9,10,11,12,13,14,15,16]
+        normalize_columns: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+        最后两列,'horizon_log_return','close'不参与标准化
         Binance采集的Data列可能为:
         ['log_return', 'Roll_price_sma', 'Roll_price_min', 'Roll_price_max',
-       'Roll_return_mom', 'Roll_return_std', 'Mark_return', 'volume', 'RSI_7',
+       'Roll_return_mom', 'Roll_return_std', 'volume', 'RSI_7',
        'Log_close_weeklag', 'Log_high_low', 'Log_open_weeklag',
-       'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades',
-       'bid_volume', 'close']
+       'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades','bid_volume',
+       "log_return_unnormalized",'horizon_log_return', 'close']
     :return:
         data: pandas, (N-lookback,features);
     """
@@ -123,14 +137,13 @@ def data_normalization(data, lookback,
     return data
 
 
-
 # 金融沙箱- 模仿OpenAI GYM环境,创建Fiance类, 即,交易市场环境
 
 class observation_space:
     """
     args:
         lags: 样本(交易时刻)延时的个数,表示几个延时交易时刻为一组;
-        n_features: 每个交易时刻样本数据的特征数
+        n_features: 每个交易时刻样本数据的特征数;注意,仅仅送入训练的state_feature,不包含non_state_feature
     """
 
     def __init__(self, lags, n_features):
@@ -342,13 +355,16 @@ class Finance_Environment_V2:
     def __init__(
             self,
             dataset,
+            dataset_batch_size,
+            action_n,
             leverage=1,
+            trading_commission=0.002,
             min_performance=0.85,
             min_accuracy=0.5,
     ):
         """
         args:
-            dataset: Finance Environment的交易数据,为tf.data.Dataset类型,shape:((N,date),(N,lags,features))
+            dataset: Finance Environment的交易数据,为tf.data.Dataset类型,shape:((N,date),(N,lags,state_features),(N,lags,non_state_features))
             (定义每个lags的最后一个时序,表示当前状态所对应的时序.这是为了能够取得最后时序的模型预测值.)
         """
 
@@ -356,44 +372,40 @@ class Finance_Environment_V2:
         # 定义和初始化迭代器,内装Dataset,指针从第一个数据开始,为不影响指针,该变量仅在next()时使用.
         self.iter_dataset = iter(self.dataset)
         self.batch_size, self.lags, self.features = iter(dataset).element_spec[1].shape
-        self.dataset_len = len(list(iter(dataset)))  # dataset的样本总条数(batch之后);
+        self.dataset_len = len(list(iter(dataset))) * dataset_batch_size  # dataset的样本总条数(batch之后);
+        self.dataset_len = int(self.dataset_len)
 
         self.leverage = leverage  # 杠杆
+        self.trading_commission = trading_commission
         self.min_performance = min_performance
         self.min_accuracy = min_accuracy
         self.observation_space = observation_space(self.lags, self.features)
-        self.action_space = action_space(2)  # 假定涨跌两个动作;
+        self.action_space = action_space(action_n)  # buy=2,hold=1,sell=0;
 
     def dataset2data(
             self,
-            price_Scaler=None,
-            log_return_Scaler=None,
             price_column=-1,
-            log_return_column=0,
-            Mark_return_column=6,
+            horizon_log_return_column=-2,
     ):
         """
         将environment的dataset,还原出numpy类型的data:包括列:date,log_return,Mark_return,close,
         dataset数据如果曾经归一化,则需要输入归一化的Scaler(sklearn归一化模型类),来还原数据原值;缺省值None,则不需要归一化还原.
         args:
-            price_Sclaer: 收盘价close归一化的Scaler;
-            log_return_Scaler: log_return归一化的Scaler;
             price_column: price列在dataset中的列序列号,缺省为-1,即最后1列;
-            log_return_column: log_return列在dataset中的列序列号,缺省为0,即第0列;
-            Mark_return_column: Mar_return列在dataset中的列序列号,缺省为6,即第6列;
+            log_return_column: log_return列在dataset中的列序列号,缺省为-2,即第-2列;
         out:
-            env_data: 包含0)date(datetime64类型),1)log_return,2)Mark_return,3)close收盘价,numpy,shape(N,4)
+            env_data: 包含0)date(datetime64类型),1)horizon_log_return,2)Mark_return,3)close收盘价,numpy,shape(N,4)
         """
-        pass # 数据标准化后,需要重写
+        pass  # 数据标准化后,需要重写
 
-    def get_state(self, bar):
-        # Dataset类型,获得Dataset中,指定序列号的的element, ((N,date),(N,lags,features))
+    def _get_state(self, bar):
+        # Dataset类型,获得Dataset中,指定序列号的的element, ((N,date),(N,lags,state_features),(N,lags,non_state_features))
         element = [d for i, d in enumerate(iter(self.dataset)) if i == bar][0]
         # 此处待查,疑问有2: a)列表表达式内元素,是否应该就是((N,date),(N,lags,features)),那么[][0]代表什么呢? 答案: 找到的第0个值,待确认;
         # 疑问2: b)if i == bar 寻找到的仅仅是,self.dataset内某个batch的序列号,是否确认是某一条交易数据呢?
         # 答案: iter(self.dataset),即是迭代出包含的每一个元素,无论batch_size;
-        state = element[1]  # (N,lags,features)
-        return state
+        _, state, non_state = element  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
+        return state, non_state
 
     def seed(self, seed):
         random.seed(seed)
@@ -406,65 +418,50 @@ class Finance_Environment_V2:
         self.performance = 1
         self.iter_dataset = iter(self.dataset)  # 复位dataset迭代器,使其从第一个数据开始.
         self.bar = 0
-        self.state = self.iter_dataset.next()[1]  # (1,lags,features) 第一个数据
-        return self.state
+        _, self.state, self.non_state = self.iter_dataset.next()  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
+
+        return self.state, self.non_state
 
     def step(self, action):
         """
-        state: 观察的状态,或者从reset而来,或者从上一个step而来; (N,lags,features);
+        state: 观察的状态,或者从reset而来,或者从上一个step而来; (N,lags,state_features);
         action: 观察的状态的策略action;
         """
 
-        # 首列为log_return;取lags的最后一个时序表示当前状态;这里的log_return经过标准化后,数值范围均值为0,标准差为1,已经不能用作reward;
-        # return 可以从最后一列的收盘价中,使用公式: log(next_closePrice - current_closePrice)
-        # current_closePrice = self.
-        current_costPrice = self.state[0,-1, -1] # self.state 为当前一条state
-        if self.bar < self.dataset_len:
-            self.state = next(self.iter_dataset)[1]  # 下一个state
-            next_costPrice = self.state[0,-1,-1]
-            log_return = tf.math.log(next_costPrice/current_costPrice)
-            #----------------------------待续---------------
+        # non_state: (N,lags,non_state_features), 包括未曾标准化/归一化的,'horizon_log_return','close';
+        horizon_log_return, current_price = self.non_state[0, -1, :]
+        trading_cost = np.log(self.trading_commission * current_price)
+        info = {'bar': self.bar,
+                'price': current_price,
+                'horizon_log_return': horizon_log_return,
+                'trading_cost': trading_cost}
 
-
-        # Mark_return列在倒数第二列,顺数第6列; lags取第0个, MinmaxScale之后,变成float32了,需要转回成int
-        Mark_return = int(self.state[0, -1, 6])
-
-        correct = action == Mark_return
-        # ret = self.data['r'].iloc[self.bar] * \
-        #     self.leverage  # r:bar时刻与上一个时刻的比值的对数再乘以杠杆率,反应的是收益值;
-        # 相对于上一个交易日,reward为1,表明是对上一个action的reward,因此,最佳策略的action,也就是下一个reward近期收益+后续所有时刻的远期收益之和;
-        return_step = log_return * self.leverage
-        reward_1 = 1 if correct else 0
-        # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
-        reward_2 = abs(return_step) if correct else -abs(return_step)
-        self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
-        self.bar += 1
-        self.accuracy = self.treward / self.bar  # accurancy: 正确决策action的比例;
-        # performance: 以 1*exp(reward_2),反应的是总收益率
-        self.performance *= np.exp(reward_2)
-        # if self.bar >= self.dataset_len-1:  # bar从0->dataset_len,不包括dataset_len
-        if self.bar >= self.dataset_len:  # bar=dataset_len,实际是最后的一条数据的下一条;
-            done = True
-            # 当走到最后一条样本时,dataset迭代器已经不能够再next(),否则会出错,这里直接结束;输出的state为原state
-            info = {}
-            return self.state, reward_1 + reward_2 * 5, done, info
-        elif reward_1 == 1:
+        if self.bar < self.dataset_len or not math.isnan(horizon_log_return):
             done = False
-        elif (
-                self.performance < self.min_performance and self.bar > 15
-        ):  # 当最佳策略reward=0,总收益率低于最小值,步数(时刻)大于(15)次时,结束;即,执行策略action(15)次以后,收益率仍小于最小收益率,action策略仍然是显亏损,就中止结束
-            done = True
-        elif (
-                self.accuracy < self.min_accuracy and self.bar > 15
-        ):  # 当执行(15)步以后,产生收益的action的次数,仍低于最小次数时,结束中止,停止训练;
-            done = True
+            reward_1 = 1 if horizon_log_return > 0 else 0
+            # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
+            reward_2 = (horizon_log_return * self.leverage) * (action - 1) - trading_cost * abs(action - 1)
+            self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
+            self.accuracy = self.treward / self.bar  # accuracy: 正确决策action的比例;
+            # performance: 以 1*exp(reward_2),反应的是总收益率
+            self.performance *= np.exp(reward_2)
+
+            # 当最佳策略reward=0,总收益率低于最小值,步数(时刻)大于(15)次时,结束;即,执行策略action(15)次以后,收益率仍小于最小收益率,action策略仍然是显亏损,就中止结束
+            if self.performance < self.min_performance and self.bar > 15:
+                done = True
+            # 当执行(15)步以后,产生收益的action的次数,仍低于最小次数时,结束中止,停止训练;
+            if self.accuracy < self.min_accuracy and self.bar > 15:
+                done = True
+
         else:
-            done = False
+            done = True
+            reward_1 = 0
+            reward_2 = 0
 
         self.state = next(self.iter_dataset)[1]  # 下一个state
+        self.bar += 1
 
-        info = {}
-        return self.state, reward_1 + reward_2 * 5, done, info  # reward_2*5 不知道为什么放大5倍
+        return self.state, reward_1 + reward_2 * 5, done, info
 
 
 # 定义一个训练模型,用于DQN强化学习网络中的基础模型,可以替换成其它模型:
