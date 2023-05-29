@@ -97,7 +97,7 @@ def Dataset_Generator(data, data_columns_state=None, data_columns_non_state=None
     if shuffle:
         dataset.shuffle(buffer_size)
 
-    return dataset.batch(1, drop_remainder=True).prefetch(1) # batch_size = 1
+    return dataset.batch(1, drop_remainder=True).prefetch(1)  # batch_size = 1
 
 
 def data_normalization(data, lookback=252,
@@ -359,7 +359,7 @@ class Finance_Environment_V2:
             action_n,
             leverage=1,
             trading_commission=0.002,
-            min_performance=0.3, # 允许做空,
+            min_performance=0.3,  # 允许做空,
             min_accuracy=0.3,
     ):
         """
@@ -372,7 +372,7 @@ class Finance_Environment_V2:
         # 定义和初始化迭代器,内装Dataset,指针从第一个数据开始,为不影响指针,该变量仅在next()时使用.
         self.iter_dataset = iter(self.dataset)
         self.batch_size, self.lags, self.features = iter(dataset).element_spec[1].shape
-        self.dataset_len = len(list(iter(dataset)))   # dataset的样本总条数(batch之后) batch_size =1 ;
+        self.dataset_len = len(list(iter(dataset)))  # dataset的样本总条数(batch之后) batch_size =1 ;
 
         self.leverage = leverage  # 杠杆
         self.trading_commission = trading_commission
@@ -440,17 +440,20 @@ class Finance_Environment_V2:
                 'horizon_log_return': horizon_log_return,
                 'trading_cost': trading_cost}
 
-        if self.bar < self.dataset_len or not math.isnan(horizon_log_return):
+        if self.bar < self.dataset_len and not tf.experimental.numpy.isnan(horizon_log_return):
             done = False
             reward_1 = int(horizon_log_return > 0) * (action - 1)
             # reward_1 = 1 if horizon_log_return > 0 else -1
             # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
-            reward_2 = (horizon_log_return * self.leverage) * (action - 1) * 5 - trading_cost * abs(action - 1)
-            reward = reward_1 + reward_2
+            reward_2 = (horizon_log_return * self.leverage) * (action - 1) * 5
+            trading_cost = trading_cost * abs(action - 1)
+            reward = reward_1 + reward_2 * 5 - trading_cost
             self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
             self.accuracy = self.treward / (self.bar + 1)  # accuracy: 正确决策action的比例;
             # performance: 以 1*exp(reward_2),反应的是总收益率
             self.performance *= np.exp(reward_2)
+
+            _, self.state, self.non_state = next(self.iter_dataset)  # 下一个state
 
             # 当最佳策略reward=0,总收益率低于最小值,步数(时刻)大于(15)次时,结束;即,执行策略action(15)次以后,收益率仍小于最小收益率,action策略仍然是显亏损,就中止结束
             if self.performance < self.min_performance and self.bar > 15:
@@ -458,12 +461,10 @@ class Finance_Environment_V2:
             # 当执行(15)步以后,产生收益的action的次数,仍低于最小次数时,结束中止,停止训练;
             if self.accuracy < self.min_accuracy and self.bar > 15:
                 done = True
-
         else:
             done = True
             reward = 0
 
-        _, self.state, self.non_state = next(self.iter_dataset)  # 下一个state
         self.bar += 1
 
         return self.state, reward, done, info

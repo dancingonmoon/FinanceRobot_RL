@@ -542,6 +542,8 @@ class FinRobotAgentDQN():
         self.max_treward = 0
         self.trewards = deque(maxlen=25)
         self.averages = []
+        self.performances = deque(maxlen=25)
+        self.aperformances = []
 
         self.memory = deque(maxlen=memory_size)
         self.experience = namedtuple(
@@ -573,7 +575,7 @@ class FinRobotAgentDQN():
             return self.learn_env.action_space.sample()
         # state = tf.expand_dims(state, axis=0)
         actions = self.Q(state)  # (1,lags,8)->(1,1,action_space_n) ;
-        return tf.math.argmax(actions, axis=-1).numpy()[0,0]
+        return tf.math.argmax(actions, axis=-1).numpy()[0, 0]
 
     def soft_update(self, ):
         """
@@ -606,7 +608,7 @@ class FinRobotAgentDQN():
     #     # print('step:{} Q_target_weights[10][4]:\n{}'.format(self.step_num,self.Q_target.get_weights()[10][4]))
     #     return
 
-    # @tf.function  # 该 @tf.function 将追踪-编译 train_step 到 TF 图中，以便更快地执行。
+    @tf.function  # 该 @tf.function 将追踪-编译 train_step 到 TF 图中，以便更快地执行。
     def train_step(self, experience_dataset):
         # 求导,根据导数优化变量
         with tf.GradientTape() as tape:
@@ -634,7 +636,7 @@ class FinRobotAgentDQN():
 
         Q_next_state = tf.math.reduce_max(
             self.Q_target(next_state_batch), axis=-1)  # (N,lags, obs_space_n)-(N,1,action_n)-> (N, 1)
-        Q_next_state = tf.squeeze(Q_next_state,axis=-1) # (N,1) - > (N,)
+        Q_next_state = tf.squeeze(Q_next_state, axis=-1)  # (N,1) - > (N,)
 
         TD_Q_target = reward_batch + self.gamma * Q_next_state * undone_batch
         # print('TD_Q_target.shape:{}'.format(TD_Q_target.shape))
@@ -643,8 +645,8 @@ class FinRobotAgentDQN():
 
         # tf.gather(batch_dims=1)相当于对(N,lags,action_space_n)的首维N进行遍历循环,每个循环tf.gather:(action_space_n,)->(0,);再stack合并成(N,)
         Q_predict = tf.gather(Qvalue_action_pair,
-                              indices=action_batch, axis=-1, batch_dims=1) # (N,1)
-        Q_predict = tf.squeeze(Q_predict,axis=-1) # (N,1)-> (N,)
+                              indices=action_batch, axis=-1, batch_dims=1)  # (N,1)
+        Q_predict = tf.squeeze(Q_predict, axis=-1)  # (N,1)-> (N,)
         # print('Q_predict.shape={}'.format(Q_predict.shape))
 
         loss_value = tf.keras.losses.huber(
@@ -702,8 +704,8 @@ class FinRobotAgentDQN():
 
         self.loss.append(train_loss_avg.result())
         if self.step_num % 200 == 0:
-            print('step_num: {} | loss: {:.4f} '.format(
-                self.step_num, train_loss_avg.result()))
+            print('step_num: {} | loss: {:.4f} | profit rate: {:6.1f}'.format(
+                self.step_num, train_loss_avg.result(), self.learn_env.performance))
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
@@ -826,15 +828,17 @@ class FinRobotAgentDQN():
 
             self.trewards.append(treward)
             average = np.mean(self.trewards)
+            profit_rate = self.learn_env.performance
             self.averages.append(average)
+            self.performances.append(profit_rate)
+            self.aperformances.append(np.mean(self.performances))
 
             self.max_treward = max(self.max_treward, treward)
             time_assumed = (time.time() - start_time) / 60
             total_time_assumed = (time.time() - total_time) / 60
-            text = 'episode:{:4d}/{},耗时:{:3.2f}分/{:3.2f}分,训练集: | step: {} | average_treward: {:6.1f} | max_treward: {:.4f}'
+            text = 'episode:{:4d}/{},耗时:{:3.2f}分/{:3.2f}分,训练集: | step: {} | average_treward: {:6.1f} | max_treward: {:.4f} | average profit rate: {:6.3f}'
             if episode % 10 == 0:
-                print(text.format(episode + 1, episodes, time_assumed,
-                                  total_time_assumed, self.step_num, average, self.max_treward))
+                print(text.format(episode + 1, episodes, time_assumed,  total_time_assumed, self.step_num, average, self.max_treward, self.aperformances[-1]))
 
             # # 观察total reward mean 大于200的次数大约3时,提前终止训练;并每有最佳的loss值时,存盘权重
             # if mean_25 > best:
