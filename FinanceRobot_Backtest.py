@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     batch_size = 32
     data_normalized = data_normalization(data, 365, )
     dataset = Dataset_Generator(data_normalized)
-    env = Finance_Environment_V2(dataset, action_n=3, min_performance=0.1, min_accuracy=0.1)
+    env = Finance_Environment_V2(dataset, action_n=3, min_performance=0., min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
     init_state, init_non_state = env.reset()
     action = env.action_space.sample()
     state, reward, done, info = env.step(action)  # state:(1,lags,obs_n)

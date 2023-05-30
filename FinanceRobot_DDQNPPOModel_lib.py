@@ -586,29 +586,6 @@ class FinRobotAgentDQN():
         for source_weight, target_weight in zip(self.Q.trainable_variables, self.Q_target.trainable_variables):
             target_weight.assign(self.tau * source_weight + (1.0 - self.tau) * target_weight)
 
-    # def softupdate(self, tau=1e-3):
-    #     """Soft update model parameters.
-    #     θ_target = τ*θ_local + (1 - τ)*θ_target
-    #
-    #     Params
-    #     ======
-    #         Q (tensorflow model): weights will be copied from
-    #         Q_target (Target model): weights will be copied to
-    #         tau (float): interpolation parameter
-    #     """
-    #     Weights_Q = self.Q.get_weights()  # 长度18,里面每个矩阵(8,64)
-    #     Weights_Q_target = self.Q_target.get_weights()
-    #     # print('step:{} Q_target_weights[10][4]:\n{}'.format(self.step_num,self.Q_target.get_weights()[10][4]))
-    #     ws_q_target = []
-    #     for w_q, w_q_target in zip(Weights_Q, Weights_Q_target):
-    #         w_q_target = (1 - tau) * w_q_target + tau * w_q
-    #         ws_q_target.append(w_q_target)
-    #
-    #     # Q_target.set_weights(ws_q_target)
-    #     self.Q_target.set_weights(ws_q_target)
-    #     # print('step:{} Q_target_weights[10][4]:\n{}'.format(self.step_num,self.Q_target.get_weights()[10][4]))
-    #     return
-
     @tf.function  # 该 @tf.function 将追踪-编译 train_step 到 TF 图中，以便更快地执行。
     def train_step(self, experience_dataset):
         # 求导,根据导数优化变量
@@ -766,6 +743,11 @@ class FinRobotAgentDQN():
             if episode % 2 == 0:
                 print(text.format(episode + 1, episodes, time_assumed, total_time_assumed, self.step_num, average,
                                   self.max_treward, self.aperformances[-1]))
+
+            # 判断max_treward == t_reward,当t_reward为最大值时,将模型存盘:
+            if self.trewards[-1] == self.max_treward:
+                self.ckpt_manager.save()
+                print('model saved @ step:{},performance:{:.3f},accuracy:{:.2f}'.format(self.step_num, self.learn_env.performance,self.learn_env.accuracy))
 
             # # 观察total reward mean 大于200的次数大约3时,提前终止训练;并每有最佳的loss值时,存盘权重
             # if mean_25 > best:
