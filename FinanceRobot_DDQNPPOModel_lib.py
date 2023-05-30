@@ -5,11 +5,12 @@ from tensorflow.keras.layers import Dense, Dropout, AveragePooling1D
 import random
 import time
 
-import math
-from tqdm import tqdm
+# from tqdm import tqdm
 
 import numpy as np
-import pandas as pd
+
+
+# import pandas as pd
 
 
 # 定义一个训练模型,用于DQN强化学习网络中的基础模型,可以替换成其它模型:
@@ -522,7 +523,7 @@ class FinRobotAgentDQN():
 
     def __init__(self, Q, Q_target, gamma=0.98, tau=1e-3, learning_rate=5e-4, learn_env=None, memory_size=4000,
                  replay_batch_size=1000, fit_batch_size=128,
-                 checkpoint_path='./checkpoints', checkpoint_name_prex='BTC_DQN_'):
+                 checkpoint_path='./saved_model', checkpoint_name_prex='BTC_DQN_'):
         """
         args:
             build_model: 自建的深度学习模型,或者自定义单步训练后,做变量输入;该模型将在learn_env中训练,同一模型(训练后参数),再到valid_env中验证;
@@ -704,90 +705,15 @@ class FinRobotAgentDQN():
 
         self.loss.append(train_loss_avg.result())
         if self.step_num % 200 == 0:
-            print('step_num: {} | loss: {:.4f} | profit rate: {:6.1f}'.format(
-                self.step_num, train_loss_avg.result(), self.learn_env.performance))
+            print('step_num: {} | loss: {:.4f} | profit rate: {:6.1f} | accuracy: {:.2f}'.format(
+                self.step_num, train_loss_avg.result(), self.learn_env.performance, self.learn_env.accuracy))
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
         return train_loss_avg.result()
 
-    def replay(self, callbacks=None):
-        """
-        从memory(历史经验),提取一次batch,学习,更新模型,相当于一个batch的训练
-        args:
-            callbacks: keras定义的callbacks,用列表装入多个callbacks
-        """
-        batch = random.sample(
-            self.memory, self.replay_batch_size)  # 从memory里面,随机取出repla_batch_size个样本;
-
-        # batch中每个样本,生成,state,action_Qvalue_pair;再组合成dataset,包括(X_dataset,Y_dataset)
-
-        # 星号拆包,送入命名元组,获得field name, (N,field_names)
-        batch_Exp = self.experience(*zip(*batch))
-        state_batch = tf.convert_to_tensor(
-            batch_Exp.state, dtype=tf.float32)  # (N,obs_space_n)
-        action_batch = tf.convert_to_tensor(
-            batch_Exp.action)  # (N,) 最后一维的值表示action_space的序列
-
-        reward_batch = tf.convert_to_tensor(batch_Exp.reward, dtype=tf.float32)  # (N,)
-        next_state_batch = tf.convert_to_tensor(
-            batch_Exp.next_state, dtype=tf.float32)  # (N,obs_space_n)
-        undone_batch = tf.logical_not(batch_Exp.done)  # (N,)
-        # undone_batch原为(N,)bool类型,需要转成float才能参与算术运算
-        undone_batch = tf.cast(undone_batch, dtype=tf.float32)
-
-        # (N,action_space_n) -> (N,)
-        Q_next_state = tf.math.reduce_max(
-            self.Q_target(next_state_batch), axis=-1)
-        # print('state_batch.shape:{}'.format(state_batch.shape))
-        # print('next_state_batch.shape:{}'.format(next_state_batch.shape))
-        # print('Q_target(next_state_batch).shape:{}'.format(self.Q_target(next_state_batch).shape))
-        # print('max(Q_target(next_state_batch)).shape:{}'.format(tf.math.reduce_max(self.Q_target(next_state_batch),axis=-1).shape))
-        # print('Q_next_state.shape:{}'.format(Q_next_state.shape))
-        # print('undone_batch.shape:{}'.format(undone_batch.shape))
-        # print('reward_batch.shape:{}'.format(reward_batch.shape))
-
-        # (N,);都是(N,)的矩阵算术运算.
-        TD_Q_target = reward_batch + self.gamma * Q_next_state * undone_batch
-        # print('TD_Q_target.shape:{}'.format(TD_Q_target.shape))
-
-        # Qvalue_action_pair = self.Q_target(state_batch)
-        # 运行500次,loss收敛趋势不明显;但treward不稳定并出现下降;
-        # 试试看self.Q而不是Self.Q_target更新TD_Q_target作为target
-        Qvalue_action_pair = self.Q(state_batch)
-        # 运行500次,loss收敛趋势明显,可以收敛到1左右,之后震荡;treward未见明显增加
-        Qvalue_action_pair = Qvalue_action_pair.numpy()  # numpy可以item assignment,而tensor不可以
-
-        for i, a in enumerate(action_batch):
-            Qvalue_action_pair[i, a] = TD_Q_target[i]
-            # print('Qvalue_action_pair[{}, {}]:{}'.format(i,a,Qvalue_action_pair[i, a]))
-
-        # print('Qvalue_action_pair:{}'.format(Qvalue_action_pair))
-
-        X_dataset = tf.data.Dataset.from_tensor_slices(state_batch)
-        y_dataset = tf.data.Dataset.from_tensor_slices(Qvalue_action_pair)
-        Xy_dataset = tf.data.Dataset.zip((X_dataset, y_dataset)).batch(
-            self.fit_batch_size).prefetch(1)
-
-        # Dataset,训练(从历史经验中学习);epochs=1 而不是replay_batch_size/fit_batch_size,因为每一个epoch都是所有dateset全部训练一次
-        # 训练一次,优化一次weights:
-        history = self.Q.fit(Xy_dataset, epochs=1,
-                             callbacks=callbacks,
-                             verbose=False)  # 获得一个dataset样本的更新,立即训练模型,更新模型 verbose=0关闭每个样本进度条
-        self.loss.append(history.history['loss'])
-
-        # 采用soft update的方法,soft update Q target Network:
-        self.softupdate(self.tau)
-
-        if self.step_num % 200 == 0:
-            print('step_num: {} | loss: {:.4f} '.format(
-                self.step_num, history.history['loss'][0]))
-
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-
-    def learn(self, episodes, callbacks=None):
+    def learn(self, episodes):
         """
         args:
             episodes: 训练轮数;
@@ -837,8 +763,9 @@ class FinRobotAgentDQN():
             time_assumed = (time.time() - start_time) / 60
             total_time_assumed = (time.time() - total_time) / 60
             text = 'episode:{:4d}/{},耗时:{:3.2f}分/{:3.2f}分,训练集: | step: {} | average_treward: {:6.1f} | max_treward: {:.4f} | average profit rate: {:6.3f}'
-            if episode % 10 == 0:
-                print(text.format(episode + 1, episodes, time_assumed,  total_time_assumed, self.step_num, average, self.max_treward, self.aperformances[-1]))
+            if episode % 2 == 0:
+                print(text.format(episode + 1, episodes, time_assumed, total_time_assumed, self.step_num, average,
+                                  self.max_treward, self.aperformances[-1]))
 
             # # 观察total reward mean 大于200的次数大约3时,提前终止训练;并每有最佳的loss值时,存盘权重
             # if mean_25 > best:

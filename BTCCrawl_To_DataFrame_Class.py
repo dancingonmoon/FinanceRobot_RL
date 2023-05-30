@@ -17,10 +17,14 @@ import numpy as np
 import pandas as pd
 import requests
 from IPython.display import display
+from configparser import ConfigParser
 
 
 # 注: 可以使用的exchangeId (exchange=huobi)有:
-# ["alterdice" "bibox" "bigone" "bilaxy" "binance" "binanceus" "bitfinex" "bithumbglobal" "bitmax" "bitso" #"bitstamp" "btcturk" "coinex" "coinsbit" "cointiger" "crypto" "currency-com" "dex-trade" "digifinex" "exmarkets" #"exmo" "gate" "gdax" "hitbtc" "huobi" "indodax" "kickex" "kraken" "kucoin" "kuna" "lbank" "max-exchange" #"mercatox" "okcoin" "paribu" "poloniex" "probit" "qryptos" "quoine" "therocktrading" "tidex" "wazirx" "whitebit" #"zb"  ]
+# ["alterdice" "bibox" "bigone" "bilaxy" "binance" "binanceus" "bitfinex" "bithumbglobal" "bitmax" "bitso" #"bitstamp"
+# "btcturk" "coinex" "coinsbit" "cointiger" "crypto" "currency-com" "dex-trade" "digifinex" "exmarkets" #"exmo" "gate"
+# "gdax" "hitbtc" "huobi" "indodax" "kickex" "kraken" "kucoin" "kuna" "lbank" "max-exchange" #"mercatox" "okcoin"
+# "paribu" "poloniex" "probit" "qryptos" "quoine" "therocktrading" "tidex" "wazirx" "whitebit" #"zb"  ]
 # poloniex交易所到2022年8月1日数据停止
 
 # Folder_base = "E:/Python_WorkSpace/量化交易/股票分析/"
@@ -30,19 +34,16 @@ from IPython.display import display
 # BTC_json = "BTC_h12.json"
 
 
-def Datetime2Timstamp13bit(datetime):
+def Datetime2Timstamp13bit(_datetime):
     """
     args:
         datetime: text that pandas could accept
     out:
         timestamp : 13bit
     """
-    timestamp = pd.Timestamp(datetime, tz='UTC', unit='ns').value
+    timestamp = pd.Timestamp(_datetime, tz='UTC', unit='ns').value
     timestamp = int(timestamp / 1000000)
     return timestamp
-
-
-from configparser import ConfigParser
 
 
 def get_api_key(config_file_path):
@@ -94,7 +95,7 @@ class BTC_data_acquire:
         self.binance_api_secret = binance_api_secret
 
     def BinanceAPI_2_DF(self, FromWeb, interval='12h'):
-        '''
+        """
         通过Binance API接口,爬取交易数据,然后生成DataFrame,与已有json历史数据合并,生成自有记录开始的完整的Data
         input:
             FromWeb: bool; True表示从URL上爬取,False表示从json上读取
@@ -102,8 +103,9 @@ class BTC_data_acquire:
             api_key: Binance API key
             api_secret: Binance API secret
         Returns:
-            DataFrame.index: open_time, 时间戳;DataFrame.clolums: [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
-            '''
+            DataFrame.index: open_time, 时间戳;DataFrame.clolums:
+            [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
+        """
         # 从硬盘上读取以历史BTC数据
         # Binance API是基于UTC时区,在转换成时间戳于json写入再读出,失去了时区属性;'
         Data = pd.read_json(self.Directory + self.BinanceBTC_json)
@@ -188,12 +190,12 @@ class BTC_data_acquire:
             Args:
 
             Returns:
-                输出DataFrame格式的原始数据;不做任何处理,DataFrame.columns:[period,open,high,low,close,volumn]
+                输出DataFrame格式的原始数据;不做任何处理,DataFrame.columns:[period,open,high,low,close,volume]
 
         """
 
         # 爬取BTC价格:
-        Timestamp = str(time.time_ns())[:13]
+        # Timestamp = str(time.time_ns())[:13]
 
         start = str(
             datetime.datetime.timestamp(
@@ -220,13 +222,13 @@ class BTC_data_acquire:
         return Candle
 
     def GenDF_Frjson_FrWeb(self, FromWeb):
-        '''
+        """
         从BTC网站上爬取数据,然后生成DataFrame,与已有json历史数据合并,生成自有记录开始的完整的Data
         input:
             FromWeb: bool; True表示从URL上爬取,False表示从json上读取        
         Returns:
             DataFrame.index: 时间戳;DataFrame.clolums: [open,high,low,close,volumn]
-        '''
+        """
         # 从硬盘上读取以历史BTC数据
         Data = pd.read_json(self.Directory + self.BTC_json)
 
@@ -266,7 +268,7 @@ class BTC_data_acquire:
         return Data
 
     def MarketFactor_DataFrame(self, FromWeb=True, Market_Factor=True, weekdays=7, DayH=2):
-        '''
+        """
         从存储位置读出json,然后生成DataFrame,再计算RSI,合并成DataFrame;
         除基础的指标: ['d_return', 'd_amplitude', 'volume', 'RSI14', 'high', 'low', 'open','close']之外,
         新增加指标有:
@@ -284,7 +286,7 @@ class BTC_data_acquire:
             weekdays: 一周有几天;周末休市是5天;全天候是7天;
             Returns:
                 输出DataFrame格式的包含各个技术指标的数据:['d_return', 'd_amplitude', 'volume', 'RSI14', 'high', 'low', 'open', 'close']
-        '''
+        """
         Data = self.GenDF_Frjson_FrWeb(FromWeb=FromWeb)
 
         # 日收益率
@@ -337,7 +339,7 @@ class BTC_data_acquire:
 
     def Temporal_MarketFactor_DataFrame(self, FromWeb=True, Market_Factor=True, weekdays=7,
                                         DayH=2, minute_level=False):
-        '''
+        """
         从存储位置读出json,然后生成DataFrame,再计算RSI,再将year/month/day/weekday/hour/minute数据分别对应成0-5列,最后,合并成DataFrame
             Args:
             FromWeb: bool,是否从网站上爬取(True);或者从存储的json文件中读取;
@@ -345,7 +347,7 @@ class BTC_data_acquire:
             minute_level: bool,是否将分钟作为第5列;False时,时间标记,只包含0-4列,即:year/month/day/weekday/hour;
             Returns:
                 输出DataFrame格式的包含各个技术指标的数据,其中前0->4列(minute_level=False)为year/month/day/weekday/hour,或者前(0-5)列(minute_level=True),为year/month/day/weekday/hour/minute;
-        '''
+        """
 
         X = self.MarketFactor_DataFrame(FromWeb=FromWeb, Market_Factor=Market_Factor,
                                         weekdays=weekdays, DayH=DayH)
@@ -359,8 +361,7 @@ class BTC_data_acquire:
         if minute_level:
             X['minute'] = X.index.minute
             # 将year/month/day/weekday/hour/minute列,转移到最前面
-            X_columns = X.columns[(X.columns.shape[0] - 6):].tolist() + \
-                        X.columns[:(X.columns.shape[0] - 6)].tolist()
+            X_columns = X.columns[(X.columns.shape[0] - 6):].tolist() + X.columns[:(X.columns.shape[0] - 6)].tolist()
             X = X[X_columns]
         else:  # 否则,抛弃minute,到hour为止;
             # 将year/month/day/weekday/hour列,转移到最前面
@@ -376,7 +377,7 @@ class BTC_data_acquire:
         return X
 
     def RSI(self, t, periods=10):
-        '''
+        """
         # 计算RSI
         #RS=X天的平均上涨点数/X天的平均下跌点数,RSI=100×RS/(1+RS)
         #UP_AVG = UP_AMOUNT/PERIODS (周期内上涨数量平均)
@@ -391,7 +392,7 @@ class BTC_data_acquire:
             periods: RSI观察的窗口值,缺省为10;
         Returns:
             rsies: RSI数据列;
-        '''
+        """
         length = len(t)
         rsies = [np.nan] * length
         # 数据长度不超过周期，无法计算；
@@ -417,8 +418,8 @@ class BTC_data_acquire:
 
         # 后面的将使用快速计算；
         for j in range(periods + 1, length):
-            up = 0
-            down = 0
+            # up = 0
+            # down = 0
             if t[j] >= t[j - 1]:
                 up = t[j] - t[j - 1]
                 down = 0
@@ -529,7 +530,7 @@ class BTC_data_acquire:
             interval:  (str) – the interval of kline, e.g 1m, 5m, 1h, 1d, etc. (仅适用于BinanceAPI)
                         '12h'代表12小时的数据,日24小时,则每两个序列表示一天;'6h'代表6小时的数据,则每4个序列表示一天;
             DayH: H12代表12小时的数据,日24小时,则每两个序列表示一天;DayH=24/12;新版弃而不用,改为通过interval自动计算;
-            Market_Factor: 是否输出新增加的Market_Factor指标;Market_Factor=False时,仅输出close单列运算演化的列;
+            MarketFactor: 是否输出新增加的Market_Factor指标;Market_Factor=False时,仅输出close单列运算演化的列;
             weekdays: 一周有几天;周末休市是5天;全天候是7天;
 
             (股票数据DataFrame,包含有收盘价的列,列名为:'close_colName' (例如:'close');)
@@ -611,6 +612,7 @@ class BTC_data_acquire:
                 DayScale = 24 / (interval_unit / 60)
             else:
                 print(f"the interval({interval}) you input is with Invalid Time Unit")
+                DayScale = 'invalid time unit'
 
             RSI_period = int(weekdays * DayScale)
             RSI = self.RSI(data[close_colName], periods=RSI_period)
@@ -621,9 +623,11 @@ class BTC_data_acquire:
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
 
-            # 交易数据的最后horizon个时刻,假设交易数据最后的时刻为T,则(T - horizon, T)的horizon段内的horizon_log_return列数据为:NaN;
+            # 交易数据的最后horizon个时刻,假设交易数据最后的时刻为T,则(T - horizon, T)的horizon段内的horizon_price列数据为:NaN;
             # NaN仍然保留,并未删去; 因为(T-horizon,T)的state是存在的;也基于同样的原因,该列放在所有dropna之后,并且不能作为features进入训练;
-            data["horizon_log_return"] = np.log(data[close_colName].shift(-horizon) / data[close_colName])  # 收益率(对数)
+            # 这里使用price而不是log_return,是因为后面奖励函数需要扣除交易手续费,交易手续费是基于price;
+            # data["horizon_log_return"] = (data[close_colName].shift(-horizon) / data[close_colName])  # 收益率(对数)
+            data["horizon_price"] = data[close_colName].shift(-horizon)
 
             # BinanceAPI通道来的数据,有列: [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
             # volume:成交量(单位为手);amount:成交量(单位为金额),特征缩减,amount取消;同理,bid_amount取消;
@@ -631,24 +635,22 @@ class BTC_data_acquire:
                 X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag', 'Log_high_low',
                                                'Log_open_weeklag', 'open_pre_close', 'high_pre_close',
                                                'low_pre_close', 'num_trades', 'bid_volume',
-                                               'horizon_log_return', close_colName]]
+                                               'horizon_price', close_colName]]
             else:
                 X = data[features_afterLags + ['volume', RSI_columnName, 'Log_close_weeklag', 'Log_high_low',
-                                               'Log_open_weeklag', 'open_pre_close', 'high_pre_close','low_pre_close',
-                                               'horizon_log_return',close_colName]]
+                                               'Log_open_weeklag', 'open_pre_close', 'high_pre_close', 'low_pre_close',
+                                               'horizon_price', close_colName]]
         else:
 
-            # 交易数据的最后horizon个时刻,假设交易数据最后的时刻为T,则(T - horizon, T)的horizon段内的horizon_log_return列数据为:NaN;
+            # 交易数据的最后horizon个时刻,假设交易数据最后的时刻为T,则(T - horizon, T)的horizon段内的horizon_price列数据为:NaN;
             # NaN仍然保留,并未删去; 因为(T-horizon,T)的state是存在的;也基于同样的原因,该列放在所有dropna之后,并且不能作为features进入训练;
-            data["horizon_log_return"] = np.log(data[close_colName].shift(-horizon) / data[close_colName])  # 收益率(对数)
+            # data["horizon_log_return"] = np.log(data[close_colName].shift(-horizon) / data[close_colName])  # 收益率(对数)
+            data["horizon_price"] = data[close_colName].shift(-horizon)
 
             features_afterLags.remove(close_colName)  # close列计划放入最后1列,所以这里先删除
-            X = data[features_afterLags + ["horizon_log_return"] + [close_colName]]
-
+            X = data[features_afterLags + ["horizon_price"] + [close_colName]]
 
         display(X.describe())
         display(X.head(2))
         display(X.tail(2))
         return X
-
-

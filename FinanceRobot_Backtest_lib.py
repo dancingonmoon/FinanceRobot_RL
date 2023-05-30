@@ -8,7 +8,7 @@ import tensorflow as tf
 import random
 # import time
 
-import math
+# import math
 from tqdm import tqdm
 
 import numpy as np
@@ -110,13 +110,13 @@ def data_normalization(data, lookback=252,
         data: pandas, (N,features);
         lookback: int, 往回lookback的t时刻;在lookback的时间段内,采样mean,std,以将lookback的最后时刻数据标准化;
         normalize_columns: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
-        最后两列,'horizon_log_return','close'不参与标准化
+        最后两列,'horizon_price','close'不参与标准化
         Binance采集的Data列可能为:
         ['log_return', 'Roll_price_sma', 'Roll_price_min', 'Roll_price_max',
        'Roll_return_mom', 'Roll_return_std', 'volume', 'RSI_7',
        'Log_close_weeklag', 'Log_high_low', 'Log_open_weeklag',
        'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades','bid_volume',
-       "log_return_unnormalized",'horizon_log_return', 'close']
+       "log_return_unnormalized",'horizon_price', 'close']
     :return:
         data: pandas, (N-lookback,features);
     """
@@ -389,7 +389,7 @@ class Finance_Environment_V2:
     def dataset2data(
             self,
             price_column=-1,
-            horizon_log_return_column=-2,
+            horizon_price_column=-2,
     ):
         """
         将environment的dataset,还原出numpy类型的data:包括列:date,log_return,Mark_return,close,
@@ -398,7 +398,7 @@ class Finance_Environment_V2:
             price_column: price列在dataset中的列序列号,缺省为-1,即最后1列;
             log_return_column: log_return列在dataset中的列序列号,缺省为-2,即第-2列;
         out:
-            env_data: 包含0)date(datetime64类型),1)horizon_log_return,2)Mark_return,3)close收盘价,numpy,shape(N,4)
+            env_data: 包含0)date(datetime64类型),1)horizon_price,2)close收盘价,numpy,shape(N,3)
         """
         pass  # 数据标准化后,需要重写
 
@@ -432,22 +432,26 @@ class Finance_Environment_V2:
         action: 观察的状态的策略action;
         """
 
-        # non_state: (N,lags,non_state_features), 包括未曾标准化/归一化的,'horizon_log_return','close';
-        horizon_log_return, current_price = self.non_state[0, -1, :]
-        trading_cost = self.trading_commission * np.log(current_price)
+        # non_state: (N,lags,non_state_features), 包括未曾标准化/归一化的,'horizon_price','close';
+        horizon_price, current_price = self.non_state[0, -1, :]
+        # trading_cost = self.trading_commission * np.log(current_price)
         info = {'bar': self.bar,
                 'price': current_price,
-                'horizon_log_return': horizon_log_return,
-                'trading_cost': trading_cost}
+                'horizon_price': horizon_price
+                }
 
-        if self.bar < self.dataset_len and not tf.experimental.numpy.isnan(horizon_log_return):
+        if self.bar < self.dataset_len and not tf.experimental.numpy.isnan(horizon_price):
             done = False
-            reward_1 = int(horizon_log_return > 0) * (action - 1)
+            reward_1 = int(horizon_price > current_price) * (action - 1)
             # reward_1 = 1 if horizon_log_return > 0 else -1
             # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
-            reward_2 = (horizon_log_return * self.leverage) * (action - 1) * 5
-            trading_cost = trading_cost * abs(action - 1)
-            reward = reward_1 + reward_2 * 5 - trading_cost
+            # reward_2 = (horizon_log_return * self.leverage) * (action - 1)
+            # 收益-佣金: [horizon_price - horizon_price * commission * (action - 1) ] / price
+            reward_2 = np.log(horizon_price * (1 - self.trading_commission * abs(action - 1)) / current_price)
+            # 这里exp(horizon_log_return)就是horizon时刻的收盘价,后面直接替代
+            # trading_cost = trading_cost * abs(action - 1)
+            # reward = reward_1 + reward_2 * 5 - trading_cost * 5
+            reward = reward_1 + reward_2 * 5
             self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
             self.accuracy = self.treward / (self.bar + 1)  # accuracy: 正确决策action的比例;
             # performance: 以 1*exp(reward_2),反应的是总收益率
