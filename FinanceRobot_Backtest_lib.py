@@ -390,7 +390,7 @@ class Finance_Environment_V2:
             self,
             close_price_column=-1,
             horizon_price_column=-2,
-                ):
+    ):
         """
         将environment的dataset,还原出numpy类型的data:包括列:date,horizon_log_return,horizon_price,close,
         args:
@@ -399,21 +399,24 @@ class Finance_Environment_V2:
         out:
             env_backtest_data: 包含0)date(datetime64类型),1)horizon_log_return, 2)horizon_price,2)close收盘价,numpy,shape(N,4)
         """
-        dates = np.empty(self.dataset_len,dtype=object) # object
-        datas = np.empty(shape=(self.dataset_len,3),dtype=np.float32)
-        for bar, data in tqdm(enumerate(self.dataset),total=self.dataset_len):
-            date,_,non_state = data # ((1,20),(1,20,16),(1,20,2)
-            date = date[0,-1].numpy() # tensor->字节字符串->文本字符串.
-            non_state = non_state[0,-1,:]
+        dates = np.empty(self.dataset_len, dtype=object)  # object
+        datas = np.empty(shape=(self.dataset_len, 3), dtype=np.float32)
+        for bar, data in tqdm(enumerate(self.dataset), total=self.dataset_len):
+            date, _, non_state = data  # ((1,20),(1,20,16),(1,20,2)
+            date = date[0, -1].numpy()  # tensor->字节字符串->文本字符串.
+            non_state = non_state[0, -1, :]
             dates[bar] = np.datetime64(date)
-            datas[bar,0] = np.log(non_state[horizon_price_column] / non_state[close_price_column]) # 计算horizon_log_return
-            datas[bar,1] = non_state[horizon_price_column]
-            datas[bar,2] = non_state[price_column]
+            datas[bar, 0] = np.log(
+                non_state[horizon_price_column] / non_state[close_price_column])  # 计算horizon_log_return
+            datas[bar, 1] = non_state[horizon_price_column]
+            datas[bar, 2] = non_state[close_price_column]
 
-        env_backtest_data = np.concatenate((dates.reshape(-1,1),datas),axis=-1)
+        env_backtest_data = np.concatenate((dates.reshape(-1, 1), datas), axis=-1)
         # 去除包含NaN值的行, 在numpy中,没有dropna函数;
-        Nan_row = np.isnan(datas).any(axis=-1) # 只有浮点数才有NaN;
-        env_backtest_data = env_backtest_data[~Nan_row] # (N,3) 列:[date,horizon_log_return,horizon_price,close]
+        # Nan_row = np.isnan(datas).any(axis=-1) # 只有浮点数才有NaN;
+        # env_backtest_data = env_backtest_data[~Nan_row] # (N,3) 列:[date,horizon_log_return,horizon_price,close]
+
+        # 保留了NaN的行,好处是,能够观察出action策略动作所适用的horizon之后时刻的价格,收益
 
         return env_backtest_data
 
@@ -548,6 +551,8 @@ def Backtesting_vector(
     )  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
     env_data = np.c_[env_data, strategy_return, positions]  # (N,6)
     return env_data
+
+
 def BacktestingVectorV2(
         trained_model,
         env,
@@ -558,35 +563,39 @@ def BacktestingVectorV2(
     arg:
         agent_model: agent中训练后的model,这样预测出的才有backtest的意义;
         env: 为类OpenAI的Finance environment; 包含有backtest的观察dataset;
-        environment的dataset数据如果曾归一化,则需要输入归一化的Scaler(sklearn归一化模型类),来还原数据原值;缺省值None,则不需要归一化还原.
-        price_Scaler: 收盘价归一化的Scaler;
-        log_return_Scaler: log_return归一化的Scaler
-        price_column: price列在dataset中的列序列号,缺省为-1,即最后1列;
-        log_return_column: log_return列在dataset中的列序列号,缺省为0,即第0列;
-        Mark_return_column: Mar_return列在dataset中的列序列号,缺省为6,即第6列;
+        environment的dataset,((N,date),(N,lags,state),(N,lags,non_state),转换成env_backtest_data:(N,4)[date,horizon_log_return,horizon_price,cost_price]
+        close_price_column: close_price列在dataset中的列序列号,缺省为-1,即最后1列;
+        horizon_price_column: horizon_price列在dataset中的列序列号,缺省为-2,倒数第二列;
     out:
-        data: shape(N,6),包括列: 0)date,1)log_return,2)Mark_return,3)price,4)strategy_return,5)position
+        data: shape(N,6),包括列: 0)date,1)horizon_log_return,2)horizon_price,3)cost_price,4)strategy_return,5)position
         ;以及累计求和的散件图
     """
     env.min_accuracy = 0.0
     env.min_performance = 0.0
 
-    env_data = env.dataset2data(
-        price_Scaler=price_Scaler,
-        log_return_Scaler=log_return_Scaler,
-        price_column=price_column,
-        log_return_column=log_return_column,
-        Mark_return_column=Mark_return_column,
+    env_backtest_data = env.dataset2data(
+        close_price_column=close_price_column,
+        horizon_price_column=horizon_price_column,
     )
 
-    # done = False
-    state = env.reset()
-    positions = np.zeros((env.dataset_len,), dtype=int)
-    for _ in tqdm(range(env.dataset_len)):  # dataset中最后一个data,没有next step;
+    state, _ = env.reset()
+    positions = np.zeros((env.dataset_len,), dtype=int)  # 初始为0,每个时刻的position代表的是action策略之后的头寸;
+    for bar in tqdm(range(env.dataset_len)):  # dataset中最后一个data,没有next step;
         # 1.positions
-        action = np.argmax(agent_model.predict(state)[0, 0])
-        position = 1 if action == 1 else -1
-        positions[_] = position
+        actions = trained_model(state)  # (1,lags,state_features)->(1,1,action_space_n) ;
+        action = tf.math.argmax(actions, axis=-1).numpy()[0, 0]
+
+        if action == 0:  # short
+            positions[bar] = -1
+        elif action == 1 and bar == 0:
+            positions[bar] = 0  # hold
+        elif action == 1 and bar != 0:  # hold
+            positions[bar] = positions[bar - 1]
+        elif action == 2:  # long
+            positions[bar] = 1
+        else:
+            print(f'invalid action :{action}')
+
         state, reward, done, info = env.step(action)
 
         if done:
@@ -594,11 +603,10 @@ def BacktestingVectorV2(
 
     # strategy_return = np.roll(positions, 1)*env.leverage *env_data[:, 1]  # data[:,1]:log_return
     # print('positions.shape:{};env_data[:,1].shape:{}'.format(positions.shape,env_data[:,1].shape))
-    strategy_return = (
-            positions * env.leverage * env_data[:, 1]
-    )  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
-    env_data = np.c_[env_data, strategy_return, positions]  # (N,6)
-    return env_data
+    strategy_return = positions * env.leverage * env_backtest_data[:, 1]  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
+    env_backtest_data = np.c_[env_backtest_data, strategy_return, positions]  # (N,6)
+    cumsum_return = np.exp(np.sum(env_backtest_data, axis=4)) # 明天再查,这里首先是log_return 连乘, 其次axis=4,报错没有理由.
+    return env_backtest_data, cumsum_return
 
 
 # 基于事件的回测 Event_based Backtest
