@@ -604,7 +604,7 @@ def BacktestingVectorV2(
     # strategy_return = np.roll(positions, 1)*env.leverage *env_data[:, 1]  # data[:,1]:log_return
     # print('positions.shape:{};env_data[:,1].shape:{}'.format(positions.shape,env_data[:,1].shape))
     strategy_return = positions * env.leverage * env_backtest_data[:, 1]  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
-    cum_return = np.exp(np.cumprod(strategy_return))
+    cum_return = np.applnp.cumprod(strategy_return)
     env_backtest_data = np.c_[env_backtest_data, strategy_return, cum_return, positions]  # (N,7)
 
     return env_backtest_data
