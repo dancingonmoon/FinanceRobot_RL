@@ -221,7 +221,7 @@ class Finance_Environment:
             log_return_column: log_return列在dataset中的列序列号,缺省为0,即第0列;
             Mark_return_column: Mar_return列在dataset中的列序列号,缺省为6,即第6列;
         out:
-            env_data: 包含0)date(datetime64类型),1)log_return,2)Mark_return,3)close收盘价,numpy,shape(N,4)
+            env_backtest_data: 包含0)date(datetime64类型),1)log_return,2)Mark_return,3)close收盘价,numpy,shape(N,4)
         """
         date = np.array(
             [], dtype=object
@@ -412,7 +412,7 @@ class Finance_Environment_V2:
             datas[bar, 2] = non_state[close_price_column]
 
         env_backtest_data = np.concatenate((dates.reshape(-1, 1), datas), axis=-1)
-        # 去除包含NaN值的行, 在numpy中,没有dropna函数;
+        # 以下去除包含NaN值的行, 在numpy中,没有dropna函数;
         # Nan_row = np.isnan(datas).any(axis=-1) # 只有浮点数才有NaN;
         # env_backtest_data = env_backtest_data[~Nan_row] # (N,3) 列:[date,horizon_log_return,horizon_price,close]
 
@@ -461,14 +461,11 @@ class Finance_Environment_V2:
         if self.bar < self.dataset_len and not tf.experimental.numpy.isnan(horizon_price):
             done = False
             reward_1 = int(horizon_price > current_price) * (action - 1)
-            # reward_1 = 1 if horizon_log_return > 0 else -1
             # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
-            # reward_2 = (horizon_log_return * self.leverage) * (action - 1)
-            # 收益-佣金: [horizon_price - horizon_price * commission * (action - 1) ] / price
-            reward_2 = np.log(horizon_price * (1 - self.trading_commission * abs(action - 1)) / current_price)
-            # 这里exp(horizon_log_return)就是horizon时刻的收盘价,后面直接替代
-            # trading_cost = trading_cost * abs(action - 1)
-            # reward = reward_1 + reward_2 * 5 - trading_cost * 5
+            # 每个t时刻的状态包括收盘价,t时刻生成策略action,t时刻后执行action(buy/hold/sell),收益为:
+            # 价格收益-佣金: [horizon_price - current_price * commission * (action - 1) ] / current_price
+            reward_2 = np.log(horizon_price / current_price - self.trading_commission * abs(action - 1))
+            # reward_2 = np.log(horizon_price * (1 - self.trading_commission * abs(action - 1)) / current_price)
             reward = reward_1 + reward_2 * 5
             self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
             self.accuracy = self.treward / (self.bar + 1)  # accuracy: 正确决策action的比例;
@@ -544,8 +541,8 @@ def Backtesting_vector(
         if done:
             break
 
-    # strategy_return = np.roll(positions, 1)*env.leverage *env_data[:, 1]  # data[:,1]:log_return
-    # print('positions.shape:{};env_data[:,1].shape:{}'.format(positions.shape,env_data[:,1].shape))
+    # strategy_return = np.roll(positions, 1)*env.leverage *env_backtest_data[:, 1]  # data[:,1]:log_return
+    # print('positions.shape:{};env_backtest_data[:,1].shape:{}'.format(positions.shape,env_backtest_data[:,1].shape))
     strategy_return = (
             positions * env.leverage * env_data[:, 1]
     )  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
@@ -601,11 +598,16 @@ def BacktestingVectorV2(
         if done:
             break
 
-    # strategy_return = np.roll(positions, 1)*env.leverage *env_data[:, 1]  # data[:,1]:log_return
-    # print('positions.shape:{};env_data[:,1].shape:{}'.format(positions.shape,env_data[:,1].shape))
+    # strategy_return = np.roll(positions, 1)*env.leverage *env_backtest_data[:, 1]  # data[:,1]:log_return
+    # print('positions.shape:{};env_backtest_data[:,1].shape:{}'.format(positions.shape,env_backtest_data[:,1].shape))
     strategy_return = positions * env.leverage * env_backtest_data[:, 1]  # 没有乘以价格基数,日收益率如何反映真实的收益?因为时刻连续,时刻累计
-    cum_return = np.applnp.cumprod(strategy_return)
-    env_backtest_data = np.c_[env_backtest_data, strategy_return, cum_return, positions]  # (N,7)
+
+    cum_return = np.cumprod(strategy_return)  # 最后horizon时刻,为NaN值;
+    # nan_exp_fun = np.vectorize(lambda x: x if np.isnan(x) else np.exp(x))
+    # cum_return = nan_exp_fun(strategy_return)
+    env_backtest_data = np.c_[env_backtest_data, positions, strategy_return, cum_return]  # (N,7)
+    # 输出(N,7) 诸列:
+    # [date,horizon_log_return,horizon_price,cost_price,positions, strategy_return, cum_return]
 
     return env_backtest_data
 
@@ -876,6 +878,408 @@ class Backtesting_event:
         action = np.argmax(self.model.predict(state)[0, 0])
         state, reward, done, info = self.env.step(action)  # bar从1开始,跳到第1个样本;
         for bar in range(1, self.env_data.shape[0]):
+            self.wait = max(0, self.wait - 1)
+            date, price = self.get_date_price(bar)
+            if self.trades == 0:
+                print(50 * "=")
+                print(f"{date} | *** START BACKTEST ***")
+                self.print_balance(bar)
+                print(50 * "=")
+
+            # stop loss order
+            if self.sl is not None and self.position != 0:  # 定义了止损,并且已有头寸,无论空,还是多
+                # 根据最后一笔交易的进入价格(持有头寸的买卖价格),计算收益
+                rc = (price - self.entry_price) / self.entry_price
+                # 已有多头头寸,在此交易日(bar),该头寸的持有收益亏损超过设置的止损率.(1->2倍的ATR)
+                if self.position == 1 and rc < -self.sl:
+                    print(50 * "-")
+                    if guarantee:
+                        price = self.entry_price * (1 - self.sl)  # 成交价格设置成指定的止损价格;
+                        print(f"*** STOP LOSS (LONG  | {-self.sl:.4f}) ***")
+                    else:  # 否则,就是交易日的当时价格成交; 当时的价格可能时动态的,这里采用当日的收盘价成交;亦即,假设在当日收盘价之后,下一日到来之前交易;
+                        print(f"*** STOP LOSS (LONG  | {rc:.4f}) ***")
+                    self.place_sell_order(bar, units=self.units, gprice=price)
+                    self.wait = wait  # 下一交易发生之前等待的条数
+                    self.position = 0
+                # 已有空头头寸,然该空头的收益率(价格增长)超过设置的止损率.
+                elif self.position == -1 and rc > self.sl:
+                    print(50 * "-")
+                    if guarantee:
+                        price = self.entry_price * (1 + self.sl)
+                        print(f"*** STOP LOSS (SHORT | -{self.sl:.4f}) ***")
+                    else:
+                        print(f"*** STOP LOSS (SHORT | -{rc:.4f}) ***")
+                    self.place_buy_order(bar, units=-self.units, gprice=price)
+                    self.wait = wait
+                    self.position = 0  # 止损单之后,头寸成0;
+
+            # trailing stop loss order
+            if self.tsl is not None and self.position != 0:
+                # max_price是每次与price比较,并进行更新,总是更新(跟踪)最大值;;
+                self.max_price = max(self.max_price, price)
+                # min_price是每次与price比较,并进行更新,总是更新(跟踪)最小值;;
+                self.min_price = min(self.min_price, price)
+                rc_1 = (price - self.max_price) / self.entry_price  # 同最大值比较的收益;
+                rc_2 = (self.min_price - price) / self.entry_price  # 同最小值比较的收益;
+                if self.position == 1 and rc_1 < -self.tsl:
+                    print(50 * "-")
+                    print(f"*** TRAILING SL (LONG  | {rc_1:.4f}) ***")
+                    self.place_sell_order(bar, units=self.units)
+                    self.wait = wait  # 风控事件之后,wait次数恢复;
+                    self.position = 0
+                elif self.position == -1 and rc_2 < -self.tsl:
+                    print(50 * "-")
+                    print(f"*** TRAILING SL (SHORT | {rc_2:.4f}) ***")
+                    self.place_buy_order(bar, units=-self.units)
+                    self.wait = wait
+                    self.position = 0
+
+            # take profit order
+            if self.tp is not None and self.position != 0:
+                rc = (price - self.entry_price) / self.entry_price
+                if self.position == 1 and rc > self.tp:
+                    print(50 * "-")
+                    if guarantee:
+                        price = self.entry_price * (1 + self.tp)
+                        print(f"*** TAKE PROFIT (LONG  | {self.tp:.4f}) ***")
+                    else:
+                        print(f"*** TAKE PROFIT (LONG  | {rc:.4f}) ***")
+                    self.place_sell_order(bar, units=self.units, gprice=price)
+                    self.wait = wait
+                    self.position = 0
+                elif self.position == -1 and rc < -self.tp:
+                    print(50 * "-")
+                    if guarantee:
+                        price = self.entry_price * (1 - self.tp)
+                        print(f"*** TAKE PROFIT (SHORT | {self.tp:.4f}) ***")
+                    else:
+                        print(f"*** TAKE PROFIT (SHORT | {-rc:.4f}) ***")
+                    self.place_buy_order(bar, units=-self.units, gprice=price)
+                    self.wait = wait
+                    self.position = 0
+
+            action = np.argmax(self.model.predict(state)[0, 0])
+            state, reward, done, info = self.env.step(action)
+            position = 1 if action == 1 else -1
+            # wait初始为5,每个样本,减去1,5此后为0;
+            if self.position in [0, -1] and position == 1 and self.wait == 0:
+                if self.verbose:
+                    print(50 * "-")
+                    print(f"{date} | *** GOING LONG ***")
+                if self.position == -1:
+                    self.place_buy_order(bar - 1, units=-self.units, gprice=None)
+                self.place_buy_order(bar - 1, amount=self.current_balance, gprice=None)
+                if self.verbose:
+                    self.print_net_wealth(bar)
+                self.position = 1
+            elif self.position in [0, 1] and position == -1 and self.wait == 0:
+                if self.verbose:
+                    print(50 * "-")
+                    print(f"{date} | *** GOING SHORT ***")
+                if self.position == 1:
+                    self.place_sell_order(bar - 1, units=self.units, gprice=None)
+                self.place_sell_order(bar - 1, amount=self.current_balance, gprice=None)
+                if self.verbose:
+                    self.print_net_wealth(bar)
+                self.position = -1
+
+            self.net_wealths.append(
+                (
+                    date,
+                    price,
+                    self.units,
+                    self.current_balance,
+                    self.calculate_net_wealth(price),
+                    self.position,
+                    self.trades,
+                )
+            )
+        self.net_wealths = pd.DataFrame(
+            self.net_wealths,
+            columns=[
+                "date",
+                "price",
+                "units",
+                "balance",
+                "net_wealth",
+                "position",
+                "trades",
+            ],
+        )
+
+        self.net_wealths.set_index("date", inplace=True)
+        self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index)
+        self.close_out(bar)
+
+
+class BacktestingEventV2:
+    """
+    Event based Backtesting Version 2:
+    1. 动作空间,buy,hold,sell;
+    2. 训练中允许做空,为放大reward,避免长期hold;回测时,只允许做多,不允许做空;
+    3. 对每个时刻t的状态(包含t时刻的close_price)进行预测action, 而action(buy/hold/sell)的执行也发生在t时刻之后;
+       commission,以及buy/sell的结算基价为t时刻的close_price.然而,该action的预期收益却是在t_horizon时刻之后;
+    """
+
+    def __init__(
+            self,
+            env,
+            trained_model,
+            initial_amount,
+            percent_commission,
+            fixed_commission,
+            verbose=False,
+            MinUnit_1Position=0,
+            date_column = 0,
+            close_price_column = -1,
+            horizon_price_column = -2
+    ):
+        """
+        args:
+            env: 类OpenAI GYM的Finance 类环境,由Fiance_environment类生成;给定state,以及action,能够生成next_state,reward;
+            trained_model: 训练后的DQN模型,能够针对state给出策略action;
+                env.dataset2data会处理non_state数据中t时刻,以及t+horizon时刻的收盘价,生成env_backtest_data:
+            date_column: t时刻的date所在列
+            close_price_column: t时刻收盘价所在列;
+            horizon_price_column: t+horizon时刻的收盘价所在列; 因为action的结算基价都是t时刻的close_price,所以horizon_price在back_test中并无意义;
+            initial_amount: 回测的初始金额;
+            percent_commission: transaction时的与价格相比例的交易手续费;
+            fixed_commission: transaction时,一次性,固定的交易手续费
+            MinUnit_1Position:头寸的最小计量单位;对于股票而言,最小的单位是整数,即为10的0次方,取值0;对于BTC而言,最小的单位是10的-8次方,即取-8;如果某只股票最小计数单位为10,则该值为1;
+        """
+        self.env = env
+        self.trained_model = trained_model
+        self.initial_amount = initial_amount
+        self.current_balance = initial_amount
+        self.ptc = percent_commission  # 按比例形式的交易佣金;percent transaction commission
+        self.ftc = fixed_commission  # 固定形式的交易佣金; fixed transaction commission
+        self.verbose = verbose
+        self.units = 0  # 持有的头寸单位计数;如股数,或币数;
+        self.trades = 0
+        self.net_performance = 0
+        self.env_backtest_data = env.dataset2data(close_price_column=close_price_column,
+                                                  horizon_price_column=horizon_price_column)
+        self.MinUnit_1Position = MinUnit_1Position
+
+        self.date_column = date_column
+        self.close_price_column = close_price_column
+        # self.horizon_price_column = horizon_price_column
+
+    def get_date_price(self, bar):
+        """Returns date and price for a given bar."""
+        date = self.env_backtest_data[bar, self.date_column]
+        price = self.env_backtest_data[bar, self.close_price_column]
+        return date, price
+
+    def print_balance(self, bar):
+        """Prints the current cash balance for a given bar."""
+        date, price = self.get_date_price(bar)
+        print(f"{date} | current balance = {self.current_balance:.2f}")
+
+    def calculate_net_wealth(self, price):
+        return self.current_balance + self.units * price
+
+    def print_net_wealth(self, bar):
+        """Prints the net wealth for a given bar
+        (cash + position).
+        """
+        date, price = self.get_date_price(bar)
+        net_wealth = self.calculate_net_wealth(price)
+        # print(f'{date} | net wealth = {net_wealth:.2f}')
+        print(
+            "{} | balance:{:.2f}+units:{}*price:{:.4f}=net_wealth:{:.4f}".format(
+                date, self.current_balance, self.units, price, net_wealth
+            )
+        )
+
+    def set_prices(self, price):
+        """Sets prices for tracking of performance.
+        To test for e.g. trailing stop loss hit.
+        """
+        self.entry_price = price
+        self.min_price = price
+        self.max_price = price
+
+    def place_buy_order(self, bar, amount=None, units=None, gprice=None):
+        """Places a buy order for a given bar and for
+            a given amount or number of units. 当units<0,表示买空;
+        args:
+            gprice: 买单的指定价格,guarantee价格;
+        """
+        date, price = self.get_date_price(bar)
+        if gprice is not None:
+            price = gprice
+        if units is None:
+            MinUnit_1Position = 10 ** self.MinUnit_1Position
+            units = (
+                    int(amount / price / MinUnit_1Position) * MinUnit_1Position
+            )  # 获得低于指定位数小数的值;
+            # print('units({})=int(amount({})/price({}))'.format(units, amount, price))
+            # units = amount / price  # alternative handling
+        self.current_balance -= (1 + self.ptc) * units * price + self.ftc
+        self.units += units
+        self.trades += 1
+        self.set_prices(price)
+        if self.verbose:
+            # print(f'{date} | buy {units} units for {price:.4f}')
+            print(
+                "{}'s price {:0.4f}, buy {} units.".format(
+                    date,
+                    price,
+                    units,
+                )
+            )
+            self.print_balance(bar)
+
+    def place_sell_order(self, bar, amount=None, units=None, gprice=None):
+        """Places a sell order for a given bar and for
+            a given amount or number of units.
+        args:
+            gprice: 卖单的指定价格,guarantee价格;
+        """
+        date, price = self.get_date_price(bar)
+        if gprice is not None:
+            price = gprice
+        if units is None:
+            MinUnit_1Position = 10 ** self.MinUnit_1Position
+            units = (
+                    int(amount / price / MinUnit_1Position) * MinUnit_1Position
+            )  # 获得低于指定位数小数的值;
+            # units = amount / price  # altermative handling
+        self.current_balance += (1 - self.ptc) * units * price - self.ftc
+        self.units -= units
+        self.trades += 1
+        self.set_prices(price)
+        if self.verbose:
+            print("{}'s price {:0.4f}, sell {} units.".format(date, price, units))
+            self.print_balance(bar)
+
+    def close_out(self, bar):
+        """Closes out any open position at a given bar."""
+        date, price = self.get_date_price(bar)
+        print(50 * "=")
+        print(f"{date} | *** CLOSING OUT ***")
+        if self.units < 0:
+            self.place_buy_order(bar, units=-self.units)
+        else:
+            self.place_sell_order(bar, units=self.units)
+        if not self.verbose:
+            print(f"{date} | current balance = {self.current_balance:.2f}")
+        self.net_performance = (self.current_balance / self.initial_amount - 1) * 100
+        print(f"{date} | net performance [%] = {self.net_performance:.4f}")
+        print(f"{date} | number of trades [#] = {self.trades}")
+        print(50 * "=")
+
+    def backtest_strategy_WO_RM(self):
+        """
+        Event-based backtesting of the trading bot's performance.
+        利用BacktesingBase类中定义的交易的方法,买,卖等;实现观察数据的回测过程.
+        没有risk Management;(没有止损,跟踪止损,止盈,风控措施)
+        没有做空,只有做多;
+        bar 从 0 时刻开始,因为即使是第0个时刻,也是有收盘价;第0时刻的状态预测action,0时刻后执行;
+        """
+        self.units = 0
+        self.position = 0  # 用于存放头寸的状态;
+        self.trades = 0
+        self.current_balance = self.initial_amount
+        self.net_wealths = list()
+
+        state, _ = self.env.reset()
+        for bar in range(0, self.env_backtest_data.shape[0]):
+            date, price = self.get_date_price(bar)
+            if self.trades == 0:
+                print(50 * "=")
+                print(f"{date} | *** START BACKTEST ***")
+                self.print_balance(bar)
+                print(50 * "=")
+            action = np.argmax(self.trained_model(state),axis=-1)[0,0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            # state, reward, done, info = self.env.step(action)
+            # position = 1 if action == 1 else -1
+            if self.position in [0, -1] and action == 2: # buy 不许做空,打标待改.
+                if self.verbose:
+                    print(50 * "-")
+                    print(f"{date} | *** GOING LONG ***")
+                if self.position == -1:  # self.position=-1,表明手中有空头,先买空头,再买多头
+                    self.place_buy_order(bar, units=-self.units, gprice=None)
+                self.place_buy_order( bar , amount=self.current_balance, gprice=None )  # 先买空头,再买多头;
+                if self.verbose:
+                    self.print_net_wealth(bar)
+                self.position = 1
+            elif self.position in [0, 1] and action == 0: # sell
+                if self.verbose:
+                    print(50 * "-")
+                    print(f"{date} | *** GOING SHORT ***")
+                if self.position == 1:
+                    # 为什么是bar-1,前一日呢? 因为,place_sell_order方法是以指定样本的价格来买,该样本的价格是收盘价,所以是上一个样本的时间
+                    self.place_sell_order(bar - 1, units=self.units, gprice=None)
+                self.place_sell_order(
+                    bar - 1, amount=self.current_balance, gprice=None
+                )  # 手中已经卖出全部头寸,只有现金,再卖空(先借头寸,再卖出空头,卖出空头,头寸的余额为负值)
+                if self.verbose:
+                    self.print_net_wealth(bar)
+                self.position = -1
+            # 以下输出资产/交易状态:
+
+            self.net_wealths.append(
+                (
+                    date,
+                    price,
+                    self.units,
+                    self.current_balance,
+                    self.calculate_net_wealth(price),
+                    self.position,
+                    self.trades,
+                )
+            )
+        self.net_wealths = pd.DataFrame(
+            self.net_wealths,
+            columns=[
+                "date",
+                "price",
+                "units",
+                "balance",
+                "net_wealth",
+                "position",
+                "trades",
+            ],
+        )
+        self.net_wealths.set_index("date", inplace=True)
+        self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index)
+        self.close_out(bar)
+
+    def backtest_strategy_WH_RM(
+            self,
+            StopLoss=None,
+            TrailStopLoss=None,
+            TakeProfit=None,
+            wait=5,
+            guarantee=False,
+    ):
+        """Event-based backtesting of the trading bot's performance.
+            Incl. stop loss, trailing stop loss and take profit.
+            利用BacktesingBase类中定义的交易的方法,买,卖等;实现观察数据的回测过程.
+            带有risk Management;包含:止损,跟踪止损,止盈等风控措施;
+        args:
+            StopLoss: stop loss,止损;
+            TrailStopLoss: trailing stop loss,跟踪止损;
+            TakeProfit: take profit,止盈;
+            wait: 两次策略交易事件(风控事件,或者买卖交易)之间等待的条数(样本条数,或者是样本间隔交易间隔的数量)
+            guarantee: bool值,表示是否以保证价格,或是市场当时的价格成交;
+        """
+        self.units = 0
+        self.position = 0
+        self.trades = 0
+        self.sl = StopLoss
+        self.tsl = TrailStopLoss
+        self.tp = TakeProfit
+        self.wait = 0
+        self.current_balance = self.initial_amount
+        self.net_wealths = list()
+
+        state = self.env.reset()
+        action = np.argmax(self.model.predict(state)[0, 0])
+        state, reward, done, info = self.env.step(action)  # bar从1开始,跳到第1个样本;
+        for bar in range(1, self.env_backtest_data.shape[0]):
             self.wait = max(0, self.wait - 1)
             date, price = self.get_date_price(bar)
             if self.trades == 0:

@@ -62,12 +62,11 @@ if __name__ == '__main__':
     # actions = model(state) # (N,1, action_n)
     FinR_Agent = FinRobotAgentDQN(Q, Q_target, gamma=0.98, learning_rate=5e-4, learn_env=env, fit_batch_size=64, )
     # 训练过程:
-    # FinR_Agent.learn(episodes=100)
-    # print(f"{'-' * 40}finished{'-' * 40}")
-    # 生成env_backtest_data:
-    # env_backtest_data = env.dataset2data() #(N,3)
-    # print(env_backtest_data)
+    FinR_Agent.learn(episodes=200)
+    print(f"{'-' * 40}finished{'-' * 40}")
+
     # vector backtest
+
     env_backtest_data  = BacktestingVectorV2(Q,env,)
     print(env_backtest_data)
 
