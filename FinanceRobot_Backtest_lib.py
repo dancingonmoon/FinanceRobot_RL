@@ -460,14 +460,23 @@ class Finance_Environment_V2:
 
         if self.bar < self.dataset_len and not tf.experimental.numpy.isnan(horizon_price):
             done = False
-            reward_1 = int(horizon_price > current_price) * (action - 1)
+            if horizon_price > current_price:
+                reward_1 = action - 1
+            elif horizon_price < current_price:
+                reward_1 = 1 - action
+            else:
+                reward_1 = 1 if action == 1 else 0
+            # reward_1 = int(horizon_price > current_price) * (action - 1)
             # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
             # 每个t时刻的状态包括收盘价,t时刻生成策略action,t时刻后执行action(buy/hold/sell),收益为:
             # 价格收益-佣金: [horizon_price - current_price * commission * (action - 1) ] / current_price
-            reward_2 = np.log(horizon_price / current_price - self.trading_commission * abs(action - 1))
+            margin_ratio = horizon_price / current_price - self.trading_commission * abs(action - 1)
+            reward_2 = np.log(margin_ratio) * (action - 1)
             # reward_2 = np.log(horizon_price * (1 - self.trading_commission * abs(action - 1)) / current_price)
             reward = reward_1 + reward_2 * 5
-            self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
+            # self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
+            if reward_1 == 1:
+                self.treward += 1  # 表示的是,当action=1,即策略认为action与收益方向一致的次数;
             self.accuracy = self.treward / (self.bar + 1)  # accuracy: 正确决策action的比例;
             # performance: 以 1*exp(reward_2),反应的是总收益率
             self.performance *= np.exp(reward_2)
@@ -1030,9 +1039,9 @@ class BacktestingEventV2:
             fixed_commission,
             verbose=False,
             MinUnit_1Position=0,
-            date_column = 0,
-            close_price_column = -1,
-            horizon_price_column = -2
+            date_column=0,
+            close_price_column=-1,
+            horizon_price_column=-2
     ):
         """
         args:
@@ -1112,7 +1121,7 @@ class BacktestingEventV2:
         if units is None:
             MinUnit_1Position = 10 ** self.MinUnit_1Position
             units = (
-                    int(amount / price / MinUnit_1Position) * MinUnit_1Position
+                    int((amount - amount * self.ptc - self.ftc) / price / MinUnit_1Position) * MinUnit_1Position
             )  # 获得低于指定位数小数的值;
             # print('units({})=int(amount({})/price({}))'.format(units, amount, price))
             # units = amount / price  # alternative handling
@@ -1143,7 +1152,7 @@ class BacktestingEventV2:
         if units is None:
             MinUnit_1Position = 10 ** self.MinUnit_1Position
             units = (
-                    int(amount / price / MinUnit_1Position) * MinUnit_1Position
+                    int((amount - amount * self.ptc - self.ftc) / price / MinUnit_1Position) * MinUnit_1Position
             )  # 获得低于指定位数小数的值;
             # units = amount / price  # altermative handling
         self.current_balance += (1 - self.ptc) * units * price - self.ftc
@@ -1161,8 +1170,13 @@ class BacktestingEventV2:
         print(f"{date} | *** CLOSING OUT ***")
         if self.units < 0:
             self.place_buy_order(bar, units=-self.units)
-        else:
+        elif self.units > 0:
             self.place_sell_order(bar, units=self.units)
+        else:  # self.units=0
+            if self.verbose:
+                print("{}'s price {:0.4f}, {} unit trades .".format(date, price, self.units))
+                self.print_balance(bar)
+
         if not self.verbose:
             print(f"{date} | current balance = {self.current_balance:.2f}")
         self.net_performance = (self.current_balance / self.initial_amount - 1) * 100
@@ -1184,42 +1198,43 @@ class BacktestingEventV2:
         self.current_balance = self.initial_amount
         self.net_wealths = list()
 
+        first_date, _ = self.get_date_price(0)
+        print(50 * "=")
+        print(f"{first_date} | *** START BACKTEST ***")
+        self.print_balance(0)
+        print(50 * "=")
         state, _ = self.env.reset()
         for bar in range(0, self.env_backtest_data.shape[0]):
             date, price = self.get_date_price(bar)
-            if self.trades == 0:
-                print(50 * "=")
-                print(f"{date} | *** START BACKTEST ***")
-                self.print_balance(bar)
-                print(50 * "=")
-            action = np.argmax(self.trained_model(state),axis=-1)[0,0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            action = np.argmax(self.trained_model(state), axis=-1)[
+                0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
             # state, reward, done, info = self.env.step(action)
             # position = 1 if action == 1 else -1
-            if self.position in [0, -1] and action == 2: # buy 不许做空,打标待改.
+            # if self.position in [0, -1] and action == 2: # buy 不许做空;
+            if self.position == 0 and action == 2:
                 if self.verbose:
                     print(50 * "-")
                     print(f"{date} | *** GOING LONG ***")
-                if self.position == -1:  # self.position=-1,表明手中有空头,先买空头,再买多头
-                    self.place_buy_order(bar, units=-self.units, gprice=None)
-                self.place_buy_order( bar , amount=self.current_balance, gprice=None )  # 先买空头,再买多头;
+                # if self.position == -1:  # self.position=-1,表明手中有空头,先买空头,再买多头
+                #     self.place_buy_order(bar, units=-self.units, gprice=None)
+                self.place_buy_order(bar, amount=self.current_balance, gprice=None)  # 先买空头,再买多头;
                 if self.verbose:
                     self.print_net_wealth(bar)
                 self.position = 1
-            elif self.position in [0, 1] and action == 0: # sell
+            # elif self.position in [0, 1] and action == 0: # sell
+            elif self.position == 1 and action == 0:  # sell
                 if self.verbose:
                     print(50 * "-")
                     print(f"{date} | *** GOING SHORT ***")
-                if self.position == 1:
-                    # 为什么是bar-1,前一日呢? 因为,place_sell_order方法是以指定样本的价格来买,该样本的价格是收盘价,所以是上一个样本的时间
-                    self.place_sell_order(bar - 1, units=self.units, gprice=None)
-                self.place_sell_order(
-                    bar - 1, amount=self.current_balance, gprice=None
-                )  # 手中已经卖出全部头寸,只有现金,再卖空(先借头寸,再卖出空头,卖出空头,头寸的余额为负值)
+                # if self.position == 1:
+                #     # 为什么是bar-1,前一日呢? 因为,place_sell_order方法是以指定样本的价格来买,该样本的价格是收盘价,所以是上一个样本的时间
+                #     self.place_sell_order(bar - 1, units=self.units, gprice=None)
+                self.place_sell_order(bar, amount=self.current_balance, gprice=None)  #
                 if self.verbose:
                     self.print_net_wealth(bar)
-                self.position = -1
-            # 以下输出资产/交易状态:
+                self.position = 0
 
+            # 以下输出资产/交易状态:
             self.net_wealths.append(
                 (
                     date,
@@ -1246,6 +1261,7 @@ class BacktestingEventV2:
         self.net_wealths.set_index("date", inplace=True)
         self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index)
         self.close_out(bar)
+        return self.net_wealths
 
     def backtest_strategy_WH_RM(
             self,
@@ -1272,28 +1288,31 @@ class BacktestingEventV2:
         self.sl = StopLoss
         self.tsl = TrailStopLoss
         self.tp = TakeProfit
-        self.wait = 0
+        self.wait = wait
         self.current_balance = self.initial_amount
         self.net_wealths = list()
 
-        state = self.env.reset()
-        action = np.argmax(self.model.predict(state)[0, 0])
-        state, reward, done, info = self.env.step(action)  # bar从1开始,跳到第1个样本;
-        for bar in range(1, self.env_backtest_data.shape[0]):
+        first_date, _ = self.get_date_price(0)
+        print(50 * "=")
+        print(f"{first_date} | *** START BACKTEST ***")
+        self.print_balance(0)
+        print(50 * "=")
+        state, _ = self.env.reset()
+        for bar in range(0, self.env_backtest_data.shape[0]):
             self.wait = max(0, self.wait - 1)
             date, price = self.get_date_price(bar)
-            if self.trades == 0:
-                print(50 * "=")
-                print(f"{date} | *** START BACKTEST ***")
-                self.print_balance(bar)
-                print(50 * "=")
+            # if self.trades == 0:
+            #     print(50 * "=")
+            #     print(f"{date} | *** START BACKTEST ***")
+            #     self.print_balance(bar)
+            #     print(50 * "=")
 
             # stop loss order
-            if self.sl is not None and self.position != 0:  # 定义了止损,并且已有头寸,无论空,还是多
+            if self.sl is not None and self.position == 1 and self.wait == 0:  # 定义了止损,并且已有头寸
                 # 根据最后一笔交易的进入价格(持有头寸的买卖价格),计算收益
                 rc = (price - self.entry_price) / self.entry_price
                 # 已有多头头寸,在此交易日(bar),该头寸的持有收益亏损超过设置的止损率.(1->2倍的ATR)
-                if self.position == 1 and rc < -self.sl:
+                if rc < -self.sl:
                     print(50 * "-")
                     if guarantee:
                         price = self.entry_price * (1 - self.sl)  # 成交价格设置成指定的止损价格;
@@ -1303,43 +1322,26 @@ class BacktestingEventV2:
                     self.place_sell_order(bar, units=self.units, gprice=price)
                     self.wait = wait  # 下一交易发生之前等待的条数
                     self.position = 0
-                # 已有空头头寸,然该空头的收益率(价格增长)超过设置的止损率.
-                elif self.position == -1 and rc > self.sl:
-                    print(50 * "-")
-                    if guarantee:
-                        price = self.entry_price * (1 + self.sl)
-                        print(f"*** STOP LOSS (SHORT | -{self.sl:.4f}) ***")
-                    else:
-                        print(f"*** STOP LOSS (SHORT | -{rc:.4f}) ***")
-                    self.place_buy_order(bar, units=-self.units, gprice=price)
-                    self.wait = wait
-                    self.position = 0  # 止损单之后,头寸成0;
 
             # trailing stop loss order
-            if self.tsl is not None and self.position != 0:
+            if self.tsl is not None and self.position == 1 and self.wait == 0:
                 # max_price是每次与price比较,并进行更新,总是更新(跟踪)最大值;;
                 self.max_price = max(self.max_price, price)
                 # min_price是每次与price比较,并进行更新,总是更新(跟踪)最小值;;
                 self.min_price = min(self.min_price, price)
                 rc_1 = (price - self.max_price) / self.entry_price  # 同最大值比较的收益;
-                rc_2 = (self.min_price - price) / self.entry_price  # 同最小值比较的收益;
-                if self.position == 1 and rc_1 < -self.tsl:
+                # rc_2 = (self.min_price - price) / self.entry_price  # 同最小值比较的收益;
+                if rc_1 < -self.tsl:
                     print(50 * "-")
                     print(f"*** TRAILING SL (LONG  | {rc_1:.4f}) ***")
                     self.place_sell_order(bar, units=self.units)
                     self.wait = wait  # 风控事件之后,wait次数恢复;
                     self.position = 0
-                elif self.position == -1 and rc_2 < -self.tsl:
-                    print(50 * "-")
-                    print(f"*** TRAILING SL (SHORT | {rc_2:.4f}) ***")
-                    self.place_buy_order(bar, units=-self.units)
-                    self.wait = wait
-                    self.position = 0
 
             # take profit order
-            if self.tp is not None and self.position != 0:
+            if self.tp is not None and self.position == 1 and self.wait == 0:
                 rc = (price - self.entry_price) / self.entry_price
-                if self.position == 1 and rc > self.tp:
+                if rc > self.tp:
                     print(50 * "-")
                     if guarantee:
                         price = self.entry_price * (1 + self.tp)
@@ -1349,41 +1351,31 @@ class BacktestingEventV2:
                     self.place_sell_order(bar, units=self.units, gprice=price)
                     self.wait = wait
                     self.position = 0
-                elif self.position == -1 and rc < -self.tp:
-                    print(50 * "-")
-                    if guarantee:
-                        price = self.entry_price * (1 - self.tp)
-                        print(f"*** TAKE PROFIT (SHORT | {self.tp:.4f}) ***")
-                    else:
-                        print(f"*** TAKE PROFIT (SHORT | {-rc:.4f}) ***")
-                    self.place_buy_order(bar, units=-self.units, gprice=price)
-                    self.wait = wait
-                    self.position = 0
 
-            action = np.argmax(self.model.predict(state)[0, 0])
-            state, reward, done, info = self.env.step(action)
-            position = 1 if action == 1 else -1
-            # wait初始为5,每个样本,减去1,5此后为0;
-            if self.position in [0, -1] and position == 1 and self.wait == 0:
+            action = np.argmax(self.trained_model(state), axis=-1)[
+                0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            # state, reward, done, info = self.env.step(action)
+            # wait初始为5,每个样本,减去1,5次后为0;
+            if self.position == 0 and action == 2:
                 if self.verbose:
                     print(50 * "-")
                     print(f"{date} | *** GOING LONG ***")
-                if self.position == -1:
-                    self.place_buy_order(bar - 1, units=-self.units, gprice=None)
-                self.place_buy_order(bar - 1, amount=self.current_balance, gprice=None)
+                # if self.position == -1:
+                #     self.place_buy_order(bar - 1, units=-self.units, gprice=None)
+                self.place_buy_order(bar, amount=self.current_balance, gprice=None)
                 if self.verbose:
                     self.print_net_wealth(bar)
                 self.position = 1
-            elif self.position in [0, 1] and position == -1 and self.wait == 0:
+            elif self.position == 1 and action == 0:
                 if self.verbose:
                     print(50 * "-")
                     print(f"{date} | *** GOING SHORT ***")
-                if self.position == 1:
-                    self.place_sell_order(bar - 1, units=self.units, gprice=None)
-                self.place_sell_order(bar - 1, amount=self.current_balance, gprice=None)
+                # if self.position == 1:
+                #     self.place_sell_order(bar - 1, units=self.units, gprice=None)
+                self.place_sell_order(bar, amount=self.current_balance, gprice=None)
                 if self.verbose:
                     self.print_net_wealth(bar)
-                self.position = -1
+                self.position = 0
 
             self.net_wealths.append(
                 (
@@ -1412,3 +1404,5 @@ class BacktestingEventV2:
         self.net_wealths.set_index("date", inplace=True)
         self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index)
         self.close_out(bar)
+
+        return self.net_wealths

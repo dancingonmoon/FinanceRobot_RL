@@ -93,8 +93,8 @@ class Decompose_FF_Linear(tf.keras.Model):
         self.decompsition = series_decomp(kernel_size)
         # Feed Forward
         FF_hidden = 8 * in_features
-        self.FF_Seasonal_Dense0 = tf.keras.layers.Dense(FF_hidden, activation="relu")
-        self.FF_Seasonal_Dense1 = tf.keras.layers.Dense(in_features, activation="relu")
+        self.FF_Seasonal_Dense0 = tf.keras.layers.Dense(FF_hidden, activation="relu", kernel_initializer=tf.keras.initializers.Orthogonal())
+        self.FF_Seasonal_Dense1 = tf.keras.layers.Dense(in_features, activation="relu", kernel_initializer=tf.keras.initializers.Orthogonal())
         self.FF_dropout = tf.keras.layers.Dropout(dropout)
         # Conv1D:
         self.Conv1D_Seasonal = tf.keras.layers.Conv1D(
@@ -186,7 +186,7 @@ class FQLAgent_DQN:
         self.Q_target = build_model  # Q_target Network model ;同一模型,将有不同的weights;
         self.step_num = 0  # 用于每步训练计数,计数器初始化
         self.loss = []
-        self.optimizer = Adam(learning_rate=learning_rate)
+        self.optimizer = Adam(learning_rate=learning_rate,)
 
         self.validation = validation
 
@@ -228,6 +228,8 @@ class FQLAgent_DQN:
         with tf.GradientTape() as tape:
             loss_value = self.loss_func(experience_dataset)
         gradients = tape.gradient(loss_value, self.Q.trainable_variables)
+        # 华泰paper: 梯度范围 clamp [-1,1]
+        gradients = tf.clip_by_value(gradients,clip_value_min=-1,clip_value_max=1)
         self.optimizer.apply_gradients(zip(gradients, self.Q.trainable_variables))
 
         return loss_value
@@ -561,6 +563,7 @@ class FinRobotAgentDQN():
         today_date = time.strftime('%y%m%d')
         checkpoint_path = checkpoint_path
         ckpt = tf.train.Checkpoint(model=self.Q, optimizer=self.optimizer)
+        # self.ckpt = tf.train.Checkpoint(model=self.Q)
         self.ckpt_manager = tf.train.CheckpointManager(
             ckpt,
             checkpoint_path,

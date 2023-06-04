@@ -12,7 +12,7 @@ import tensorflow as tf
 
 from sklearn.preprocessing import MinMaxScaler
 from FinanceRobot_Backtest_lib import Dataset_Generator, Finance_Environment_V2, data_normalization
-from FinanceRobot_Backtest_lib import BacktestingVectorV2, Backtesting_event
+from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
 from FinanceRobot_DDQNPPOModel_lib import series_decomp, Decompose_FF_Linear, FinRobotAgentDQN
 
 import numpy as np
@@ -60,15 +60,22 @@ if __name__ == '__main__':
     Q = Decompose_FF_Linear(seq_len=lags, in_features=obs_n, out_features=action_n, )
     Q_target = deepcopy(Q)
     # actions = model(state) # (N,1, action_n)
-    FinR_Agent = FinRobotAgentDQN(Q, Q_target, gamma=0.98, learning_rate=5e-4, learn_env=env, fit_batch_size=64, )
+    FinR_Agent = FinRobotAgentDQN(Q, Q_target, gamma=0.90, learning_rate=5e-4, learn_env=env, fit_batch_size=64, )
     # 训练过程:
     FinR_Agent.learn(episodes=200)
     print(f"{'-' * 40}finished{'-' * 40}")
 
+    # 调出预训练模型:
+    # ckpt = tf.train.Checkpoint(model=FinR_Agent.Q, optimizer=FinR_Agent.optimizer)
+    # saved_path = 'saved_model/BTC_DQN_gama092_230603-29.index'
+    # ckpt.restore(saved_path)
+
     # vector backtest
 
-    env_backtest_data  = BacktestingVectorV2(Q,env,)
-    print(env_backtest_data)
+    # env_backtest_data  = BacktestingVectorV2(Q,env,)
+    # BacktestEvent = BacktestingEventV2(env,FinR_Agent.Q,initial_amount=1000,percent_commission=0.002,fixed_commission=1,verbose=True,MinUnit_1Position=-8,)
+    # BacktestEvent.backtest_strategy_WO_RM()
+    # print(BacktestEvent.net_wealths)
 
 
 
