@@ -1152,7 +1152,7 @@ class BacktestingEventV2:
         if units is None:
             MinUnit_1Position = 10 ** self.MinUnit_1Position
             units = (
-                    int((amount - amount * self.ptc - self.ftc) / price / MinUnit_1Position) * MinUnit_1Position
+                    int((amount + amount * self.ptc + self.ftc) / price / MinUnit_1Position) * MinUnit_1Position
             )  # 获得低于指定位数小数的值;
             # units = amount / price  # alternative handling
         self.current_balance += (1 - self.ptc) * units * price - self.ftc
@@ -1226,10 +1226,7 @@ class BacktestingEventV2:
                 if self.verbose:
                     print(50 * "-")
                     print(f"{date} | *** GOING SHORT ***")
-                # if self.position == 1:
-                #     # 为什么是bar-1,前一日呢? 因为,place_sell_order方法是以指定样本的价格来买,该样本的价格是收盘价,所以是上一个样本的时间
-                #     self.place_sell_order(bar - 1, units=self.units, gprice=None)
-                self.place_sell_order(bar, amount=self.current_balance, gprice=None)  #
+                self.place_sell_order(bar, units=self.units, gprice=None)
                 if self.verbose:
                     self.print_net_wealth(bar)
                 self.position = 0
@@ -1372,9 +1369,7 @@ class BacktestingEventV2:
                 if self.verbose:
                     print(50 * "-")
                     print(f"{date} | *** GOING SHORT ***")
-                # if self.position == 1:
-                #     self.place_sell_order(bar - 1, units=self.units, gprice=None)
-                self.place_sell_order(bar, amount=self.current_balance, gprice=None)
+                self.place_sell_order(bar, units=self.units, gprice=None)
                 if self.verbose:
                     self.print_net_wealth(bar)
                 self.position = 0

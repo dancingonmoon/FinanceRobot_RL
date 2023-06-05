@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -75,12 +75,13 @@ if __name__ == '__main__':
 
     # env_backtest_data  = BacktestingVectorV2(Q,env,)
     BacktestEvent = BacktestingEventV2(env, FinR_Agent.Q, initial_amount=1000, percent_commission=0.001,
-                                       fixed_commission=1, verbose=True, MinUnit_1Position=-8, )
+                                       fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
     BacktestEvent.backtest_strategy_WO_RM()
     # print(BacktestEvent.net_wealths)
 
     # plot 绘图:
 
+    # net_wealth
     trace5 = go.Scatter(  #
         x=BacktestEvent.net_wealths.index,
         y=BacktestEvent.net_wealths['net_wealth'],
@@ -106,6 +107,35 @@ if __name__ == '__main__':
         # hovertemplate='日期:%{x},价格: %{y:$.0f}',
     )
 
+    # current_balance:
+    trace7 = go.Scatter(  #
+        x=BacktestEvent.net_wealths.index,
+        y=BacktestEvent.net_wealths['balance'],  # 现金余额
+        mode="markers",  # mode模式
+        name="现金余额",
+        showlegend=False,
+        xhoverformat="%y/%m/%d_%H:00",
+        yhoverformat="$,.2f",
+        marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
+                    colorscale=['red', 'yellow', 'green'], showscale=True),
+        # hovertemplate='日期:%{x},价格: %{y:$.0f}',
+    )
+
+    # units:
+    trace8 = go.Scatter(  #
+        x=BacktestEvent.net_wealths.index,
+        y=BacktestEvent.net_wealths['units'],  # 股/币数
+        mode="markers",  # mode模式
+        name="股/币数",
+        showlegend=False,
+        xhoverformat="%y/%m/%d_%H:00",
+        yhoverformat="B,.5f",
+        marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
+                    colorscale=['red', 'yellow', 'green'], showscale=True),
+        # hovertemplate='日期:%{x},价格: %{y:$.0f}',
+    )
+
+
     layout = dict(
         title=dict(text='事件型回测:', font=dict(
             color='rgb(0,125,125)', family='SimHei', size=20)),
@@ -113,13 +143,17 @@ if __name__ == '__main__':
         # xaxis=dict(title="交易日期", tickangle=-30, tickformat='%y/%m/%d_%H:'),  # 设置坐标轴的标签
     )
 
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=[
+    fig = make_subplots(rows=4, cols=1, shared_xaxes=True, subplot_titles=[
         '模型策略净资产收益', '收盘价及策略action'], )
     fig.add_traces(data=[trace5], rows=1, cols=1, )
     fig.add_traces(data=[trace6], rows=2, cols=1, )
+    fig.add_traces(data=[trace7], rows=3, cols=1, )
+    fig.add_traces(data=[trace8], rows=4, cols=1, )
     fig.update_xaxes(tickangle=-30, tickformat='%y/%m/%d_%H:', row=2, col=1, )
     fig.update_yaxes(title="净资产", tickformat=',.0f', row=1, col=1)
     fig.update_yaxes(title="收盘价及策略action", tickformat='', row=2, col=1)
+    fig.update_yaxes(title="现金余额", tickformat='', row=3, col=1)
+    fig.update_yaxes(title="股/币数", tickformat='', row=4, col=1)
     fig.update_layout(layout)
     # fig.show()
 
