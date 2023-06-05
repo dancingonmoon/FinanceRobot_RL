@@ -3,10 +3,10 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import sys
-# import plotly.express as px
-# import plotly.graph_objects as go
-# from plotly.subplots import make_subplots
-# import plotly
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly
 
 import tensorflow as tf
 
@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -62,20 +62,70 @@ if __name__ == '__main__':
     # actions = model(state) # (N,1, action_n)
     FinR_Agent = FinRobotAgentDQN(Q, Q_target, gamma=0.90, learning_rate=5e-4, learn_env=env, fit_batch_size=64, )
     # 训练过程:
-    FinR_Agent.learn(episodes=200)
-    print(f"{'-' * 40}finished{'-' * 40}")
+    # FinR_Agent.learn(episodes=80)
+    # print(f"{'-' * 40}finished{'-' * 40}")
 
     # 调出预训练模型:
-    # ckpt = tf.train.Checkpoint(model=FinR_Agent.Q, optimizer=FinR_Agent.optimizer)
-    # saved_path = 'saved_model/BTC_DQN_gama092_230603-29.index'
-    # ckpt.restore(saved_path)
+    ckpt = tf.train.Checkpoint(model=FinR_Agent.Q, optimizer=FinR_Agent.optimizer)
+    saved_path_prefix = 'saved_model/BTC_DQN_'
+    saved_path = saved_path_prefix + 'gamma09_230604.index'
+    ckpt.restore(saved_path)
 
     # vector backtest
 
     # env_backtest_data  = BacktestingVectorV2(Q,env,)
-    # BacktestEvent = BacktestingEventV2(env,FinR_Agent.Q,initial_amount=1000,percent_commission=0.002,fixed_commission=1,verbose=True,MinUnit_1Position=-8,)
-    # BacktestEvent.backtest_strategy_WO_RM()
+    BacktestEvent = BacktestingEventV2(env, FinR_Agent.Q, initial_amount=1000, percent_commission=0.001,
+                                       fixed_commission=1, verbose=True, MinUnit_1Position=-8, )
+    BacktestEvent.backtest_strategy_WO_RM()
     # print(BacktestEvent.net_wealths)
 
+    # plot 绘图:
 
+    trace5 = go.Scatter(  #
+        x=BacktestEvent.net_wealths.index,
+        y=BacktestEvent.net_wealths['net_wealth'],
+        mode="markers",  # mode模式
+        name="净资产收益",
+        showlegend=False,
+        xhoverformat="%y/%m/%d_%H:00",
+        yhoverformat=".2f",
+        # hovertemplate='日期:%{x},价格: %{y:$.0f}',
+    )
 
+    # 收盘价:
+    trace6 = go.Scatter(  #
+        x=BacktestEvent.net_wealths.index,
+        y=BacktestEvent.net_wealths['price'],  # 收盘价
+        mode="markers",  # mode模式
+        name="收盘价",
+        showlegend=False,
+        xhoverformat="%y/%m/%d_%H:00",
+        yhoverformat="$,.0f",
+        marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
+                    colorscale=['red', 'yellow', 'green'], showscale=True),
+        # hovertemplate='日期:%{x},价格: %{y:$.0f}',
+    )
+
+    layout = dict(
+        title=dict(text='事件型回测:', font=dict(
+            color='rgb(0,125,125)', family='SimHei', size=20)),
+        margin=dict(l=50, b=10, t=50, r=15, pad=0),
+        # xaxis=dict(title="交易日期", tickangle=-30, tickformat='%y/%m/%d_%H:'),  # 设置坐标轴的标签
+    )
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=[
+        '模型策略净资产收益', '收盘价及策略action'], )
+    fig.add_traces(data=[trace5], rows=1, cols=1, )
+    fig.add_traces(data=[trace6], rows=2, cols=1, )
+    fig.update_xaxes(tickangle=-30, tickformat='%y/%m/%d_%H:', row=2, col=1, )
+    fig.update_yaxes(title="净资产", tickformat=',.0f', row=1, col=1)
+    fig.update_yaxes(title="收盘价及策略action", tickformat='', row=2, col=1)
+    fig.update_layout(layout)
+    # fig.show()
+
+    # 获取回测数据最后一个交易日,先获得UTC时区,再转化成shanghai时区;再格式化成日期时刻
+    last_date = BacktestEvent.net_wealths.index[-1].tz_localize('UTC').tz_convert('Asia/Shanghai')
+    last_date = last_date.strftime('%y%m%dH%H')
+    saved_path = '{}_{}.html'.format(saved_path_prefix,last_date)
+
+    fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)

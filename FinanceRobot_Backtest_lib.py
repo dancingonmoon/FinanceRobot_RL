@@ -358,7 +358,7 @@ class Finance_Environment_V2:
             dataset,
             action_n,
             leverage=1,
-            trading_commission=0.002,
+            trading_commission=0.001,
             min_performance=0.3,  # 允许做空,
             min_accuracy=0.3,
     ):
@@ -1154,7 +1154,7 @@ class BacktestingEventV2:
             units = (
                     int((amount - amount * self.ptc - self.ftc) / price / MinUnit_1Position) * MinUnit_1Position
             )  # 获得低于指定位数小数的值;
-            # units = amount / price  # altermative handling
+            # units = amount / price  # alternative handling
         self.current_balance += (1 - self.ptc) * units * price - self.ftc
         self.units -= units
         self.trades += 1
@@ -1208,7 +1208,7 @@ class BacktestingEventV2:
             date, price = self.get_date_price(bar)
             action = np.argmax(self.trained_model(state), axis=-1)[
                 0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
-            # state, reward, done, info = self.env.step(action)
+            state, reward, done, info = self.env.step(action)
             # position = 1 if action == 1 else -1
             # if self.position in [0, -1] and action == 2: # buy 不许做空;
             if self.position == 0 and action == 2:
@@ -1239,6 +1239,7 @@ class BacktestingEventV2:
                 (
                     date,
                     price,
+                    action,
                     self.units,
                     self.current_balance,
                     self.calculate_net_wealth(price),
@@ -1251,6 +1252,7 @@ class BacktestingEventV2:
             columns=[
                 "date",
                 "price",
+                "action",
                 "units",
                 "balance",
                 "net_wealth",
@@ -1354,7 +1356,7 @@ class BacktestingEventV2:
 
             action = np.argmax(self.trained_model(state), axis=-1)[
                 0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
-            # state, reward, done, info = self.env.step(action)
+            state, reward, done, info = self.env.step(action)
             # wait初始为5,每个样本,减去1,5次后为0;
             if self.position == 0 and action == 2:
                 if self.verbose:
@@ -1381,6 +1383,7 @@ class BacktestingEventV2:
                 (
                     date,
                     price,
+                    action,
                     self.units,
                     self.current_balance,
                     self.calculate_net_wealth(price),
@@ -1393,6 +1396,7 @@ class BacktestingEventV2:
             columns=[
                 "date",
                 "price",
+                "action",
                 "units",
                 "balance",
                 "net_wealth",
