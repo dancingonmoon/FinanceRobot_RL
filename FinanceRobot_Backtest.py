@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -63,14 +63,14 @@ if __name__ == '__main__':
     FinR_Agent = FinRobotAgentDQN(Q, Q_target, gamma=0.50, learning_rate=5e-4, learn_env=env, memory_size=2000,
                                   replay_batch_size=1000, fit_batch_size=32, )
     # 训练过程:
-    # FinR_Agent.learn(episodes=80)
-    # print(f"{'-' * 40}finished{'-' * 40}")
+    FinR_Agent.learn(episodes=70)
+    print(f"{'-' * 40}finished{'-' * 40}")
 
     # 调出预训练模型:
-    ckpt = tf.train.Checkpoint(model=FinR_Agent.Q, optimizer=FinR_Agent.optimizer)
-    saved_path_prefix = 'saved_model/BTC_DQN_'
-    saved_path = saved_path_prefix + 'gamma09_230604.index'
-    ckpt.restore(saved_path)
+    # ckpt = tf.train.Checkpoint(model=FinR_Agent.Q, optimizer=FinR_Agent.optimizer)
+    # saved_path_prefix = 'saved_model/BTC_DQN_'
+    # saved_path = saved_path_prefix + 'gamma09_230604.index'
+    # ckpt.restore(saved_path)
 
     # vector backtest
 
