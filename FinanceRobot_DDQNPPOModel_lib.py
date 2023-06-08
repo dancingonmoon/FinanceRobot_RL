@@ -562,10 +562,10 @@ class FinRobotAgentDQN():
         self.wait = 0  # 定义total reward mean > 200 的等待次数,满足则提前退出
         today_date = time.strftime('%y%m%d')
         checkpoint_path = checkpoint_path
-        ckpt = tf.train.Checkpoint(model=self.Q, optimizer=self.optimizer)
-        # self.ckpt = tf.train.Checkpoint(model=self.Q)
+        # self.ckpt = tf.train.Checkpoint(model=self.Q, optimizer=self.optimizer)
+        self.ckpt = tf.train.Checkpoint(model=self.Q)
         self.ckpt_manager = tf.train.CheckpointManager(
-            ckpt,
+            self.ckpt,
             checkpoint_path,
             max_to_keep=2,
             checkpoint_name=checkpoint_name_prex + '{}'.format(today_date),

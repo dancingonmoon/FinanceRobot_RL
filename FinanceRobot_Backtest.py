@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -62,19 +62,27 @@ if __name__ == '__main__':
     # actions = model(state) # (N,1, action_n)
     FinR_Agent = FinRobotAgentDQN(Q, Q_target, gamma=0.50, learning_rate=5e-4, learn_env=env, memory_size=2000,
                                   replay_batch_size=1000, fit_batch_size=32, )
+
+    saved_path_prefix = 'saved_model/BTC_DQN_'
     # 训练过程:
-    FinR_Agent.learn(episodes=70)
-    print(f"{'-' * 40}finished{'-' * 40}")
+    # FinR_Agent.learn(episodes=70)
+    # print(f"{'-' * 40}finished{'-' * 40}")
+    # 最后训练模型h5格式存盘
+    # today_date = pd.Timestamp.today().strftime('%y%m%d')
+    # saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date
+    # FinR_Agent.Q.save_weights(saved_path,save_format='h5',overwrite=False)
 
     # 调出预训练模型:
-    # ckpt = tf.train.Checkpoint(model=FinR_Agent.Q, optimizer=FinR_Agent.optimizer)
-    # saved_path_prefix = 'saved_model/BTC_DQN_'
-    # saved_path = saved_path_prefix + 'gamma09_230604.index'
-    # ckpt.restore(saved_path)
+    # 模型预先生成一次,以建立各个variables:
+    # FinR_Agent.Q(init_state)
+    # ckpt = tf.train.Checkpoint(model=FinR_Agent.Q)
+    saved_path = saved_path_prefix + '230607-39.index'
+    FinR_Agent.ckpt.restore(saved_path).assert_consumed()
 
     # vector backtest
-
     # env_backtest_data  = BacktestingVectorV2(Q,env,)
+
+    # Event Based Backtesting
     BacktestEvent = BacktestingEventV2(env, FinR_Agent.Q, initial_amount=1000, percent_commission=0.001,
                                        fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
     BacktestEvent.backtest_strategy_WO_RM()
@@ -108,22 +116,9 @@ if __name__ == '__main__':
         # hovertemplate='日期:%{x},价格: %{y:$.0f}',
     )
 
-    # current_balance:
-    trace7 = go.Scatter(  #
-        x=BacktestEvent.net_wealths.index,
-        y=BacktestEvent.net_wealths['balance'],  # 现金余额
-        mode="markers",  # mode模式
-        name="现金余额",
-        showlegend=False,
-        xhoverformat="%y/%m/%d_%H:00",
-        yhoverformat="$,.2f",
-        marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
-                    colorscale=['red', 'yellow', 'green'], showscale=True),
-        # hovertemplate='日期:%{x},价格: %{y:$.0f}',
-    )
 
     # units:
-    trace8 = go.Scatter(  #
+    trace7 = go.Scatter(  #
         x=BacktestEvent.net_wealths.index,
         y=BacktestEvent.net_wealths['units'],  # 股/币数
         mode="markers",  # mode模式
@@ -136,6 +131,19 @@ if __name__ == '__main__':
         # hovertemplate='日期:%{x},价格: %{y:$.0f}',
     )
 
+    # horizon_return_after_ptc:
+    trace8 = go.Scatter(  #
+        x=BacktestEvent.net_wealths.index,
+        y=BacktestEvent.net_wealths['horizon_return_after_ptc'],  # (horizon_price-price(1-trade_commision))/price
+        mode="markers",  # mode模式
+        name="horizon涨跌幅",
+        showlegend=False,
+        xhoverformat="%y/%m/%d_%H:00",
+        yhoverformat="R,.4f",
+        marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
+                    colorscale=['red', 'yellow', 'green'], showscale=True),
+        # hovertemplate='日期:%{x},价格: %{y:$.0f}',
+    )
     layout = dict(
         title=dict(text='事件型回测:', font=dict(
             color='rgb(0,125,125)', family='SimHei', size=20)),
@@ -144,18 +152,18 @@ if __name__ == '__main__':
     )
 
     fig = make_subplots(rows=4, cols=1, shared_xaxes=True, subplot_titles=[
-        '模型策略净资产收益', '收盘价及策略action'], )
+        '模型策略净资产收益', '收盘价及策略action','头寸及策略action','除交易费后的horizon预期收益率'], )
     fig.add_traces(data=[trace5], rows=1, cols=1, )
     fig.add_traces(data=[trace6], rows=2, cols=1, )
     fig.add_traces(data=[trace7], rows=3, cols=1, )
     fig.add_traces(data=[trace8], rows=4, cols=1, )
-    fig.update_xaxes(tickangle=-30, tickformat='%y/%m/%d_%H:', row=2, col=1, )
+    fig.update_xaxes(tickangle=-30, tickformat='%y/%m/%d_%H:', row=1, col=1, )
     fig.update_yaxes(title="净资产", tickformat=',.0f', row=1, col=1)
     fig.update_yaxes(title="收盘价及策略action", tickformat='', row=2, col=1)
-    fig.update_yaxes(title="现金余额", tickformat='', row=3, col=1)
-    fig.update_yaxes(title="股/币数", tickformat='', row=4, col=1)
+    fig.update_yaxes(title="股/币数", tickformat='', row=3, col=1)
+    fig.update_yaxes(title="horizon涨跌幅", tickformat='', row=4, col=1)
     fig.update_layout(layout)
-    # fig.show()
+    fig.show()
 
     # 获取回测数据最后一个交易日,先获得UTC时区,再转化成shanghai时区;再格式化成日期时刻
     last_date = BacktestEvent.net_wealths.index[-1].tz_localize('UTC').tz_convert('Asia/Shanghai')
