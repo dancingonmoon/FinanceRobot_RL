@@ -563,9 +563,9 @@ class FinRobotAgentDQN():
         today_date = time.strftime('%y%m%d')
         checkpoint_path = checkpoint_path
         # self.ckpt = tf.train.Checkpoint(model=self.Q, optimizer=self.optimizer)
-        self.ckpt = tf.train.Checkpoint(model=self.Q)
+        ckpt = tf.train.Checkpoint(model=self.Q)
         self.ckpt_manager = tf.train.CheckpointManager(
-            self.ckpt,
+            ckpt,
             checkpoint_path,
             max_to_keep=2,
             checkpoint_name=checkpoint_name_prex + '{}'.format(today_date),

@@ -1237,7 +1237,7 @@ class BacktestingEventV2:
                     date,
                     price,
                     action,
-                    (info['horizon_price'].numpy() - price*(1-self.ptc))/price,
+                    (info['horizon_price'].numpy() - price * (1 - self.ptc)) / price,
                     self.units,
                     self.current_balance,
                     self.calculate_net_wealth(price),
@@ -1260,7 +1260,8 @@ class BacktestingEventV2:
             ],
         )
         self.net_wealths.set_index("date", inplace=True)
-        self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index)
+        self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index).tz_localize('UTC').tz_convert(
+            'Asia/shanghai')  # datetime本为UTC时区,转换时区Asia/shanghai;
         self.close_out(bar)
         return self.net_wealths
 
@@ -1403,7 +1404,8 @@ class BacktestingEventV2:
         )
 
         self.net_wealths.set_index("date", inplace=True)
-        self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index)
+        self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index).tz_localize('UTC').tz_convert(
+            'Asia/shanghai')  # datetime本为UTC时区,转换时区Asia/shanghai;
         self.close_out(bar)
 
         return self.net_wealths

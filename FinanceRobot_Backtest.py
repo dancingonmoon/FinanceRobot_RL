@@ -3,20 +3,19 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import sys
-import plotly.express as px
+# import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly
+# import plotly
 
 import tensorflow as tf
 
-from sklearn.preprocessing import MinMaxScaler
 from FinanceRobot_Backtest_lib import Dataset_Generator, Finance_Environment_V2, data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
 from FinanceRobot_DDQNPPOModel_lib import series_decomp, Decompose_FF_Linear, FinRobotAgentDQN
 
-import numpy as np
-import pandas as pd
+# import numpy as np
+# import pandas as pd
 from copy import deepcopy
 # import matplotlib.pyplot as plt
 # plt.rcParams['font.sans-serif'] = ['SimHei']    # for chinese text on plt
@@ -29,13 +28,13 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
-    EndDate = "2023-06-01"
+    EndDate = "2023-06-10"
     BTC_json = "BTC_h12.json"
     BinanceBTC_json = "BinanceBTC_h12.json"
 
@@ -67,17 +66,15 @@ if __name__ == '__main__':
     # 训练过程:
     # FinR_Agent.learn(episodes=70)
     # print(f"{'-' * 40}finished{'-' * 40}")
-    # 最后训练模型h5格式存盘
+    # # 最后训练模型h5格式存盘
     # today_date = pd.Timestamp.today().strftime('%y%m%d')
     # saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date
     # FinR_Agent.Q.save_weights(saved_path,save_format='h5',overwrite=False)
 
     # 调出预训练模型:
-    # 模型预先生成一次,以建立各个variables:
-    # FinR_Agent.Q(init_state)
-    # ckpt = tf.train.Checkpoint(model=FinR_Agent.Q)
-    saved_path = saved_path_prefix + '230607-39.index'
-    FinR_Agent.ckpt.restore(saved_path).assert_consumed()
+    ckpt = tf.train.Checkpoint(model=FinR_Agent.Q)
+    saved_path = saved_path_prefix + '230608-33'
+    ckpt.restore(saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
 
     # vector backtest
     # env_backtest_data  = BacktestingVectorV2(Q,env,)
@@ -116,7 +113,6 @@ if __name__ == '__main__':
         # hovertemplate='日期:%{x},价格: %{y:$.0f}',
     )
 
-
     # units:
     trace7 = go.Scatter(  #
         x=BacktestEvent.net_wealths.index,
@@ -152,7 +148,7 @@ if __name__ == '__main__':
     )
 
     fig = make_subplots(rows=4, cols=1, shared_xaxes=True, subplot_titles=[
-        '模型策略净资产收益', '收盘价及策略action','头寸及策略action','除交易费后的horizon预期收益率'], )
+        '模型策略净资产收益', '收盘价及策略action', '头寸及策略action', '除交易费后的horizon预期收益率'], )
     fig.add_traces(data=[trace5], rows=1, cols=1, )
     fig.add_traces(data=[trace6], rows=2, cols=1, )
     fig.add_traces(data=[trace7], rows=3, cols=1, )
@@ -163,11 +159,11 @@ if __name__ == '__main__':
     fig.update_yaxes(title="股/币数", tickformat='', row=3, col=1)
     fig.update_yaxes(title="horizon涨跌幅", tickformat='', row=4, col=1)
     fig.update_layout(layout)
-    fig.show()
+    # fig.show()
 
-    # 获取回测数据最后一个交易日,先获得UTC时区,再转化成shanghai时区;再格式化成日期时刻
-    last_date = BacktestEvent.net_wealths.index[-1].tz_localize('UTC').tz_convert('Asia/Shanghai')
+    # 获取回测数据最后一个交易日日期.
+    last_date = BacktestEvent.net_wealths.index[-1]
     last_date = last_date.strftime('%y%m%dH%H')
-    saved_path = '{}_{}.html'.format(saved_path_prefix, last_date)
+    saved_path = '{}gamma05_lag7_{}.html'.format(saved_path_prefix, last_date)
 
     fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)
