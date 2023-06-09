@@ -1,5 +1,5 @@
-model_checkpoint_path: "BTC_DQN_230608-33"
-all_model_checkpoint_paths: "BTC_DQN_230608-32"
+model_checkpoint_path: "BTC_DDQN_230609-1"
 all_model_checkpoint_paths: "BTC_DQN_230608-33"
-all_model_checkpoint_timestamps: 1686225799.948509
+all_model_checkpoint_paths: "BTC_DDQN_230609-1"
 all_model_checkpoint_timestamps: 1686226671.010763
+all_model_checkpoint_timestamps: 1686300681.8034952
