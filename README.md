@@ -1,13 +1,13 @@
 ## Reinforcement Learning Algorithms Applications for BTC Trading
 
-the project is to apply DQN, DDQN and PPO upon BTC trading. it completes below tasks:
+the project is to apply DQN, DDQN and PPO upon BTC trading. it accomplishes below tasks:
 + download OHLC data from encryption exchange house;
 + generate features data via OHLC data, which include:
     + volume
     + RSI
     + Log_close_weeklag
     + Log_high_low
-    + Log_open_weeklag'
+    + Log_open_weeklag
     + open_pre_close
     + high_pre_close
     + low_pre_close

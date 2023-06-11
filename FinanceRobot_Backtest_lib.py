@@ -458,11 +458,11 @@ class Finance_Environment_V2:
                 'horizon_price': horizon_price
                 }
 
-        if self.bar < self.dataset_len and not tf.experimental.numpy.isnan(horizon_price):
+        if self.bar < self.dataset_len-1 and not tf.experimental.numpy.isnan(horizon_price):
             done = False
-            if horizon_price > current_price:
+            if horizon_price > current_price * (1 + self.trading_commission):
                 reward_1 = action - 1
-            elif horizon_price < current_price:
+            elif horizon_price < current_price * (1 - self.trading_commission):
                 reward_1 = 1 - action
             else:
                 reward_1 = 1 if action == 1 else 0

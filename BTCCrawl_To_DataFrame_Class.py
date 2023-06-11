@@ -10,7 +10,7 @@
 from binance.spot import Spot
 import datetime
 import json
-import time
+# import time
 import sys
 
 import numpy as np

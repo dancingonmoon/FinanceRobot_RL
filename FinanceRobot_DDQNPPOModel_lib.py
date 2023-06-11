@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from collections import deque, namedtuple
-from keras.optimizers import Adam, RMSprop
+from tensorflow.keras.optimizers import Adam, RMSprop
 from keras.layers import Dense, Dropout, AveragePooling1D
 import random
 import time
@@ -93,8 +93,8 @@ class Decompose_FF_Linear(tf.keras.Model):
         # Decompsition Kernel Size
         self.decompsition = series_decomp(kernel_size)
         # Feed Forward
-        FF_hidden = 8 * in_features
-        self.FF_Seasonal_Dense0 = tf.keras.layers.Dense(FF_hidden, activation="relu",
+        FF_hidden0 = 32 * in_features
+        self.FF_Seasonal_Dense0 = tf.keras.layers.Dense(FF_hidden0, activation="relu",
                                                         kernel_initializer=tf.keras.initializers.Orthogonal())
         self.FF_Seasonal_Dense1 = tf.keras.layers.Dense(in_features, activation="relu",
                                                         kernel_initializer=tf.keras.initializers.Orthogonal())
@@ -120,9 +120,7 @@ class Decompose_FF_Linear(tf.keras.Model):
         seasonal_init, trend_init = self.decompsition(x)  # (Batch,seq_len,in_features)
 
         # Feed Forward:
-        seasonal_x = self.FF_Seasonal_Dense0(
-            seasonal_init
-        )  # (Batch,seq_len,4*in_features)
+        seasonal_x = self.FF_Seasonal_Dense0(seasonal_init)  # (Batch,seq_len,32*in_features)
         seasonal_x = self.FF_dropout(seasonal_x)
         seasonal_x = self.FF_Seasonal_Dense1(seasonal_x)  # (Batch,seq_len,in_features)
         seasonal_x = self.FF_dropout(seasonal_x)
