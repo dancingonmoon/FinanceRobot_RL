@@ -12,7 +12,8 @@ import tensorflow as tf
 
 from FinanceRobot_Backtest_lib import Dataset_Generator, Finance_Environment_V2, data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
-from FinanceRobot_DDQNPPOModel_lib import series_decomp, Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
+from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
+from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
 
 import numpy as np
 import pandas as pd
@@ -83,9 +84,29 @@ if __name__ == '__main__':
     FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=0.50, learning_rate=5e-4, learn_env=env, memory_size=2000,
                                         replay_batch_size=1000, fit_batch_size=batch_size, )
 
+    # PPO 建模:
+    n_worker = 8
+    n_step = 64
+    mini_batch_size = 64  # int(n_worker * n_step / 4)
+    epochs = 3
+    updates = 5000
+    Actor = ActorModel(seq_len=lags, in_features=obs_n, out_features=action_n)
+    Critic = CriticModel(seq_len=lags, in_features=obs_n, out_features=action_n)
+    workers = []
+    for i in range(n_worker):
+        worker = Worker(env)
+        workers.append(worker)
+    FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
+                          gae_lambda=0.99,
+                          gamma=0.98,
+                          c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
+                          mini_batch_size=mini_batch_size)
+
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    DDQN_flag = True
+    DDQN_flag = False
+    DQN_flag = False
+    PPO_flag = True
     if DDQN_flag:  # DDQN
         saved_path_prefix = 'saved_model/BTC_DDQN_'
         saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
@@ -102,7 +123,7 @@ if __name__ == '__main__':
         #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
         BacktestEvent = BacktestingEventV2(env_test, FinR_Agent_DDQN.Q, initial_amount=1000, percent_commission=0.001,
                                            fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
-    else:  # DQN
+    elif DQN_flag:  # DQN
         saved_path_prefix = 'saved_model/BTC_DQN_'
         saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
         # DQN 训练过程:
@@ -118,6 +139,22 @@ if __name__ == '__main__':
             saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
         BacktestEvent = BacktestingEventV2(env_test, FinR_Agent_DQN.Q, initial_amount=1000, percent_commission=0.001,
                                            fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
+
+    elif PPO_flag:
+        saved_path_prefix = 'saved_model/BTC_PPO_'
+        saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
+        # PPO 训练过程:
+        FinR_Agent_PPO.nworker_nstep_training_loop(updates=3000)
+        FinR_Agent_PPO.close_process()
+        print(f"{'-' * 40}finished{'-' * 40}")
+
+        # 调出预训练模型, event based backtesting:
+        # ckpt = tf.train.Checkpoint(actormodel=FinR_Agent_PPO.Actor,criticmodel=FinR_Agent_PPO.Critic)
+        # saved_path = saved_path_prefix + '230610-51'
+        # ckpt.restore(
+        #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
+        # BacktestEvent = BacktestingEventV2(env, FinR_Agent_DQN.Q, initial_amount=1000, percent_commission=0.001,
+        #                                    fixed_commission=0., verbose=True, MinUnit_1Position=-8, ) # 里面的训练好的模型,生成策略动作需要更改,因为模型输出的是分布,而不是action的概率.这个与DQN不一样.
 
     # vector backtest
     # env_backtest_data  = BacktestingVectorV2(Q,env,)

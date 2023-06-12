@@ -12,8 +12,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp  # 对模型的分布,应用sample, entropy方法
 import numpy as np
 
-from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, Decompose_FF_Linear
-from FinanceRobot_Backtest_lib import Finance_Environment_V2
+from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear
 
 import matplotlib.pyplot as plt
 
@@ -68,9 +67,9 @@ class CriticModel(tf.keras.Model):
                                                        dropout=dropout)
         self.critic = tf.keras.layers.Dense(1, kernel_initializer=tf.keras.initializers.Orthogonal())
 
-    def call(self, inputs: tf.Tensor):  # state: (N,8)
-        x = self.Decompose_FF_linear(inputs)
-        critic = self.critic(x)
+    def call(self, inputs: tf.Tensor):  # state: (N,lags,features)
+        x = self.Decompose_FF_linear(inputs)  # (N,1,out_features)
+        critic = self.critic(x)  # (N,1,1)
 
         return critic  # (N,1,1)
 
@@ -121,9 +120,12 @@ def worker_process(conn2, env):
 
 
 class Worker:
-    def __init__(self, ):
+    def __init__(self, env):
+        """"
+        env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
+        """
         self.conn1, conn2 = mp.Pipe()  # conn1通过send(command,data),控制conn2;
-        self.process = mp.Process(target=worker_process, args=(conn2,))
+        self.process = mp.Process(target=worker_process, args=(conn2, env))
         self.process.start()
 
 
@@ -181,6 +183,8 @@ class PPO2:
         self.trewards = deque(maxlen=50)
         self.max_treward = -np.infty
         self.KL_divergence = []
+        self.performance = 1
+        self.accuracy = 0
 
         assert n_worker * n_step % mini_batch_size == 0
         self.mini_batch_size = mini_batch_size
@@ -188,15 +192,15 @@ class PPO2:
         self.epochs = epochs
         self.updates = updates
 
-        today_date = time.strftime('%y%m%d')
+        self.today_date = time.strftime('%y%m%d')
         checkpoint_path = checkpoint_path
         # ckpt = tf.train.Checkpoint(model=self.Actor, optimizer=self.optimizer)
-        ckpt = tf.train.Checkpoint(actormodel=Actor,criticmodel=Critic)
+        ckpt = tf.train.Checkpoint(actormodel=Actor, criticmodel=Critic)
         self.ckpt_manager = tf.train.CheckpointManager(
             ckpt,
             checkpoint_path,
             max_to_keep=2,
-            checkpoint_name=checkpoint_name_prex + '{}'.format(today_date),
+            checkpoint_name=checkpoint_name_prex + '{}'.format(self.today_date),
         )
 
     def nworker_nstep_gae_advantage(self, values, masks, rewards):
@@ -282,7 +286,7 @@ class PPO2:
         value = self.Critic(state)  # (1,1,1)
         action = pi.sample(1)[0, 0].numpy()
         action_log_prob = pi.log_prob(action)  # (1,)
-        return action, action_log_prob, tf.squeeze(value, axis=[1,2])  # (),(1,),(1,)
+        return action, action_log_prob, tf.squeeze(value, axis=[1, 2])  # (),(1,),(1,)
 
     def act_batch(self, states):
         """
@@ -293,7 +297,7 @@ class PPO2:
         action = pi.sample(self.n_worker)[0]  # (n_worker,)
         log_prob = pi.log_prob(action)  # (n_worker,)
         # (n_worker),(n_worker,),(n_worker,)
-        return action, log_prob, tf.squeeze(value, axis=[1,2])
+        return action, log_prob, tf.squeeze(value, axis=[1, 2])
 
     def nworker_nstep_sampling(self, init_obs, init_treward):
         """
@@ -336,10 +340,10 @@ class PPO2:
                 worker.conn1.send(('step', actions[w, t]))
             for w, worker in enumerate(self.workers):
                 next_obs, reward, done, info = worker.conn1.recv()
-                next_obs = tf.squeeze(next_obs,axis=0) # (1,lags,obs_dim)-> (lags,obs_dim)
+                next_obs = tf.squeeze(next_obs, axis=0)  # (1,lags,obs_dim)-> (lags,obs_dim)
                 mask = 1 - done
 
-                obs[w, t + 1] = next_obs # (lags,obs_dim)
+                obs[w, t + 1] = next_obs  # (lags,obs_dim)
                 rewards[w, t] = reward
                 masks[w, t] = mask
 
@@ -353,19 +357,25 @@ class PPO2:
                     obs[w, t + 1] = next_obs  # (lags,obs_dim)
 
                     self.trewards.append(treward[w])
-                    # print('nworker_sampling: self.ttrewards:{}'.format(self.trewards))
                     avg_treward = np.mean(self.trewards)
                     self.avg_trewards.append(avg_treward)
                     # print('treward:{};self.max_treward:{}'.format(treward,self.max_treward))
                     self.max_treward = max(self.max_treward, treward[w])
                     treward[w] = 0
 
+                    # 输出和打印env.performance和env.accuracy:
+                    worker.conn1.send(('get_performance', None))
+                    self.performance = worker.conn1.recv()
+                    worker.conn1.send(('get_accuracy', None))
+                    self.accuracy = worker.conn1.recv()
+                    print(f"{self.step}: performance: {self.performance} | accuracy: {self.accuracy}")
+
         init_obs = obs[:, t + 1]
         init_treward = treward
 
         # 计算advantage;
         next_value = self.Critic(obs[:, t + 1])  # (N,1,1)
-        values[:, t + 1] = tf.squeeze(next_value, axis=[1,2])  # (N,1,1) -> (N,)
+        values[:, t + 1] = tf.squeeze(next_value, axis=[1, 2])  # (N,1,1) -> (N,)
         advantages = self.nworker_nstep_gae_advantage(values, masks, rewards)
 
         # 获得values,advantages,log_probs 字典,以便于积累追加. numpy array占用内存大;
@@ -492,7 +502,7 @@ class PPO2:
         #           self.max_treward, loss))
 
     def nworker_nstep_training_loop(self, updates=50):
-        today_date = time.strftime('%y%m%d')
+        # today_date = time.strftime('%y%m%d')
         start_time = time.time()
         wait = 0
         patience = 3
@@ -504,7 +514,7 @@ class PPO2:
             worker.conn1.send(('reset', None))
         for w, worker in enumerate(self.workers):
             init_state, _ = worker.conn1.recv()
-            init_state = tf.squeeze(init_state, axis=0) # (1,lags, obs_dim) -> (lags, obs_dim)
+            init_state = tf.squeeze(init_state, axis=0)  # (1,lags, obs_dim) -> (lags, obs_dim)
             init_obs[w] = init_state
 
         for update in range(updates):
@@ -525,73 +535,65 @@ class PPO2:
             # 观察total reward mean 大于200的次数大约3时,提前终止训练;并每有最佳的loss值时,存盘权重
             if avg_treward > best:
                 best = avg_treward
-                actor_save_path = './saved_model/PPO_actor_{}_{}.h5'.format(
-                    updates, today_date)
-                critic_save_path = './saved_model/PPO_critic_{}_{}.h5'.format(
-                    updates, today_date)
+                actor_save_path = './saved_model/BTC_PPO_actor_{}_{}.h5'.format(
+                    updates, self.today_date)
+                critic_save_path = './saved_model/BTC_PPO_critic_{}_{}.h5'.format(
+                    updates, self.today_date)
                 self.Actor.save_weights(
                     actor_save_path, overwrite=True, save_format='h5')
                 self.Critic.save_weights(
                     critic_save_path, overwrite=True, save_format='h5')
                 print("Saving PPO weights in H5 format for update:{} ".format(update + 1))
-
-            # if avg_treward > 300:
-            #     wait += 1
-            # # if wait >= patience:
-            # #     ckpt_save_path = self.ckpt_manager.save()  # 存weight
-            # #     print("\nepisode:{:4d}/{}, 共耗时:{:.2f}分,历{}次实现total reward 25次平均值大于200;目标实现,训练结束,weight存盘在:{}".format(
-            # # episode, episodes, total_time_assumed, patience, ckpt_save_path))
-            # break
+                self.ckpt_manager.save()
 
     def close_process(self, ):
         for w, worker in enumerate(self.workers):
             worker.conn1.send(('close', None))
 
-
-if __name__ == "__main__":
-    action_dim = 4
-    obs_dim = 8
-    n_worker = 16
-    n_step = 5
-    mini_batch_size = 5  # int(n_worker * n_step / 4)
-    epochs = 3
-    updates = 5000
-    Actor = ActorModel(num_actions=action_dim)
-    Critic = CriticModel()
-
-    # ---Load 最近一次 存储的weights:(需要model call一次,才能够load)
-    env = gym.make('LunarLander-v2', continuous=False, render_mode='rgb_array')
-    init_obs, _ = env.reset()
-    init_obs = tf.expand_dims(init_obs, axis=0)
-    Actor(init_obs)
-    Critic(init_obs)
-    Actor.load_weights('./saved_model/PPO_actor_{}_{}.h5'.format(
-        '15000', '230516'))
-    Critic.load_weights('./saved_model/PPO_critic_{}_{}.h5'.format(
-        '15000', '230516'))
-    env.close()
-    # --------------
-
-    step_lr = Step_LRSchedule(1e-4, updates)
-    workers = []
-    for i in range(n_worker):
-        worker = Worker()
-        workers.append(worker)
-    PPO_agent = PPO2(workers, Actor, Critic, action_dim, obs_dim, actor_lr=1e-4, critic_lr=5e-04, gae_lambda=0.99,
-                     gamma=0.98,
-                     c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
-                     mini_batch_size=mini_batch_size)
-    PPO_agent.nworker_nstep_training_loop(updates)
-
-    today = time.strftime("%y%m%d")
-    fig, ax = plt.subplots(1, 3, figsize=(20, 6), )
-    ax[0].plot(PPO_agent.avg_trewards)
-    ax[0].set_title('average total reward')
-    ax[1].plot(PPO_agent.losses)
-    ax[1].set_title('PPO_loss')
-    ax[2].plot(PPO_agent.KL_divergence)
-    ax[2].set_title('approximal KL_divergence')
-    fig.savefig('./saved_model/PPO_{}_w{}_s{}_b{}_u{}'.format(today,
-                                                              n_worker, n_step, mini_batch_size, updates))
-
-    PPO_agent.close_process()
+# if __name__ == "__main__":
+#     action_dim = 4
+#     obs_dim = 8
+#     n_worker = 16
+#     n_step = 5
+#     mini_batch_size = 5  # int(n_worker * n_step / 4)
+#     epochs = 3
+#     updates = 5000
+#     Actor = ActorModel(num_actions=action_dim)
+#     Critic = CriticModel()
+#
+#     # ---Load 最近一次 存储的weights:(需要model call一次,才能够load)
+#     # env = gym.make('LunarLander-v2', continuous=False, render_mode='rgb_array')
+#     # init_obs, _ = env.reset()
+#     # init_obs = tf.expand_dims(init_obs, axis=0)
+#     # Actor(init_obs)
+#     # Critic(init_obs)
+#     # Actor.load_weights('./saved_model/PPO_actor_{}_{}.h5'.format(
+#     #     '15000', '230516'))
+#     # Critic.load_weights('./saved_model/PPO_critic_{}_{}.h5'.format(
+#     #     '15000', '230516'))
+#     # env.close()
+#     # # --------------
+#     #
+#     # step_lr = Step_LRSchedule(1e-4, updates)
+#     workers = []
+#     for i in range(n_worker):
+#         worker = Worker()
+#         workers.append(worker)
+#     PPO_agent = PPO2(workers, Actor, Critic, action_dim, obs_dim, actor_lr=1e-4, critic_lr=5e-04, gae_lambda=0.99,
+#                      gamma=0.98,
+#                      c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
+#                      mini_batch_size=mini_batch_size)
+#     PPO_agent.nworker_nstep_training_loop(updates)
+#
+#     today = time.strftime("%y%m%d")
+#     fig, ax = plt.subplots(1, 3, figsize=(20, 6), )
+#     ax[0].plot(PPO_agent.avg_trewards)
+#     ax[0].set_title('average total reward')
+#     ax[1].plot(PPO_agent.losses)
+#     ax[1].set_title('PPO_loss')
+#     ax[2].plot(PPO_agent.KL_divergence)
+#     ax[2].set_title('approximal KL_divergence')
+#     fig.savefig('./saved_model/PPO_{}_w{}_s{}_b{}_u{}'.format(today,
+#                                                               n_worker, n_step, mini_batch_size, updates))
+#
+#     PPO_agent.close_process()
