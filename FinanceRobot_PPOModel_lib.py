@@ -13,6 +13,7 @@ import tensorflow_probability as tfp  # 对模型的分布,应用sample, entropy
 import numpy as np
 
 from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear
+from FinanceRobot_Backtest_lib import Finance_Environment_V2
 
 import matplotlib.pyplot as plt
 
@@ -98,6 +99,9 @@ def worker_process(conn2, env):
     env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
     """
     # env = gym.make('LunarLander-v2', render_mode='rgb_array')
+    # _env = Finance_Environment_V2(dataset, action_n=action_dim, trading_commission=trading_commission,
+    #                              min_performance=0., min_accuracy=0.1)
+    # env = tf.py_function(Finance_Environment_V2, inp=(dataset, action_dim, trading_commission),Tout=tf.variant)
 
     while True:
         cmd, data = conn2.recv()
@@ -120,10 +124,12 @@ def worker_process(conn2, env):
 
 
 class Worker:
-    def __init__(self, env):
+    def __init__(self, dataset, action_dim, trading_commission=0.001):
         """"
         env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
         """
+        env = Finance_Environment_V2(dataset, action_n=action_dim, trading_commission=trading_commission,
+                                                                   min_performance=0., min_accuracy=0.1)
         self.conn1, conn2 = mp.Pipe()  # conn1通过send(command,data),控制conn2;
         self.process = mp.Process(target=worker_process, args=(conn2, env))
         self.process.start()

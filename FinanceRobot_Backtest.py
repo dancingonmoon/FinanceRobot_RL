@@ -94,7 +94,7 @@ if __name__ == '__main__':
     Critic = CriticModel(seq_len=lags, in_features=obs_n, out_features=action_n)
     workers = []
     for i in range(n_worker):
-        worker = Worker(env)
+        worker = Worker(dataset=dataset_train,action_dim=action_n)
         workers.append(worker)
     FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
                           gae_lambda=0.99,

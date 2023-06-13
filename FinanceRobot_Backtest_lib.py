@@ -100,6 +100,33 @@ def Dataset_Generator(data, data_columns_state=None, data_columns_non_state=None
     return dataset.batch(1, drop_remainder=True).prefetch(1)  # batch_size = 1
 
 
+def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None, lags=20, shuffle=False,
+                      buffer_size=10000):
+    """
+    从交易数据Dataframe,生成numpy dataset; 之所以在dataset_Generator函数(从Dataframe到tensorflow的Dataset),
+    是因为multiProcessing库中,多进程时Dataset的environment不能在多进程中被序列化,需要将environment改写成numpy的data;
+    args:
+        data: Dataframe格式的数据(N,features);
+        data_columns_state:Data的列中,那些用于训练的特征列;
+        data_columns_non_state: Data的列中, 那些不参与训练的列;(如: horizon_price,close);
+        lags: 样本延时的数量,即dataset window的大小; lags>=1;
+        batch_size: 必须为1 ; 因为交易数据送入Finance_Environment后,需要每步输入一个动作,每step输出state,reward,done,info,故而batch_size,这里只能设为1
+        shuffle: bool ; 是否shuffle;保持原交易数据的顺序,所以,不能shuffle;缺省为False
+    out:
+        xs: xs.shape:(date,(N,lags,state_features),(N,lags,non_state_features));元组,包含date(np.datetime),以及data_state,data_non_state;
+            date为记录交易日的时间戳(例如: "2022-11-19 12:00:00")
+    """
+    # 设置data_columns_state, data_columns_non_state缺省值:
+    if data_columns_state is None:
+        data_columns_state = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    if data_columns_non_state is None:
+        data_columns_non_state = [-2, -1]
+    data_state = data[data.columns[data_columns_state]]
+    data_non_state = data[data.columns[data_columns_non_state]]
+
+    data_state.
+
+
 def data_normalization(data, lookback=252,
                        normalize_columns=None):
     """
@@ -458,7 +485,7 @@ class Finance_Environment_V2:
                 'horizon_price': horizon_price
                 }
 
-        if self.bar < self.dataset_len-1 and not tf.experimental.numpy.isnan(horizon_price):
+        if self.bar < self.dataset_len - 1 and not tf.experimental.numpy.isnan(horizon_price):
             done = False
             if horizon_price > current_price * (1 + self.trading_commission):
                 reward_1 = action - 1
