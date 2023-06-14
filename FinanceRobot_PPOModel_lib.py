@@ -93,21 +93,20 @@ class Step_LRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 # In[32]:
 
 
-def worker_process(conn2, env):
+def worker_process(conn2, dataset,dataset_type, action_dim, trading_commission=0.001):
     """
     conn2 : Multiprocess的Pipe的第2个控制端口,用于控制Pipe的端口2的recv和send
     env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
     """
     # env = gym.make('LunarLander-v2', render_mode='rgb_array')
-    # _env = Finance_Environment_V2(dataset, action_n=action_dim, trading_commission=trading_commission,
-    #                              min_performance=0., min_accuracy=0.1)
-    # env = tf.py_function(Finance_Environment_V2, inp=(dataset, action_dim, trading_commission),Tout=tf.variant)
+    env = Finance_Environment_V2(dataset, dataset_type=dataset_type, action_n=action_dim, trading_commission=trading_commission,
+                                 min_performance=0., min_accuracy=0.1)
 
     while True:
         cmd, data = conn2.recv()
         # print('cmd:{}; data={}'.format(cmd, data))
         if cmd == 'reset':
-            conn2.send(env.reset(seed=data))
+            conn2.send(env.reset())
         elif cmd == 'step':
             conn2.send(env.step(data))
         elif cmd == 'get_performance':
@@ -124,14 +123,12 @@ def worker_process(conn2, env):
 
 
 class Worker:
-    def __init__(self, dataset, action_dim, trading_commission=0.001):
+    def __init__(self, dataset, dataset_type, action_dim, trading_commission=0.001):
         """"
         env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
         """
-        env = Finance_Environment_V2(dataset, action_n=action_dim, trading_commission=trading_commission,
-                                                                   min_performance=0., min_accuracy=0.1)
         self.conn1, conn2 = mp.Pipe()  # conn1通过send(command,data),控制conn2;
-        self.process = mp.Process(target=worker_process, args=(conn2, env))
+        self.process = mp.Process(target=worker_process, args=(conn2, dataset, dataset_type, action_dim, trading_commission))
         self.process.start()
 
 
@@ -290,7 +287,7 @@ class PPO2:
         # state = tf.expand_dims(state, axis=0)
         pi = self.Actor(state)  # pi为分布 state: (1,lags,features) -> (1,1,action_n)
         value = self.Critic(state)  # (1,1,1)
-        action = pi.sample(1)[0, 0].numpy()
+        action = pi.sample(1)[0, 0, 0].numpy()
         action_log_prob = pi.log_prob(action)  # (1,)
         return action, action_log_prob, tf.squeeze(value, axis=[1, 2])  # (),(1,),(1,)
 
@@ -300,7 +297,7 @@ class PPO2:
         """
         pi = self.Actor(states)  # pi为分布
         value = self.Critic(states)  # (n_worker,1,1)
-        action = pi.sample(self.n_worker)[0]  # (n_worker,)
+        action = pi.sample(1)[0,:,0]  # (n_worker,)
         log_prob = pi.log_prob(action)  # (n_worker,)
         # (n_worker),(n_worker,),(n_worker,)
         return action, log_prob, tf.squeeze(value, axis=[1, 2])

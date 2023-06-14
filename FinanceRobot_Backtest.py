@@ -10,7 +10,7 @@ from plotly.subplots import make_subplots
 
 import tensorflow as tf
 
-from FinanceRobot_Backtest_lib import Dataset_Generator, Finance_Environment_V2, data_normalization
+from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, Finance_Environment_V2, data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
 from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
 from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -61,15 +61,28 @@ if __name__ == '__main__':
     #         ]
     # split 训练数据,验证数据:
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
-    dataset_train = Dataset_Generator(data_normalized[:split], lags=7, shuffle=False,
-                                      data_columns_state=[0, 1, 2, 3, 4, 5])
-    dataset_test = Dataset_Generator(data_normalized[split:], lags=7, shuffle=False,
-                                     data_columns_state=[0, 1, 2, 3, 4, 5])
+
+    DDQN_flag = False
+    DQN_flag = False
+    PPO_flag = True
+
+    if DDQN_flag or DQN_flag:
+        dataset_train = Dataset_Generator(data_normalized[:split], lags=14,
+                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+        dataset_test = Dataset_Generator(data_normalized[split:], lags=14,
+                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+    elif PPO_flag:
+        dataset_train = ndarray_Generator(data_normalized[:split], lags=14,
+                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+        dataset_test = ndarray_Generator(data_normalized[split:], lags=14,
+                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+
     # 训练environment, 测试environment:
-    env = Finance_Environment_V2(dataset_train, action_n=3, min_performance=0.,
+    env = Finance_Environment_V2(dataset_train, dataset_type='ndarray', action_n=3, min_performance=0.,
                                  min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
-    env_test = Finance_Environment_V2(dataset_test, action_n=3, min_performance=0.,
+    env_test = Finance_Environment_V2(dataset_test, dataset_type='ndarray', action_n=3, min_performance=0.,
                                       min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+
     init_state, init_non_state = env.reset()
     action = env.action_space.sample()
     state, reward, done, info = env.step(action)  # state:(1,lags,obs_n)
@@ -83,20 +96,20 @@ if __name__ == '__main__':
                                       replay_batch_size=1000, fit_batch_size=batch_size, )
     FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=0.50, learning_rate=5e-4, learn_env=env, memory_size=2000,
                                         replay_batch_size=1000, fit_batch_size=batch_size, )
-
-    # PPO 建模:
-    n_worker = 8
-    n_step = 64
-    mini_batch_size = 64  # int(n_worker * n_step / 4)
-    epochs = 3
-    updates = 5000
-    Actor = ActorModel(seq_len=lags, in_features=obs_n, out_features=action_n)
-    Critic = CriticModel(seq_len=lags, in_features=obs_n, out_features=action_n)
-    workers = []
-    for i in range(n_worker):
-        worker = Worker(dataset=dataset_train,action_dim=action_n)
-        workers.append(worker)
-    FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
+    if PPO_flag:
+        # PPO 建模:
+        n_worker = 8
+        n_step = 64
+        mini_batch_size = 64  # int(n_worker * n_step / 4)
+        epochs = 3
+        updates = 5000
+        Actor = ActorModel(seq_len=lags, in_features=obs_n, out_features=action_n)
+        Critic = CriticModel(seq_len=lags, in_features=obs_n, out_features=action_n)
+        workers = []
+        for i in range(n_worker):
+            worker = Worker(dataset=dataset_train, dataset_type='ndarray', action_dim=action_n)
+            workers.append(worker)
+        FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
                           gae_lambda=0.99,
                           gamma=0.98,
                           c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
@@ -104,9 +117,6 @@ if __name__ == '__main__':
 
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    DDQN_flag = False
-    DQN_flag = False
-    PPO_flag = True
     if DDQN_flag:  # DDQN
         saved_path_prefix = 'saved_model/BTC_DDQN_'
         saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"

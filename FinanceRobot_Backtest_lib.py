@@ -100,8 +100,7 @@ def Dataset_Generator(data, data_columns_state=None, data_columns_non_state=None
     return dataset.batch(1, drop_remainder=True).prefetch(1)  # batch_size = 1
 
 
-def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None, lags=20, shuffle=False,
-                      buffer_size=10000):
+def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None, lags=20):
     """
     从交易数据Dataframe,生成numpy dataset; 之所以在dataset_Generator函数(从Dataframe到tensorflow的Dataset),
     是因为multiProcessing库中,多进程时Dataset的environment不能在多进程中被序列化,需要将environment改写成numpy的data;
@@ -124,7 +123,17 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_state = data[data.columns[data_columns_state]]
     data_non_state = data[data.columns[data_columns_non_state]]
 
-    data_state.
+    data_state = np.array([data_state.shift(lag) for lag in range(lags)])  # (lags, N, features)
+    data_state = np.transpose(data_state, axes=[1, 0, 2])[
+                 lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
+
+    data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags)])  # (lags, N, features)
+    data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
+                     lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
+
+    date_list = data.index.astype('string')
+
+    return (date_list, data_state, data_non_state)  # ((N,),(N,lags, state_features), (N,lags, non_state_features))
 
 
 def data_normalization(data, lookback=252,
@@ -368,6 +377,30 @@ class Finance_Environment:
         return self.state, reward_1 + reward_2 * 5, done, info  # reward_2*5 不知道为什么放大5倍
 
 
+class TupleIterator:
+    """
+    自定义的元组迭代器;元组内有多个Numpy数组,每个numpy数组首维长度相同;该迭代器实现元组内每个numpy数组的第一个维度的每个元素组成的元组的顺次输出
+    (用于解决多进程中不支持tensorflow Dataset的对象的序列化,将Dataset更换成ndarray,再实现Dataset迭代器
+    Note: 每次迭代输出的shape: ( (1,),(1,lags,state_features),(1,lags,non_state_features))
+    """
+
+    def __init__(self, data):
+        self.data = data
+        self.n = data[0].shape[0]  # 获取第一个numpy数组的长度
+        self.index = 0  # 当前元素索引
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index >= self.n:
+            raise StopIteration
+        else:
+            result = tuple(np.expand_dims(x[self.index],axis=0) for x in self.data) # x.index shape : (lags,features)->(1,lags,features)
+            self.index += 1
+            return result
+
+
 # 重写基于Finance类Env的Finance Agent,实现改进了的Agent在模拟的交易环境中,使用各强化学习算法,逐次从历史交易数据中学习正确的策略动作;
 class Finance_Environment_V2:
     """
@@ -383,7 +416,8 @@ class Finance_Environment_V2:
     def __init__(
             self,
             dataset,
-            action_n,
+            dataset_type="tensorflow_Dataset",
+            action_n=None,
             leverage=1,
             trading_commission=0.001,
             min_performance=0.3,  # 允许做空,
@@ -391,15 +425,23 @@ class Finance_Environment_V2:
     ):
         """
         args:
-            dataset: Finance Environment的交易数据,为tf.data.Dataset类型,shape:((1,date),(1,lags,state_features),(1,lags,non_state_features))
-            (定义每个lags的最后一个时序,表示当前状态所对应的时序.这是为了能够取得最后时序的模型预测值.)
+            dataset: Finance Environment的交易数据,有两种类型:
+                类型1: 为tf.data.Dataset类型,shape:((1,lags),(1,lags,state_features),(1,lags,non_state_features)),每次取一条数据;
+                类型2: 为ndarray: ((N,lags),(N,lags,state_features),(N,lags,non_state_features))
+                (定义每个lags的最后一个时序,表示当前状态所对应的时序.这是为了能够取得最后时序的模型预测值.)
+            dataset_type: 'tensorflow_Dataset'或者'ndarray';
         """
 
         self.dataset = dataset
-        # 定义和初始化迭代器,内装Dataset,指针从第一个数据开始,为不影响指针,该变量仅在next()时使用.
-        self.iter_dataset = iter(self.dataset)
-        self.batch_size, self.lags, self.features = iter(dataset).element_spec[1].shape
-        self.dataset_len = len(list(iter(dataset)))  # dataset的样本总条数(batch之后) batch_size =1 ;
+        self.dataset_type = dataset_type
+        if dataset_type == 'tensorflow_Dataset':
+            # 定义和初始化迭代器,内装Dataset,指针从第一个数据开始,为不影响指针,该变量仅在next()时使用.
+            self.iter_dataset = iter(self.dataset)
+            _, self.lags, self.features = iter(dataset).element_spec[1].shape
+            self.dataset_len = len(list(iter(dataset)))  # dataset的样本总条数(batch之后) batch_size =1 ;
+        elif dataset_type == 'ndarray':
+            self.iter_dataset = TupleIterator(dataset)
+            self.dataset_len, self.lags, self.features = dataset[1].shape
 
         self.leverage = leverage  # 杠杆
         self.trading_commission = trading_commission
@@ -426,19 +468,30 @@ class Finance_Environment_V2:
         out:
             env_backtest_data: 包含0)date(datetime64类型),1)horizon_log_return, 2)horizon_price,2)close收盘价,numpy,shape(N,4)
         """
-        dates = np.empty(self.dataset_len, dtype=object)  # object
-        datas = np.empty(shape=(self.dataset_len, 3), dtype=np.float32)
-        for bar, data in tqdm(enumerate(self.dataset), total=self.dataset_len):
-            date, _, non_state = data  # ((1,20),(1,20,16),(1,20,2)
-            date = date[0, -1].numpy()  # tensor->字节字符串->文本字符串.
-            non_state = non_state[0, -1, :]
-            dates[bar] = np.datetime64(date)
-            datas[bar, 0] = np.log(
-                non_state[horizon_price_column] / non_state[close_price_column])  # 计算horizon_log_return
-            datas[bar, 1] = non_state[horizon_price_column]
-            datas[bar, 2] = non_state[close_price_column]
+        if self.dataset_type == 'ndarray':
+            date, _, non_state = self.dataset  # ( (N,lags),(N,lags,state_features),(N,lags,non_state_features))
+            date = date[:, -1]  # (N,lags)->(N,)
+            non_state = non_state[:, -1, :]  # (N,lags,non_state_features) ->(N,non_state_features)
+            dates = np.datetime64(date)
+            log_return = np.log(
+                non_state[:, horizon_price_column] / non_state[:, close_price_column])  # 计算horizon_log_return
 
-        env_backtest_data = np.concatenate((dates.reshape(-1, 1), datas), axis=-1)
+            env_backtest_data = np.concatenate((date.reshape(-1, 1), log_return, non_state[:, horizon_price_column],
+                                                non_state[:, close_price_column]), axis=-1)
+        else:
+            dates = np.empty(self.dataset_len, dtype=object)  # object
+            datas = np.empty(shape=(self.dataset_len, 3), dtype=np.float32)
+            for bar, data in tqdm(enumerate(self.dataset), total=self.dataset_len):
+                date, _, non_state = data  # ((1,20),(1,20,16),(1,20,2)
+                date = date[0, -1].numpy()  # tensor->字节字符串->文本字符串.
+                non_state = non_state[0, -1, :]
+                dates[bar] = np.datetime64(date)
+                datas[bar, 0] = np.log(
+                    non_state[horizon_price_column] / non_state[close_price_column])  # 计算horizon_log_return
+                datas[bar, 1] = non_state[horizon_price_column]
+                datas[bar, 2] = non_state[close_price_column]
+
+            env_backtest_data = np.concatenate((dates.reshape(-1, 1), datas), axis=-1)
         # 以下去除包含NaN值的行, 在numpy中,没有dropna函数;
         # Nan_row = np.isnan(datas).any(axis=-1) # 只有浮点数才有NaN;
         # env_backtest_data = env_backtest_data[~Nan_row] # (N,3) 列:[date,horizon_log_return,horizon_price,close]
@@ -448,12 +501,16 @@ class Finance_Environment_V2:
         return env_backtest_data
 
     def _get_state(self, bar):
-        # Dataset类型,获得Dataset中,指定序列号的的element, ((N,date),(N,lags,state_features),(N,lags,non_state_features))
-        element = [d for i, d in enumerate(iter(self.dataset)) if i == bar][0]
-        # 此处待查,疑问有2: a)列表表达式内元素,是否应该就是((N,date),(N,lags,features)),那么[][0]代表什么呢? 答案: 找到的第0个值,待确认;
-        # 疑问2: b)if i == bar 寻找到的仅仅是,self.dataset内某个batch的序列号,是否确认是某一条交易数据呢?
-        # 答案: iter(self.dataset),即是迭代出包含的每一个元素,无论batch_size;
-        date, state, non_state = element  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
+        if self.dataset_type == 'tensorflow_Dataset':
+            # Dataset类型,获得Dataset中,指定序列号的的element, ((N,date),(N,lags,state_features),(N,lags,non_state_features))
+            element = [d for i, d in enumerate(iter(self.dataset)) if i == bar][0]
+            date, state, non_state = element  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
+        elif self.dataset_type == 'ndarray':
+            date = np.expand_dims(self.dataset[0][bar],0) # (1,lags))
+            state = np.expand_dims(self.dataset[1][bar],0) # (1,lags,state_features)
+            non_state = np.expand_dims(self.dataset[2][bar],0) # (1,lags,non_state_features)
+
+
         return date, state, non_state
 
     def seed(self, seed):
@@ -465,9 +522,13 @@ class Finance_Environment_V2:
         self.treward = 0
         self.accuracy = 0
         self.performance = 1
-        self.iter_dataset = iter(self.dataset)  # 复位dataset迭代器,使其从第一个数据开始.
+        if self.dataset_type == 'tensorflow_Dataset':
+            self.iter_dataset = iter(self.dataset)  # 复位dataset迭代器,使其从第一个数据开始.
+        elif self.dataset_type == 'ndarray':
+            self.iter_dataset = TupleIterator(self.dataset)
+
         self.bar = 0
-        _, self.state, self.non_state = self.iter_dataset.next()  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
+        _, self.state, self.non_state = self.iter_dataset.__next__()  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
 
         return self.state, self.non_state
 
