@@ -297,8 +297,10 @@ class PPO2:
         """
         pi = self.Actor(states)  # pi为分布
         value = self.Critic(states)  # (n_worker,1,1)
-        action = pi.sample(1)[0,:,0]  # (n_worker,)
-        log_prob = pi.log_prob(action)  # (n_worker,)
+        action = pi.sample()  # (n_worker,1)
+        log_prob = pi.log_prob(action)  # (n_worker,1)
+        action = tf.squeeze(action, axis=-1) # (n_worker,1) -> (n_worker,)
+        log_prob = tf.squeeze(log_prob, axis=-1) # (n_worker,1) ->(n_worker,)
         # (n_worker),(n_worker,),(n_worker,)
         return action, log_prob, tf.squeeze(value, axis=[1, 2])
 
