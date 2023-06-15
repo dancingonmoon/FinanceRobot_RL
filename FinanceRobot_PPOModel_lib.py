@@ -93,13 +93,14 @@ class Step_LRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 # In[32]:
 
 
-def worker_process(conn2, dataset,dataset_type, action_dim, trading_commission=0.001):
+def worker_process(conn2, dataset, dataset_type, action_dim, trading_commission=0.001):
     """
     conn2 : Multiprocess的Pipe的第2个控制端口,用于控制Pipe的端口2的recv和send
     env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
     """
     # env = gym.make('LunarLander-v2', render_mode='rgb_array')
-    env = Finance_Environment_V2(dataset, dataset_type=dataset_type, action_n=action_dim, trading_commission=trading_commission,
+    env = Finance_Environment_V2(dataset, dataset_type=dataset_type, action_n=action_dim,
+                                 trading_commission=trading_commission,
                                  min_performance=0., min_accuracy=0.1)
 
     while True:
@@ -114,7 +115,7 @@ def worker_process(conn2, dataset,dataset_type, action_dim, trading_commission=0
         elif cmd == 'get_accuracy':
             conn2.send(env.accuracy)
         elif cmd == 'close':
-            env.close()
+            # env.close() # Finance_Environment 没有close()
             conn2.close()  # 关闭子进程
             break  # 退出,否则:raise OSError("handle is closed")
         else:
@@ -128,7 +129,8 @@ class Worker:
         env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
         """
         self.conn1, conn2 = mp.Pipe()  # conn1通过send(command,data),控制conn2;
-        self.process = mp.Process(target=worker_process, args=(conn2, dataset, dataset_type, action_dim, trading_commission))
+        self.process = mp.Process(target=worker_process,
+                                  args=(conn2, dataset, dataset_type, action_dim, trading_commission))
         self.process.start()
 
 
@@ -299,8 +301,8 @@ class PPO2:
         value = self.Critic(states)  # (n_worker,1,1)
         action = pi.sample()  # (n_worker,1)
         log_prob = pi.log_prob(action)  # (n_worker,1)
-        action = tf.squeeze(action, axis=-1) # (n_worker,1) -> (n_worker,)
-        log_prob = tf.squeeze(log_prob, axis=-1) # (n_worker,1) ->(n_worker,)
+        action = tf.squeeze(action, axis=-1)  # (n_worker,1) -> (n_worker,)
+        log_prob = tf.squeeze(log_prob, axis=-1)  # (n_worker,1) ->(n_worker,)
         # (n_worker),(n_worker,),(n_worker,)
         return action, log_prob, tf.squeeze(value, axis=[1, 2])
 
@@ -364,16 +366,12 @@ class PPO2:
                     self.trewards.append(treward[w])
                     avg_treward = np.mean(self.trewards)
                     self.avg_trewards.append(avg_treward)
-                    # print('treward:{};self.max_treward:{}'.format(treward,self.max_treward))
                     self.max_treward = max(self.max_treward, treward[w])
-                    treward[w] = 0
+                    if t == self.n_step - 1:
+                        print(
+                            f"step: {self.step} | worker_{w}@n_step_{t}: average total_reward after train data exhaustion : {avg_treward:.1f} | max total_reward: {self.max_treward:.1f}")
 
-                    # 输出和打印env.performance和env.accuracy:
-                    worker.conn1.send(('get_performance', None))
-                    self.performance = worker.conn1.recv()
-                    worker.conn1.send(('get_accuracy', None))
-                    self.accuracy = worker.conn1.recv()
-                    print(f"{self.step}: performance: {self.performance} | accuracy: {self.accuracy}")
+                    treward[w] = 0
 
         init_obs = obs[:, t + 1]
         init_treward = treward
@@ -533,9 +531,21 @@ class PPO2:
                 time_spend = (time.time() - update_start_time) / 60
                 t_time_spend = (time.time() - start_time) / 60
                 loss = self.losses[-1] if self.losses else -np.infty
-                text = 'update:{:3d}/{}, 耗时:{:3.2f}分/{:3.2f}分 | step: {:5d} | avg_treward: {:5.1f} | max_treward: {:.1f} | loss: {:9.2f}'
+
+                # 输出和打印env.performance和env.accuracy:
+                for w, worker in enumerate(self.workers):
+                    worker.conn1.send(('get_performance', None))
+                for w, worker in enumerate(self.workers):
+                    self.performance = worker.conn1.recv()
+                for w, worker in enumerate(self.workers):
+                    worker.conn1.send(('get_accuracy', None))
+                for w, worker in enumerate(self.workers):
+                    self.accuracy = worker.conn1.recv()
+                # print(f"{self.step}: performance: {self.performance} | accuracy: {self.accuracy}")
+
+                text = 'update:{:3d}/{}, 耗时:{:3.2f}分/{:3.2f}分 | step: {:5d} | performance: {:.1f} | accuracy: {:.2f} | loss: {:3.2f}'
                 print(text.format(update + 1, updates, time_spend, t_time_spend,
-                                  self.step, avg_treward, self.max_treward, loss))
+                                  self.step, self.performance, self.accuracy, loss))
 
             # 观察total reward mean 大于200的次数大约3时,提前终止训练;并每有最佳的loss值时,存盘权重
             if avg_treward > best:
@@ -548,8 +558,8 @@ class PPO2:
                     actor_save_path, overwrite=True, save_format='h5')
                 self.Critic.save_weights(
                     critic_save_path, overwrite=True, save_format='h5')
-                print("Saving PPO weights in H5 format for update:{} ".format(update + 1))
                 self.ckpt_manager.save()
+                print("Saving PPO weights in both H5 format and checkpoint @ update:{} ".format(update + 1))
 
     def close_process(self, ):
         for w, worker in enumerate(self.workers):

@@ -131,7 +131,7 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
                      lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
 
-    date_list = data.index.astype('string')
+    date_list = data.index.astype('string')[lags - 1:]
 
     return (date_list, data_state, data_non_state)  # ((N,),(N,lags, state_features), (N,lags, non_state_features))
 
@@ -396,7 +396,8 @@ class TupleIterator:
         if self.index >= self.n:
             raise StopIteration
         else:
-            result = tuple(np.expand_dims(x[self.index],axis=0) for x in self.data) # x.index shape : (lags,features)->(1,lags,features)
+            result = tuple(np.expand_dims(x[self.index], axis=0) for x in
+                           self.data)  # x.index shape : (lags,features)->(1,lags,features)
             self.index += 1
             return result
 
@@ -469,15 +470,16 @@ class Finance_Environment_V2:
             env_backtest_data: 包含0)date(datetime64类型),1)horizon_log_return, 2)horizon_price,2)close收盘价,numpy,shape(N,4)
         """
         if self.dataset_type == 'ndarray':
-            date, _, non_state = self.dataset  # ( (N,lags),(N,lags,state_features),(N,lags,non_state_features))
-            date = date[:, -1]  # (N,lags)->(N,)
+            date, _, non_state = self.dataset  # ( (N,),(N,lags,state_features),(N,lags,non_state_features))
+            # date = date[:, -1]  # (N,)->(N,)
             non_state = non_state[:, -1, :]  # (N,lags,non_state_features) ->(N,non_state_features)
-            dates = np.datetime64(date)
+            date = np.array(date, dtype=np.datetime64)
+            date = np.array(date,dtype=object).reshape(-1,1) # 先转换成object对象,才能concatenate,再增加一个维度;
             log_return = np.log(
                 non_state[:, horizon_price_column] / non_state[:, close_price_column])  # 计算horizon_log_return
+            log_return = np.expand_dims(log_return, axis=-1)  # (N,) -> (N,1)
 
-            env_backtest_data = np.concatenate((date.reshape(-1, 1), log_return, non_state[:, horizon_price_column],
-                                                non_state[:, close_price_column]), axis=-1)
+            env_backtest_data = np.concatenate((date, log_return, non_state), axis=-1)
         else:
             dates = np.empty(self.dataset_len, dtype=object)  # object
             datas = np.empty(shape=(self.dataset_len, 3), dtype=np.float32)
@@ -506,10 +508,9 @@ class Finance_Environment_V2:
             element = [d for i, d in enumerate(iter(self.dataset)) if i == bar][0]
             date, state, non_state = element  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
         elif self.dataset_type == 'ndarray':
-            date = np.expand_dims(self.dataset[0][bar],0) # (1,lags))
-            state = np.expand_dims(self.dataset[1][bar],0) # (1,lags,state_features)
-            non_state = np.expand_dims(self.dataset[2][bar],0) # (1,lags,non_state_features)
-
+            date = np.expand_dims(self.dataset[0][bar], 0)  # (1,lags))
+            state = np.expand_dims(self.dataset[1][bar], 0)  # (1,lags,state_features)
+            non_state = np.expand_dims(self.dataset[2][bar], 0)  # (1,lags,non_state_features)
 
         return date, state, non_state
 
@@ -1272,13 +1273,17 @@ class BacktestingEventV2:
         print(f"{date} | number of trades [#] = {self.trades}")
         print(50 * "=")
 
-    def backtest_strategy_WO_RM(self):
+    def backtest_strategy_WO_RM(self, action_strategy_mode='argmax'):
         """
         Event-based backtesting of the trading bot's performance.
-        利用BacktesingBase类中定义的交易的方法,买,卖等;实现观察数据的回测过程.
+        利用Backtesing类中定义的交易的方法,买,卖等;实现观察数据的回测过程.
         没有risk Management;(没有止损,跟踪止损,止盈,风控措施)
         没有做空,只有做多;
         bar 从 0 时刻开始,因为即使是第0个时刻,也是有收盘价;第0时刻的状态预测action,0时刻后执行;
+
+        action_strategy_mode: 动作策略获取模式;对于DQN与DDQN算法,其动作策略是通过argmax()实现;
+            而PPO的动作策略是通过tfp.distribution.categorical()生成一个分布pi, 再通过pi.sample()来获得;
+            action_strategy_mode = "argmax" 或者 'tfp.distribution'
         """
         self.units = 0
         self.position = 0  # 用于存放头寸的状态;
@@ -1294,8 +1299,14 @@ class BacktestingEventV2:
         state, _ = self.env.reset()
         for bar in range(0, self.env_backtest_data.shape[0]):
             date, price = self.get_date_price(bar)
-            action = np.argmax(self.trained_model(state), axis=-1)[
-                0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            if action_strategy_mode == 'argmax':
+                action = np.argmax(self.trained_model(state), axis=-1)[
+                    0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            elif action_strategy_mode == 'tfp.distribution':
+                pi = self.trained_model(state)  # pi为分布 state: (1,lags,features) -> (1,1,action_n)
+                action = pi.sample()[0, 0].numpy()
+            else:
+                print(f'invalid action_strategy_mode:{action_strategy_mode}')
             state, reward, done, info = self.env.step(action)
             # position = 1 if action == 1 else -1
             # if self.position in [0, -1] and action == 2: # buy 不许做空;
@@ -1320,12 +1331,20 @@ class BacktestingEventV2:
                 self.position = 0
 
             # 以下输出资产/交易状态:
+            # 计算减去交易手续费之后的收益率,以观察动作策略的准确性:
+            if action_strategy_mode == 'argmax': # horizon_price为tensor
+                horizon_return_after_ptc = (info['horizon_price'].numpy() - price * (1 - self.ptc)) / price
+            elif action_strategy_mode == 'tfp.distribution': # horizon_price为ndarray
+                horizon_return_after_ptc = (info['horizon_price'] - price * (1 - self.ptc)) / price
+            else:
+                print(f'invalid action_strategy_mode:{action_strategy_mode}')
+
             self.net_wealths.append(
                 (
                     date,
                     price,
                     action,
-                    (info['horizon_price'].numpy() - price * (1 - self.ptc)) / price,
+                    horizon_return_after_ptc,
                     self.units,
                     self.current_balance,
                     self.calculate_net_wealth(price),
@@ -1360,6 +1379,7 @@ class BacktestingEventV2:
             TakeProfit=None,
             wait=5,
             guarantee=False,
+            action_strategy_mode='argmax'
     ):
         """Event-based backtesting of the trading bot's performance.
             Incl. stop loss, trailing stop loss and take profit.
@@ -1371,6 +1391,9 @@ class BacktestingEventV2:
             TakeProfit: take profit,止盈;
             wait: 两次策略交易事件(风控事件,或者买卖交易)之间等待的条数(样本条数,或者是样本间隔交易间隔的数量)
             guarantee: bool值,表示是否以保证价格,或是市场当时的价格成交;
+            action_strategy_mode: 动作策略获取模式;对于DQN与DDQN算法,其动作策略是通过argmax()实现;
+            而PPO的动作策略是通过tfp.distribution.categorical()生成一个分布pi, 再通过pi.sample()来获得;
+            action_strategy_mode = "argmax" 或者 'tfp.distribution'
         """
         self.units = 0
         self.position = 0
@@ -1442,8 +1465,15 @@ class BacktestingEventV2:
                     self.wait = wait
                     self.position = 0
 
-            action = np.argmax(self.trained_model(state), axis=-1)[
-                0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            if action_strategy_mode == 'argmax':
+                action = np.argmax(self.trained_model(state), axis=-1)[
+                    0, 0]  # (1,lags,state_features)->(1,1,action_space_n) ;
+            elif action_strategy_mode == 'tfp.distribution':
+                pi = self.trained_model(state)  # pi为分布 state: (1,lags,features) -> (1,1,action_n)
+                action = pi.sample()[0, 0].numpy()
+            else:
+                print(f'invalid action_strategy_mode:{action_strategy_mode}')
+
             state, reward, done, info = self.env.step(action)
             # wait初始为5,每个样本,减去1,5次后为0;
             if self.position == 0 and action == 2:
@@ -1465,31 +1495,42 @@ class BacktestingEventV2:
                     self.print_net_wealth(bar)
                 self.position = 0
 
-            self.net_wealths.append(
-                (
-                    date,
-                    price,
-                    action,
-                    self.units,
-                    self.current_balance,
-                    self.calculate_net_wealth(price),
-                    self.position,
-                    self.trades,
+                # 以下输出资产/交易状态:
+                # 计算减去交易手续费之后的收益率,以观察动作策略的准确性:
+                if action_strategy_mode == 'argmax':  # horizon_price为tensor
+                    horizon_return_after_ptc = (info['horizon_price'].numpy() - price * (1 - self.ptc)) / price
+                elif action_strategy_mode == 'tfp.distribution':  # horizon_price为ndarray
+                    horizon_return_after_ptc = (info['horizon_price'] - price * (1 - self.ptc)) / price
+                else:
+                    print(f'invalid action_strategy_mode:{action_strategy_mode}')
+
+                self.net_wealths.append(
+                    (
+                        date,
+                        price,
+                        action,
+                        horizon_return_after_ptc,
+                        self.units,
+                        self.current_balance,
+                        self.calculate_net_wealth(price),
+                        self.position,
+                        self.trades,
+                    )
                 )
+            self.net_wealths = pd.DataFrame(
+                self.net_wealths,
+                columns=[
+                    "date",
+                    "price",
+                    "action",
+                    "horizon_return_after_ptc",
+                    "units",
+                    "balance",
+                    "net_wealth",
+                    "position",
+                    "trades",
+                ],
             )
-        self.net_wealths = pd.DataFrame(
-            self.net_wealths,
-            columns=[
-                "date",
-                "price",
-                "action",
-                "units",
-                "balance",
-                "net_wealth",
-                "position",
-                "trades",
-            ],
-        )
 
         self.net_wealths.set_index("date", inplace=True)
         self.net_wealths.index = pd.DatetimeIndex(self.net_wealths.index).tz_localize('UTC').tz_convert(

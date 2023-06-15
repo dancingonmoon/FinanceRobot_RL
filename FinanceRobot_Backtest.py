@@ -29,9 +29,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 
 if __name__ == '__main__':
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -110,10 +110,10 @@ if __name__ == '__main__':
             worker = Worker(dataset=dataset_train, dataset_type='ndarray', action_dim=action_n)
             workers.append(worker)
         FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
-                          gae_lambda=0.99,
-                          gamma=0.98,
-                          c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
-                          mini_batch_size=mini_batch_size)
+                              gae_lambda=0.99,
+                              gamma=0.98,
+                              c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
+                              mini_batch_size=mini_batch_size)
 
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
@@ -133,44 +133,47 @@ if __name__ == '__main__':
         #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
         BacktestEvent = BacktestingEventV2(env_test, FinR_Agent_DDQN.Q, initial_amount=1000, percent_commission=0.001,
                                            fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
+        # Event Based Backtesting
+        BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode='argmax')
+
     elif DQN_flag:  # DQN
         saved_path_prefix = 'saved_model/BTC_DQN_'
         saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
         # DQN 训练过程:
-        # FinR_Agent_DQN.learn(episodes=70)
-        # print(f"{'-' * 40}finished{'-' * 40}")
+        FinR_Agent_DQN.learn(episodes=70)
+        print(f"{'-' * 40}finished{'-' * 40}")
         # 最后训练模型h5格式存盘
-        # FinR_Agent_DDQN.Q.save_weights(saved_path,save_format='h5',overwrite=False)
+        FinR_Agent_DDQN.Q.save_weights(saved_path,save_format='h5',overwrite=False)
 
         # 调出预训练模型, event based backtesting:
         ckpt = tf.train.Checkpoint(model=FinR_Agent_DQN.Q)
         saved_path = saved_path_prefix + '230610-51'
-        ckpt.restore(
-            saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
+        ckpt.restore(saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
         BacktestEvent = BacktestingEventV2(env_test, FinR_Agent_DQN.Q, initial_amount=1000, percent_commission=0.001,
                                            fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
+        # Event Based Backtesting
+        BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode='argmax')
 
     elif PPO_flag:
         saved_path_prefix = 'saved_model/BTC_PPO_'
         saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
         # PPO 训练过程:
-        FinR_Agent_PPO.nworker_nstep_training_loop(updates=3000)
-        FinR_Agent_PPO.close_process()
-        print(f"{'-' * 40}finished{'-' * 40}")
+        # FinR_Agent_PPO.nworker_nstep_training_loop(updates=8000)
+        # FinR_Agent_PPO.close_process()
+        # print(f"{'-' * 40}finished{'-' * 40}")
 
         # 调出预训练模型, event based backtesting:
-        # ckpt = tf.train.Checkpoint(actormodel=FinR_Agent_PPO.Actor,criticmodel=FinR_Agent_PPO.Critic)
-        # saved_path = saved_path_prefix + '230610-51'
+        ckpt = tf.train.Checkpoint(actormodel=FinR_Agent_PPO.Actor,criticmodel=FinR_Agent_PPO.Critic)
+        saved_path = saved_path_prefix + '230615-2'
         # ckpt.restore(
         #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
-        # BacktestEvent = BacktestingEventV2(env, FinR_Agent_DQN.Q, initial_amount=1000, percent_commission=0.001,
-        #                                    fixed_commission=0., verbose=True, MinUnit_1Position=-8, ) # 里面的训练好的模型,生成策略动作需要更改,因为模型输出的是分布,而不是action的概率.这个与DQN不一样.
+        BacktestEvent = BacktestingEventV2(env, FinR_Agent_PPO.Actor, initial_amount=1000, percent_commission=0.001,
+                                        fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
+        BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode='tfp.distribution')
 
     # vector backtest
     # env_backtest_data  = BacktestingVectorV2(Q,env,)
 
-    # Event Based Backtesting
-    BacktestEvent.backtest_strategy_WO_RM()
 
     # plot 绘图:
 
