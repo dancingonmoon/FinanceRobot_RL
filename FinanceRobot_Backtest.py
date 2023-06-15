@@ -9,6 +9,7 @@ from plotly.subplots import make_subplots
 # import plotly
 
 import tensorflow as tf
+tf.config.set_visible_devices([], 'GPU') # 让GPPU不可见,仅仅使用CPU
 
 from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, Finance_Environment_V2, data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
@@ -27,11 +28,16 @@ from copy import deepcopy
 from BTCCrawl_To_DataFrame_Class import BTC_data_acquire as BTC_DataAcquire
 from BTCCrawl_To_DataFrame_Class import get_api_key
 
+
+
 if __name__ == '__main__':
+
+    # tf.config.set_visible_devices([], 'GPU')  # 让GPU不可见,仅仅使用CPU
+
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -158,13 +164,13 @@ if __name__ == '__main__':
         saved_path_prefix = 'saved_model/BTC_PPO_'
         saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
         # PPO 训练过程:
-        # FinR_Agent_PPO.nworker_nstep_training_loop(updates=8000)
-        # FinR_Agent_PPO.close_process()
-        # print(f"{'-' * 40}finished{'-' * 40}")
+        FinR_Agent_PPO.nworker_nstep_training_loop(updates=8000)
+        FinR_Agent_PPO.close_process()
+        print(f"{'-' * 40}finished{'-' * 40}")
 
         # 调出预训练模型, event based backtesting:
-        ckpt = tf.train.Checkpoint(actormodel=FinR_Agent_PPO.Actor,criticmodel=FinR_Agent_PPO.Critic)
-        saved_path = saved_path_prefix + '230615-2'
+        # ckpt = tf.train.Checkpoint(actormodel=FinR_Agent_PPO.Actor,criticmodel=FinR_Agent_PPO.Critic)
+        # saved_path = saved_path_prefix + '230615-2'
         # ckpt.restore(
         #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
         BacktestEvent = BacktestingEventV2(env, FinR_Agent_PPO.Actor, initial_amount=1000, percent_commission=0.001,
