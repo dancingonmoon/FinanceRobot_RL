@@ -7,6 +7,7 @@ import tensorflow as tf
 # from tensorflow.keras.layers import Dense, Dropout, AveragePooling1D
 import random
 # import time
+import itertools
 
 # import math
 from tqdm import tqdm
@@ -374,8 +375,19 @@ class Finance_Environment:
         self.state = next(self.iter_dataset)[1]  # 下一个state
 
         info = {}
-        return self.state, reward_1 + reward_2 * 5, done, info  # reward_2*5 不知道为什么放大5倍
+        return self.state, reward_1 + reward_2 * 5, done, info  # reward_2*5 5倍或者几倍,以后再调节
 
+def Data_Generator(data):
+    """生成器,以节约内存;
+    in:
+        data: 元组,包含一个或者多个首维相同的ndarray; 例如: shape: ( (N,),(N,lags,state_features),(N,lags,non_state_features))
+    out:
+        每次生成一条元组数据,包括一个或者多个首维为1,剩余维度一致的ndarray; 例如: ( (1,),(1,lags,state_features),(1,lags,non_state_features))
+        生成器可以通过next()依次吐出下一条数据.
+    """
+    for i in range(data[0].shape[0]):
+        result = tuple(np.expand_dims(x[i], axis=0) for x in data)  # (lags,features)->(1,lags,features)
+        yield result
 
 class TupleIterator:
     """
@@ -428,7 +440,8 @@ class Finance_Environment_V2:
         args:
             dataset: Finance Environment的交易数据,有两种类型:
                 类型1: 为tf.data.Dataset类型,shape:((1,lags),(1,lags,state_features),(1,lags,non_state_features)),每次取一条数据;
-                类型2: 为ndarray: ((N,lags),(N,lags,state_features),(N,lags,non_state_features))
+                类型2: 为ndarray: ((N,lags),(N,lags,state_features),(N,lags,non_state_features)) 内存消耗太大,仅能CPU多进程,而GPU多进程失败;
+                类型3: 为ndarray_generator生成器: 每一次next(),一条数据( (1,),(1,lags,state_features),(1,lags,non_state_features)),不支持切片等操作
                 (定义每个lags的最后一个时序,表示当前状态所对应的时序.这是为了能够取得最后时序的模型预测值.)
             dataset_type: 'tensorflow_Dataset'或者'ndarray';
         """
@@ -443,6 +456,9 @@ class Finance_Environment_V2:
         elif dataset_type == 'ndarray':
             self.iter_dataset = TupleIterator(dataset)
             self.dataset_len, self.lags, self.features = dataset[1].shape
+        elif dataset_type == 'ndarray_generator':
+            self.iter_dataset = Data_Generator(dataset)
+
 
         self.leverage = leverage  # 杠杆
         self.trading_commission = trading_commission

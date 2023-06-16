@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 import tensorflow as tf
 tf.config.set_visible_devices([], 'GPU') # 让GPPU不可见,仅仅使用CPU
 
-from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, Finance_Environment_V2, data_normalization
+from FinanceRobot_Backtest_lib import Dataset_Generator, Data_Generator, ndarray_Generator, Finance_Environment_V2, data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
 from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
 from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
@@ -28,16 +28,16 @@ from copy import deepcopy
 from BTCCrawl_To_DataFrame_Class import BTC_data_acquire as BTC_DataAcquire
 from BTCCrawl_To_DataFrame_Class import get_api_key
 
-
+import itertools
 
 if __name__ == '__main__':
 
     # tf.config.set_visible_devices([], 'GPU')  # 让GPU不可见,仅仅使用CPU
 
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -68,6 +68,7 @@ if __name__ == '__main__':
     # split 训练数据,验证数据:
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
 
+
     DDQN_flag = False
     DQN_flag = False
     PPO_flag = True
@@ -82,6 +83,10 @@ if __name__ == '__main__':
                                           data_columns_state=[0, 1, 2, 3, 4, 5])
         dataset_test = ndarray_Generator(data_normalized[split:], lags=14,
                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+
+    # data_gen = Data_Generator(dataset_train)
+    # data_iter = itertools.tee(data_gen,1)
+
 
     # 训练environment, 测试environment:
     env = Finance_Environment_V2(dataset_train, dataset_type='ndarray', action_n=3, min_performance=0.,
