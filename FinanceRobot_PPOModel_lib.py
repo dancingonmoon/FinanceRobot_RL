@@ -128,6 +128,10 @@ class Worker:
         """"
         env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
         """
+        # 将可见设备设置为仅包括CPU
+        # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        # tf.config.set_visible_devices([], 'GPU')
+
         self.conn1, conn2 = mp.Pipe()  # conn1通过send(command,data),控制conn2;
         self.process = mp.Process(target=worker_process,
                                   args=(conn2, dataset, dataset_type, action_dim, trading_commission))

@@ -132,7 +132,7 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
                      lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
 
-    date_list = data.index.astype('string')[lags - 1:]
+    date_list = np.expand_dims(data.index.astype('string')[lags - 1:],axis=-1)
 
     return (date_list, data_state, data_non_state)  # ((N,),(N,lags, state_features), (N,lags, non_state_features))
 
@@ -391,6 +391,7 @@ def Data_Generator(data):
 
 class TupleIterator:
     """
+    自定义的迭代器,可以实现通过将self.index=0,来将迭代器复位;避免重新生成一个迭代器而需要引入data
     自定义的元组迭代器;元组内有多个Numpy数组,每个numpy数组首维长度相同;该迭代器实现元组内每个numpy数组的第一个维度的每个元素组成的元组的顺次输出
     (用于解决多进程中不支持tensorflow Dataset的对象的序列化,将Dataset更换成ndarray,再实现Dataset迭代器
     Note: 每次迭代输出的shape: ( (1,),(1,lags,state_features),(1,lags,non_state_features))
@@ -409,7 +410,7 @@ class TupleIterator:
             raise StopIteration
         else:
             result = tuple(np.expand_dims(x[self.index], axis=0) for x in
-                           self.data)  # x.index shape : (lags,features)->(1,lags,features)
+                           self.data)  # x[index] shape : (lags,features)->(1,lags,features)
             self.index += 1
             return result
 
@@ -441,9 +442,11 @@ class Finance_Environment_V2:
             dataset: Finance Environment的交易数据,有两种类型:
                 类型1: 为tf.data.Dataset类型,shape:((1,lags),(1,lags,state_features),(1,lags,non_state_features)),每次取一条数据;
                 类型2: 为ndarray: ((N,lags),(N,lags,state_features),(N,lags,non_state_features)) 内存消耗太大,仅能CPU多进程,而GPU多进程失败;
-                类型3: 为ndarray_generator生成器: 每一次next(),一条数据( (1,),(1,lags,state_features),(1,lags,non_state_features)),不支持切片等操作
+                类型3: 为ndarray_iterator迭代器: 已经加载了dataset,index=0的一个新生成的dataset的迭代器;
+                      每一次next(),一条数据( (1,),(1,lags,state_features),(1,lags,non_state_features)),不支持切片,查询等操作
+                      优点是占用内存小,可以通过将index赋值0来实现迭代器复位,而避免重新生成一个新的迭代器;
                 (定义每个lags的最后一个时序,表示当前状态所对应的时序.这是为了能够取得最后时序的模型预测值.)
-            dataset_type: 'tensorflow_Dataset'或者'ndarray';
+            dataset_type: 类型1='tensorflow_Dataset'; 类型2='ndarray'; 类型3= 'ndarray_iterator';
         """
 
         self.dataset = dataset
@@ -456,9 +459,12 @@ class Finance_Environment_V2:
         elif dataset_type == 'ndarray':
             self.iter_dataset = TupleIterator(dataset)
             self.dataset_len, self.lags, self.features = dataset[1].shape
-        elif dataset_type == 'ndarray_generator':
-            self.iter_dataset = Data_Generator(dataset)
-
+        elif dataset_type == 'ndarray_iterator':
+            self.iter_dataset = dataset # dataset 作为类型3, 输入的时候,就已经是加载了dataset的迭代器,可以通过将self.index=0 来复位迭代器,从而减小内存;
+            _, self.lags, self.features = self.iter_dataset.__next__()[1].shape
+            self.dataset.index = 0 # 复位以获得len值完整
+            self.dataset_len = len(list(self.iter_dataset))
+            self.dataset.index = 0 # 复位一次,以免以后不匹配
 
         self.leverage = leverage  # 杠杆
         self.trading_commission = trading_commission
@@ -499,9 +505,14 @@ class Finance_Environment_V2:
         else:
             dates = np.empty(self.dataset_len, dtype=object)  # object
             datas = np.empty(shape=(self.dataset_len, 3), dtype=np.float32)
+            # self.dataset 迭代器复位一次:
+            if isinstance(self.dataset,TupleIterator):
+                self.dataset.index = 0 # 如果是迭代器就复位
             for bar, data in tqdm(enumerate(self.dataset), total=self.dataset_len):
                 date, _, non_state = data  # ((1,20),(1,20,16),(1,20,2)
-                date = date[0, -1].numpy()  # tensor->字节字符串->文本字符串.
+                date = date[0, -1]
+                if isinstance(date, tf.Tensor):
+                    date = date.numpy()  # tensor->字节字符串->文本字符串.
                 non_state = non_state[0, -1, :]
                 dates[bar] = np.datetime64(date)
                 datas[bar, 0] = np.log(
@@ -527,6 +538,11 @@ class Finance_Environment_V2:
             date = np.expand_dims(self.dataset[0][bar], 0)  # (1,lags))
             state = np.expand_dims(self.dataset[1][bar], 0)  # (1,lags,state_features)
             non_state = np.expand_dims(self.dataset[2][bar], 0)  # (1,lags,non_state_features)
+        elif self.dataset_type == 'ndarray_iterator':
+            self.iter_dataset.index = 0 # 迭代器复位一次;
+            element = [d for i, d in enumerate(self.iter_dataset) if i == bar][0]
+            date, state, non_state = element  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
+
 
         return date, state, non_state
 
@@ -543,6 +559,8 @@ class Finance_Environment_V2:
             self.iter_dataset = iter(self.dataset)  # 复位dataset迭代器,使其从第一个数据开始.
         elif self.dataset_type == 'ndarray':
             self.iter_dataset = TupleIterator(self.dataset)
+        elif self.dataset_type == 'ndarray_iterator':
+            self.iter_dataset.index = 0 # 迭代器复位
 
         self.bar = 0
         _, self.state, self.non_state = self.iter_dataset.__next__()  # (1,date),(1,lags,state_features),(1,lags,non_state_features)

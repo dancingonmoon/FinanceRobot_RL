@@ -9,9 +9,19 @@ from plotly.subplots import make_subplots
 # import plotly
 
 import tensorflow as tf
-tf.config.set_visible_devices([], 'GPU') # 让GPPU不可见,仅仅使用CPU
 
-from FinanceRobot_Backtest_lib import Dataset_Generator, Data_Generator, ndarray_Generator, Finance_Environment_V2, data_normalization
+# tf.config.set_visible_devices([], 'GPU') # 让GPU不可见,仅仅使用CPU
+
+# 获取所有可见的物理设备
+physical_devices = tf.config.list_physical_devices()
+for device in physical_devices:
+    if device.device_type == 'GPU':
+        tf.config.set_visible_devices(device, 'GPU')
+        # 将显存设置为动态增长模式 (可以避免多进程中,单个进程GPU内存全部分配而崩塌)
+        tf.config.experimental.set_memory_growth(device, True)
+
+from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, TupleIterator, Finance_Environment_V2, \
+    data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
 from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
 from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
@@ -28,16 +38,12 @@ from copy import deepcopy
 from BTCCrawl_To_DataFrame_Class import BTC_data_acquire as BTC_DataAcquire
 from BTCCrawl_To_DataFrame_Class import get_api_key
 
-import itertools
-
 if __name__ == '__main__':
 
-    # tf.config.set_visible_devices([], 'GPU')  # 让GPU不可见,仅仅使用CPU
-
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -53,7 +59,6 @@ if __name__ == '__main__':
                                                     FromWeb=False, close_colName='close', lags=0, window=20, horizon=10,
                                                     interval='12h', MarketFactor=False, weekdays=7)
 
-    batch_size = 32
     data_normalized = data_normalization(data, 365, normalize_columns=[0, 1, 2, 3, 4, 5])
     # features = [
     #             "log_return",
@@ -68,123 +73,174 @@ if __name__ == '__main__':
     # split 训练数据,验证数据:
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
 
+    #########Arguments Optimization#############
+    Test_flag = False
+    train_test_text_add = 'test' if Test_flag else 'train'
 
     DDQN_flag = False
     DQN_flag = False
     PPO_flag = True
+    lags = 14
+    action_n = 3
+    gamma = 0.5
+    memory_size = 2000
+    replay_batch_size = 1000
+    batch_size = 32
+    DQN_episode = 70
+    DDQN_episode = 70
 
-    if DDQN_flag or DQN_flag:
-        dataset_train = Dataset_Generator(data_normalized[:split], lags=14,
-                                          data_columns_state=[0, 1, 2, 3, 4, 5])
-        dataset_test = Dataset_Generator(data_normalized[split:], lags=14,
-                                         data_columns_state=[0, 1, 2, 3, 4, 5])
-    elif PPO_flag:
-        dataset_train = ndarray_Generator(data_normalized[:split], lags=14,
-                                          data_columns_state=[0, 1, 2, 3, 4, 5])
-        dataset_test = ndarray_Generator(data_normalized[split:], lags=14,
-                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+    DQN_saved_model_filename = "230610-51"
+    DDQN_saved_model_filename = "230610-51"
 
-    # data_gen = Data_Generator(dataset_train)
-    # data_iter = itertools.tee(data_gen,1)
-
-
-    # 训练environment, 测试environment:
-    env = Finance_Environment_V2(dataset_train, dataset_type='ndarray', action_n=3, min_performance=0.,
-                                 min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
-    env_test = Finance_Environment_V2(dataset_test, dataset_type='ndarray', action_n=3, min_performance=0.,
-                                      min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
-
-    init_state, init_non_state = env.reset()
-    action = env.action_space.sample()
-    state, reward, done, info = env.step(action)  # state:(1,lags,obs_n)
-
-    lags, obs_n = env.observation_space.shape
-    action_n = env.action_space.n
-    Q = Decompose_FF_Linear(seq_len=lags, in_features=obs_n, out_features=action_n, )
-    Q_target = deepcopy(Q)
-    # actions = model(state) # (N,1, action_n)
-    FinR_Agent_DQN = FinRobotAgentDQN(Q, Q_target, gamma=0.50, learning_rate=5e-4, learn_env=env, memory_size=2000,
-                                      replay_batch_size=1000, fit_batch_size=batch_size, )
-    FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=0.50, learning_rate=5e-4, learn_env=env, memory_size=2000,
-                                        replay_batch_size=1000, fit_batch_size=batch_size, )
-    if PPO_flag:
-        # PPO 建模:
-        n_worker = 8
-        n_step = 64
-        mini_batch_size = 64  # int(n_worker * n_step / 4)
-        epochs = 3
-        updates = 5000
-        Actor = ActorModel(seq_len=lags, in_features=obs_n, out_features=action_n)
-        Critic = CriticModel(seq_len=lags, in_features=obs_n, out_features=action_n)
-        workers = []
-        for i in range(n_worker):
-            worker = Worker(dataset=dataset_train, dataset_type='ndarray', action_dim=action_n)
-            workers.append(worker)
-        FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
-                              gae_lambda=0.99,
-                              gamma=0.98,
-                              c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
-                              mini_batch_size=mini_batch_size)
-
+    # PPO部分
+    n_worker = 8
+    n_step = 128
+    mini_batch_size = 64  # int(n_worker * n_step / 4)
+    epochs = 5
+    updates = 3000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    if DDQN_flag:  # DDQN
-        saved_path_prefix = 'saved_model/BTC_DDQN_'
-        saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
-        # DDQN 训练过程:
-        FinR_Agent_DDQN.learn(episodes=70)
-        print(f"{'-' * 40}finished{'-' * 40}")
-        # 最后训练模型h5格式存盘
-        FinR_Agent_DDQN.Q.save_weights(saved_path, save_format='h5', overwrite=False)
+    PPO_saved_model_filename = "230617-9"
+    ####################
 
-        # 调出预训练模型, event based backtesting:
-        # ckpt = tf.train.Checkpoint(model=FinR_Agent_DDQN.Q)
-        # saved_path = saved_path_prefix + '230610-51'
-        # ckpt.restore(
-        #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
-        BacktestEvent = BacktestingEventV2(env_test, FinR_Agent_DDQN.Q, initial_amount=1000, percent_commission=0.001,
-                                           fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
-        # Event Based Backtesting
-        BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode='argmax')
+    if DDQN_flag or DQN_flag:
+        # 生成dataset, env, 建模
+        dataset_train = Dataset_Generator(data_normalized[:split], lags=lags,
+                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+        dataset_test = Dataset_Generator(data_normalized[split:], lags=lags,
+                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+        # 训练environment, 测试environment:
+        env = Finance_Environment_V2(dataset_train, dataset_type='ndarray', action_n=action_n, min_performance=0.,
+                                     min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+        env_test = Finance_Environment_V2(dataset_test, dataset_type='ndarray', action_n=action_n, min_performance=0.,
+                                          min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
 
-    elif DQN_flag:  # DQN
-        saved_path_prefix = 'saved_model/BTC_DQN_'
-        saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
-        # DQN 训练过程:
-        FinR_Agent_DQN.learn(episodes=70)
-        print(f"{'-' * 40}finished{'-' * 40}")
-        # 最后训练模型h5格式存盘
-        FinR_Agent_DDQN.Q.save_weights(saved_path,save_format='h5',overwrite=False)
+        # 生成模型,以及FinR_Agent:
+        lags, obs_n = env.observation_space.shape
 
-        # 调出预训练模型, event based backtesting:
-        ckpt = tf.train.Checkpoint(model=FinR_Agent_DQN.Q)
-        saved_path = saved_path_prefix + '230610-51'
-        ckpt.restore(saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
-        BacktestEvent = BacktestingEventV2(env_test, FinR_Agent_DQN.Q, initial_amount=1000, percent_commission=0.001,
-                                           fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
-        # Event Based Backtesting
-        BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode='argmax')
+        Q = Decompose_FF_Linear(seq_len=lags, in_features=obs_n, out_features=action_n, )
+        Q_target = deepcopy(Q)
+        # actions = model(state) # (N,1, action_n)
+        FinR_Agent_DQN = FinRobotAgentDQN(Q, Q_target, gamma=gamma, learning_rate=5e-4, learn_env=env,
+                                          memory_size=memory_size,
+                                          replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
+        FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=gamma, learning_rate=5e-4, learn_env=env,
+                                            memory_size=memory_size,
+                                            replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
+        # 生成FinR_Agent 训练,存盘,调出训练模型
+        if DDQN_flag:  # DDQN
+            saved_path_prefix = 'saved_model/BTC_DDQN_'
+            saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+            if not Test_flag:
+                # DDQN 训练过程:
+                FinR_Agent_DDQN.learn(episodes=DDQN_episode)
+                print(f"{'-' * 40}finished{'-' * 40}")
+                # 最后训练模型h5格式存盘
+                FinR_Agent_DDQN.Q.save_weights(saved_path, save_format='h5', overwrite=False)
+                input_env = env
+                model = Q
+                action_strategy_mode = 'argmax'
+
+            elif Test_flag:
+                # 调出预训练模型, event based backtesting:
+                ckpt = tf.train.Checkpoint(model=Q)
+                saved_path = saved_path_prefix + DDQN_saved_model_filename
+                ckpt.restore(
+                    saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
+                input_env = env_test
+                model = Q
+                action_strategy_mode = 'argmax'
+
+
+        elif DQN_flag:  # DQN
+            saved_path_prefix = 'saved_model/BTC_DQN_'
+            saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+            if not Test_flag:
+                # DDQN 训练过程:
+                FinR_Agent_DQN.learn(episodes=DQN_episode)
+                print(f"{'-' * 40}finished{'-' * 40}")
+                # 最后训练模型h5格式存盘
+                FinR_Agent_DQN.Q.save_weights(saved_path, save_format='h5', overwrite=False)
+                input_env = env
+                model = Q
+                action_strategy_mode = 'argmax'
+
+            elif Test_flag:
+                # 调出预训练模型, event based backtesting:
+                ckpt = tf.train.Checkpoint(model=Q)
+                saved_path = saved_path_prefix + DQN_saved_model_filename
+                ckpt.restore(
+                    saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
+                input_env = env_test
+                model = Q
+                action_strategy_mode = 'argmax'
+            # DQN 训练过程:
+            FinR_Agent_DQN.learn(episodes=70)
+            print(f"{'-' * 40}finished{'-' * 40}")
+
 
     elif PPO_flag:
-        saved_path_prefix = 'saved_model/BTC_PPO_'
-        saved_path = saved_path_prefix + 'gamma05_lag7_' + today_date + ".h5"
-        # PPO 训练过程:
-        FinR_Agent_PPO.nworker_nstep_training_loop(updates=8000)
-        FinR_Agent_PPO.close_process()
-        print(f"{'-' * 40}finished{'-' * 40}")
+        dataset_train = ndarray_Generator(data_normalized[:split], lags=lags,
+                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+        dataset_test = ndarray_Generator(data_normalized[split:], lags=lags,
+                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+        iter_dataset_train = TupleIterator(dataset_train)
+        iter_dataset_test = TupleIterator(dataset_test)
+        # 训练environment, 测试environment:
+        env = Finance_Environment_V2(iter_dataset_train, dataset_type='ndarray_iterator', action_n=action_n,
+                                     min_performance=0.,
+                                     min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+        env_test = Finance_Environment_V2(iter_dataset_test, dataset_type='ndarray_iterator', action_n=action_n,
+                                          min_performance=0.,
+                                          min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+        _, obs_n = env.observation_space.shape
 
-        # 调出预训练模型, event based backtesting:
-        # ckpt = tf.train.Checkpoint(actormodel=FinR_Agent_PPO.Actor,criticmodel=FinR_Agent_PPO.Critic)
-        # saved_path = saved_path_prefix + '230615-2'
-        # ckpt.restore(
-        #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
-        BacktestEvent = BacktestingEventV2(env, FinR_Agent_PPO.Actor, initial_amount=1000, percent_commission=0.001,
-                                        fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
-        BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode='tfp.distribution')
+        # PPO 建模:
+        saved_path_prefix = 'saved_model/BTC_PPO_'
+
+        Actor = ActorModel(seq_len=lags, in_features=obs_n, out_features=action_n)
+        Critic = CriticModel(seq_len=lags, in_features=obs_n, out_features=action_n)
+
+        if not Test_flag:
+            # 训练用 多进程 建模
+            workers = []
+            for i in range(n_worker):
+                worker = Worker(dataset=iter_dataset_train, dataset_type='ndarray_iterator', action_dim=action_n)
+                workers.append(worker)
+            FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
+                                  gae_lambda=0.98,
+                                  gamma=gamma,
+                                  c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
+                                  mini_batch_size=mini_batch_size)
+            saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+            # PPO 训练过程:
+            FinR_Agent_PPO.nworker_nstep_training_loop(updates=updates)
+            FinR_Agent_PPO.close_process()
+            print(f"{'-' * 40}finished{'-' * 40}")
+            input_env = env
+            model = Actor
+            action_strategy_mode = 'tfp.distribution'
+
+        elif Test_flag:
+            # 调出预训练模型, event based backtesting:
+            ckpt = tf.train.Checkpoint(actormodel=Actor, criticmodel=Critic)
+            saved_path = saved_path_prefix + PPO_saved_model_filename
+            ckpt.restore(
+                saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
+            input_env = env_test
+            model = Actor
+            action_strategy_mode = 'tfp.distribution'
+
+    BacktestEvent = BacktestingEventV2(input_env, model, initial_amount=1000, percent_commission=0.001,
+                                       fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
+    BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode=action_strategy_mode)
+
+    # init_state, init_non_state = env.reset()
+    # action = env.action_space.sample()
+    # state, reward, done, info = env.step(action)  # state:(1,lags,obs_n)
 
     # vector backtest
     # env_backtest_data  = BacktestingVectorV2(Q,env,)
-
 
     # plot 绘图:
 
@@ -265,6 +321,8 @@ if __name__ == '__main__':
     # 获取回测数据最后一个交易日日期.
     last_date = BacktestEvent.net_wealths.index[-1]
     last_date = last_date.strftime('%y%m%dH%H')
-    saved_path = '{}gamma05_lag7_test_{}.html'.format(saved_path_prefix, last_date)
+
+    saved_path = '{}gamma0{}_lag{}_{}_{}.html'.format(saved_path_prefix, str(int(gamma * 100)), lags,
+                                                      train_test_text_add, today_date)
 
     fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)
