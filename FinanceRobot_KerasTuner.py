@@ -116,8 +116,8 @@ def FinRobotSearchSpace(
     memory_size = memory_size
     replay_batch_size = int(memory_size / 2)
     batch_size = batch_size
-    DQN_episode = 20
-    DDQN_episode = 20
+    DQN_episode = 10
+    DDQN_episode = 10
     # PPO部分
     n_worker = 8
     n_step = n_step
