@@ -41,9 +41,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -96,6 +96,8 @@ if __name__ == '__main__':
     n_worker = 8
     n_step = 128
     mini_batch_size = 64  # int(n_worker * n_step / 4)
+    gae_lambda = 0.98
+    gradient_clip_norm = 10.
     epochs = 5
     updates = 3000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
@@ -208,9 +210,9 @@ if __name__ == '__main__':
                 worker = Worker(dataset=iter_dataset_train, dataset_type='ndarray_iterator', action_dim=action_n)
                 workers.append(worker)
             FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
-                                  gae_lambda=0.98,
+                                  gae_lambda=gae_lambda,
                                   gamma=gamma,
-                                  c1=1., gradient_clip_norm=10., n_worker=n_worker, n_step=n_step, epochs=epochs,
+                                  c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step, epochs=epochs,
                                   mini_batch_size=mini_batch_size)
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
             # PPO 训练过程:
