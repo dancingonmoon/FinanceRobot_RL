@@ -23,7 +23,7 @@ for device in physical_devices:
 from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, TupleIterator, Finance_Environment_V2, \
     data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
-from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
+from FinanceRobot_DDQNModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
 from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
 
 import numpy as np

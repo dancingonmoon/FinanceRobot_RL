@@ -19,7 +19,7 @@ for device in physical_devices:
 from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, TupleIterator, Finance_Environment_V2, \
     data_normalization
 from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
-from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
+from FinanceRobot_DDQNModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
 from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
 
 import numpy as np
@@ -116,8 +116,8 @@ def FinRobotSearchSpace(
     memory_size = memory_size
     replay_batch_size = int(memory_size / 2)
     batch_size = batch_size
-    DQN_episode = 10
-    DDQN_episode = 10
+    DQN_episode = 8
+    DDQN_episode = 8
     # PPO部分
     n_worker = 8
     n_step = n_step
@@ -223,7 +223,8 @@ def FinRobotSearchSpace(
     return BacktestEvent.net_wealths
 
 
-class FinRobotTuner(keras_tuner.RandomSearch):
+# class FinRobotTuner(keras_tuner.RandomSearch):
+class FinRobotTuner(keras_tuner.Hyperband):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
@@ -240,16 +241,25 @@ class FinRobotTuner(keras_tuner.RandomSearch):
             gradient_clip_norm=hp.Choice("gradient_clip_", [0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
             epochs=hp.Choice("epochs", [3, 5])
         )
-        return Backtest_wealth
+        # Return a dictionary of metrics for KerasTuner to track.
+        metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]} # 取最终的net_wealth
+        return metrics_dict
 
 
 if __name__ == '__main__':
     tuner = FinRobotTuner(
-        max_trials=3, overwrite=True, directory="saved_model", project_name="keras_tunner",
+        # Objective is one of the keys.
+        objective=keras_tuner.Objective("net_wealth", "max"),
+        max_trials=6, overwrite=True, directory="saved_model", project_name="keras_tunner",
+    )
+    tuner = FinRobotTuner(
+        # Objective is one of the keys.
+        objective=keras_tuner.Objective("net_wealth", "max"),
+        max_epochs=1, overwrite=True, directory="saved_model", project_name="keras_tunner",
     )
     tuner.search()
     # Retraining the model
-    search_result = tuner.search_space_summary()
+    search_result = tuner.results_summary()
     print(search_result)
     # best_hp = tuner.get_best_hyperparameters()[0]
     # keras_code(**best_hp.values, saving_path="/tmp/best_model")

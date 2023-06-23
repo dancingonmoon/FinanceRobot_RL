@@ -12,7 +12,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp  # 对模型的分布,应用sample, entropy方法
 import numpy as np
 
-from FinanceRobot_DDQNPPOModel_lib import Decompose_FF_Linear
+from FinanceRobot_DDQNModel_lib import Decompose_FF_Linear
 from FinanceRobot_Backtest_lib import Finance_Environment_V2
 
 import matplotlib.pyplot as plt
