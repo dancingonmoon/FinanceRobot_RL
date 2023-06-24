@@ -1,0 +1,2566 @@
+
+Search: Running Trial #1
+
+default configuration
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3998.000000   4000.000000
+mean      0.000426    19495.007760  ...   19546.633939  19539.018967
+std       0.028529    16512.401386  ...   16545.479841  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7388.430176   7381.677368
+50%       0.000789    10706.818994  ...   10872.345215  10860.569824
+75%       0.012261    30336.414380  ...   30354.480469  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+2023-06-23 13:44:13.019629: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-06-23 13:44:13.021011: I tensorflow/core/common_runtime/process_util.cc:146] Creating new thread pool with default inter op setting: 2. Tune using inter_op_parallelism_threads for best performance.
+step_num: 200 | loss: 0.6572 | profit rate:    0.7 | accuracy: 0.27
+step_num: 400 | loss: 0.4959 | profit rate:    0.7 | accuracy: 0.33
+step_num: 600 | loss: 0.5460 | profit rate:    1.0 | accuracy: 0.34
+step_num: 800 | loss: 0.4669 | profit rate:    1.8 | accuracy: 0.34
+step_num: 1000 | loss: 0.5727 | profit rate:    1.2 | accuracy: 0.34
+step_num: 1200 | loss: 0.6564 | profit rate:    1.0 | accuracy: 0.32
+step_num: 1400 | loss: 0.5072 | profit rate:    0.5 | accuracy: 0.32
+step_num: 1600 | loss: 0.4555 | profit rate:    0.5 | accuracy: 0.33
+step_num: 1800 | loss: 0.4590 | profit rate:    0.7 | accuracy: 0.33
+step_num: 2000 | loss: 0.4280 | profit rate:    0.5 | accuracy: 0.33
+step_num: 2200 | loss: 0.4068 | profit rate:    0.5 | accuracy: 0.33
+step_num: 2400 | loss: 0.7226 | profit rate:    0.8 | accuracy: 0.34
+step_num: 2600 | loss: 0.5084 | profit rate:    0.5 | accuracy: 0.35
+step_num: 2800 | loss: 0.4070 | profit rate:    0.3 | accuracy: 0.35
+step_num: 3000 | loss: 0.5539 | profit rate:    0.3 | accuracy: 0.36
+step_num: 3200 | loss: 0.5200 | profit rate:    0.3 | accuracy: 0.36
+step_num: 3400 | loss: 0.5290 | profit rate:    0.3 | accuracy: 0.36
+step_num: 3600 | loss: 0.3151 | profit rate:    0.3 | accuracy: 0.37
+episode:   1/8,耗时:1.80分/1.80分,训练集: | step: 3677 | average_treward:   24.2 | max_treward: 24.2081 | average profit rate:  0.257
+model saved @ step:3677,performance:0.257,accuracy:0.37
+step_num: 3800 | loss: 0.6108 | profit rate:    0.2 | accuracy: 0.35
+step_num: 4000 | loss: 0.5536 | profit rate:    0.1 | accuracy: 0.44
+step_num: 4200 | loss: 0.5728 | profit rate:    0.2 | accuracy: 0.44
+step_num: 4400 | loss: 0.4053 | profit rate:    0.3 | accuracy: 0.44
+step_num: 4600 | loss: 0.5776 | profit rate:    0.3 | accuracy: 0.42
+step_num: 4800 | loss: 0.2578 | profit rate:    0.2 | accuracy: 0.40
+step_num: 5000 | loss: 0.6682 | profit rate:    0.1 | accuracy: 0.40
+step_num: 5200 | loss: 0.3663 | profit rate:    0.1 | accuracy: 0.40
+step_num: 5400 | loss: 0.6556 | profit rate:    0.0 | accuracy: 0.40
+step_num: 5600 | loss: 0.2476 | profit rate:    0.0 | accuracy: 0.40
+step_num: 5800 | loss: 0.2560 | profit rate:    0.0 | accuracy: 0.40
+step_num: 6000 | loss: 0.5899 | profit rate:    0.1 | accuracy: 0.40
+step_num: 6200 | loss: 0.5204 | profit rate:    0.1 | accuracy: 0.41
+step_num: 6400 | loss: 0.6023 | profit rate:    0.1 | accuracy: 0.41
+step_num: 6600 | loss: 0.2654 | profit rate:    0.1 | accuracy: 0.41
+step_num: 6800 | loss: 0.5857 | profit rate:    0.1 | accuracy: 0.41
+step_num: 7000 | loss: 0.4204 | profit rate:    0.1 | accuracy: 0.41
+step_num: 7200 | loss: 0.5347 | profit rate:    0.1 | accuracy: 0.41
+model saved @ step:7354,performance:0.078,accuracy:0.41
+step_num: 7400 | loss: 0.6143 | profit rate:    0.6 | accuracy: 0.36
+step_num: 7600 | loss: 0.7450 | profit rate:    0.2 | accuracy: 0.40
+step_num: 7800 | loss: 0.5111 | profit rate:    0.3 | accuracy: 0.43
+step_num: 8000 | loss: 0.4401 | profit rate:    0.3 | accuracy: 0.42
+step_num: 8200 | loss: 0.5075 | profit rate:    0.5 | accuracy: 0.42
+step_num: 8400 | loss: 0.1344 | profit rate:    0.4 | accuracy: 0.40
+step_num: 8600 | loss: 0.4950 | profit rate:    0.4 | accuracy: 0.40
+step_num: 8800 | loss: 0.3767 | profit rate:    0.2 | accuracy: 0.40
+step_num: 9000 | loss: 0.3257 | profit rate:    0.1 | accuracy: 0.40
+step_num: 9200 | loss: 0.4768 | profit rate:    0.1 | accuracy: 0.40
+step_num: 9400 | loss: 0.4607 | profit rate:    0.0 | accuracy: 0.40
+step_num: 9600 | loss: 0.5994 | profit rate:    0.2 | accuracy: 0.40
+step_num: 9800 | loss: 0.5746 | profit rate:    0.3 | accuracy: 0.41
+step_num: 10000 | loss: 0.5011 | profit rate:    0.1 | accuracy: 0.41
+step_num: 10200 | loss: 0.5021 | profit rate:    0.2 | accuracy: 0.41
+step_num: 10400 | loss: 0.3509 | profit rate:    0.1 | accuracy: 0.41
+step_num: 10600 | loss: 0.3565 | profit rate:    0.1 | accuracy: 0.40
+step_num: 10800 | loss: 0.4109 | profit rate:    0.1 | accuracy: 0.40
+step_num: 11000 | loss: 0.4604 | profit rate:    0.1 | accuracy: 0.41
+episode:   3/8,耗时:1.93分/5.69分,训练集: | step: 11031 | average_treward:  101.2 | max_treward: 170.2098 | average profit rate:  0.150
+model saved @ step:11031,performance:0.116,accuracy:0.41
+step_num: 11200 | loss: 0.6856 | profit rate:    0.2 | accuracy: 0.41
+step_num: 11400 | loss: 0.4208 | profit rate:    0.5 | accuracy: 0.45
+step_num: 11600 | loss: 0.4851 | profit rate:    0.3 | accuracy: 0.43
+step_num: 11800 | loss: 0.4784 | profit rate:    0.5 | accuracy: 0.41
+step_num: 12000 | loss: 0.1917 | profit rate:    0.4 | accuracy: 0.40
+step_num: 12200 | loss: 0.4770 | profit rate:    0.6 | accuracy: 0.37
+step_num: 12400 | loss: 0.5285 | profit rate:    0.4 | accuracy: 0.38
+step_num: 12600 | loss: 0.0654 | profit rate:    0.6 | accuracy: 0.38
+step_num: 12800 | loss: 0.2673 | profit rate:    0.2 | accuracy: 0.37
+step_num: 13000 | loss: 0.4405 | profit rate:    0.3 | accuracy: 0.37
+step_num: 13200 | loss: 0.5207 | profit rate:    0.4 | accuracy: 0.37
+step_num: 13400 | loss: 0.5210 | profit rate:    2.2 | accuracy: 0.38
+step_num: 13600 | loss: 0.2342 | profit rate:    1.0 | accuracy: 0.38
+step_num: 13800 | loss: 0.6008 | profit rate:    0.8 | accuracy: 0.38
+step_num: 14000 | loss: 0.4255 | profit rate:    0.7 | accuracy: 0.38
+step_num: 14200 | loss: 0.5125 | profit rate:    1.1 | accuracy: 0.37
+step_num: 14400 | loss: 0.3557 | profit rate:    2.1 | accuracy: 0.37
+step_num: 14600 | loss: 0.5397 | profit rate:    3.5 | accuracy: 0.38
+model saved @ step:14708,performance:3.726,accuracy:0.38
+step_num: 14800 | loss: 0.8338 | profit rate:    0.3 | accuracy: 0.45
+step_num: 15000 | loss: 0.6019 | profit rate:    0.4 | accuracy: 0.44
+step_num: 15200 | loss: 0.3144 | profit rate:    0.5 | accuracy: 0.42
+step_num: 15400 | loss: 0.4038 | profit rate:    0.6 | accuracy: 0.42
+step_num: 15600 | loss: 0.3577 | profit rate:    0.8 | accuracy: 0.40
+step_num: 15800 | loss: 0.4788 | profit rate:    1.3 | accuracy: 0.42
+step_num: 16000 | loss: 0.4566 | profit rate:    1.4 | accuracy: 0.43
+step_num: 16200 | loss: 0.3325 | profit rate:    1.6 | accuracy: 0.42
+step_num: 16400 | loss: 0.1104 | profit rate:    0.5 | accuracy: 0.41
+step_num: 16600 | loss: 0.5054 | profit rate:    0.6 | accuracy: 0.40
+step_num: 16800 | loss: 0.4166 | profit rate:    0.7 | accuracy: 0.41
+step_num: 17000 | loss: 0.4629 | profit rate:    1.2 | accuracy: 0.41
+step_num: 17200 | loss: 0.6550 | profit rate:    1.0 | accuracy: 0.41
+step_num: 17400 | loss: 0.3016 | profit rate:    0.9 | accuracy: 0.41
+step_num: 17600 | loss: 0.6001 | profit rate:    0.6 | accuracy: 0.41
+step_num: 17800 | loss: 0.1884 | profit rate:    1.7 | accuracy: 0.40
+step_num: 18000 | loss: 0.5350 | profit rate:    2.4 | accuracy: 0.41
+step_num: 18200 | loss: 0.3118 | profit rate:    3.0 | accuracy: 0.40
+episode:   5/8,耗时:1.99分/9.63分,训练集: | step: 18385 | average_treward:  148.8 | max_treward: 222.5770 | average profit rate:  1.645
+step_num: 18400 | loss: 0.5197 | profit rate:    0.8 | accuracy: 0.44
+step_num: 18600 | loss: 0.5493 | profit rate:    0.7 | accuracy: 0.43
+step_num: 18800 | loss: 0.5251 | profit rate:    1.2 | accuracy: 0.42
+step_num: 19000 | loss: 0.4153 | profit rate:    0.7 | accuracy: 0.38
+step_num: 19200 | loss: 0.4108 | profit rate:    0.7 | accuracy: 0.38
+step_num: 19400 | loss: 0.0220 | profit rate:    0.7 | accuracy: 0.35
+step_num: 19600 | loss: 0.3460 | profit rate:    0.9 | accuracy: 0.36
+step_num: 19800 | loss: 0.1794 | profit rate:    0.7 | accuracy: 0.35
+step_num: 20000 | loss: 0.5198 | profit rate:    0.9 | accuracy: 0.34
+step_num: 20200 | loss: 0.2339 | profit rate:    0.3 | accuracy: 0.32
+step_num: 20400 | loss: 0.3459 | profit rate:    0.4 | accuracy: 0.32
+step_num: 20600 | loss: 0.3136 | profit rate:    0.9 | accuracy: 0.32
+step_num: 20800 | loss: 0.3662 | profit rate:    3.1 | accuracy: 0.34
+step_num: 21000 | loss: 0.2679 | profit rate:    1.3 | accuracy: 0.34
+step_num: 21200 | loss: 0.5185 | profit rate:    1.4 | accuracy: 0.34
+step_num: 21400 | loss: 0.3162 | profit rate:    1.5 | accuracy: 0.34
+step_num: 21600 | loss: 0.5237 | profit rate:    1.9 | accuracy: 0.34
+step_num: 21800 | loss: 0.3933 | profit rate:    6.0 | accuracy: 0.34
+step_num: 22000 | loss: 0.5426 | profit rate:    6.4 | accuracy: 0.35
+model saved @ step:22062,performance:7.213,accuracy:0.35
+step_num: 22200 | loss: 0.4663 | profit rate:    0.3 | accuracy: 0.43
+step_num: 22400 | loss: 0.6321 | profit rate:    0.5 | accuracy: 0.41
+step_num: 22600 | loss: 0.4262 | profit rate:    0.6 | accuracy: 0.36
+step_num: 22800 | loss: 0.2926 | profit rate:    0.7 | accuracy: 0.36
+step_num: 23000 | loss: 0.3919 | profit rate:    1.0 | accuracy: 0.36
+step_num: 23200 | loss: 0.5253 | profit rate:    1.2 | accuracy: 0.34
+step_num: 23400 | loss: 0.5223 | profit rate:    0.9 | accuracy: 0.36
+step_num: 23600 | loss: 0.1729 | profit rate:    0.6 | accuracy: 0.35
+step_num: 23800 | loss: 0.4871 | profit rate:    0.2 | accuracy: 0.35
+step_num: 24000 | loss: 0.0782 | profit rate:    0.3 | accuracy: 0.34
+step_num: 24200 | loss: 0.3440 | profit rate:    0.5 | accuracy: 0.34
+step_num: 24400 | loss: 0.5344 | profit rate:    3.0 | accuracy: 0.35
+step_num: 24600 | loss: 0.4932 | profit rate:    1.8 | accuracy: 0.36
+step_num: 24800 | loss: 0.5135 | profit rate:    1.4 | accuracy: 0.36
+step_num: 25000 | loss: 0.4135 | profit rate:    1.2 | accuracy: 0.37
+step_num: 25200 | loss: 0.5349 | profit rate:    2.5 | accuracy: 0.37
+step_num: 25400 | loss: 0.5404 | profit rate:    3.2 | accuracy: 0.37
+step_num: 25600 | loss: 0.5496 | profit rate:    4.7 | accuracy: 0.38
+episode:   7/8,耗时:2.07分/13.72分,训练集: | step: 25739 | average_treward:  172.2 | max_treward: 234.8795 | average profit rate:  2.833
+step_num: 25800 | loss: 0.7400 | profit rate:    0.4 | accuracy: 0.45
+step_num: 26000 | loss: 0.6362 | profit rate:    0.4 | accuracy: 0.40
+step_num: 26200 | loss: 0.4792 | profit rate:    0.8 | accuracy: 0.39
+step_num: 26400 | loss: 0.6404 | profit rate:    1.2 | accuracy: 0.38
+step_num: 26600 | loss: 0.4759 | profit rate:    1.3 | accuracy: 0.38
+step_num: 26800 | loss: 0.5482 | profit rate:    1.7 | accuracy: 0.36
+step_num: 27000 | loss: 0.2496 | profit rate:    1.5 | accuracy: 0.36
+step_num: 27200 | loss: 0.3949 | profit rate:    1.1 | accuracy: 0.37
+step_num: 27400 | loss: 0.6737 | profit rate:    0.6 | accuracy: 0.36
+step_num: 27600 | loss: 0.4025 | profit rate:    0.3 | accuracy: 0.35
+step_num: 27800 | loss: 0.2312 | profit rate:    0.4 | accuracy: 0.35
+step_num: 28000 | loss: 1.0885 | profit rate:    1.1 | accuracy: 0.35
+step_num: 28200 | loss: 0.6393 | profit rate:    3.5 | accuracy: 0.37
+step_num: 28400 | loss: 0.2600 | profit rate:    2.0 | accuracy: 0.36
+step_num: 28600 | loss: 0.5827 | profit rate:    1.7 | accuracy: 0.36
+step_num: 28800 | loss: 0.3614 | profit rate:    1.8 | accuracy: 0.36
+step_num: 29000 | loss: 0.5775 | profit rate:    2.7 | accuracy: 0.37
+step_num: 29200 | loss: 0.4647 | profit rate:    4.6 | accuracy: 0.37
+step_num: 29400 | loss: 0.4819 | profit rate:    4.7 | accuracy: 0.37
+model saved @ step:29416,performance:4.914,accuracy:0.37
+----------------------------------------finished----------------------------------------
+  0%|          | 0/91 [00:00<?, ?it/s] 21%|██        | 19/91 [00:00<00:00, 171.39it/s]==================================================
+ 96%|█████████▌| 87/91 [00:00<00:00, 429.46it/s]100%|██████████| 91/91 [00:00<00:00, 408.87it/s]
+2023-01-03T00:00:00 | *** START BACKTEST ***
+2023-01-03T00:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-18T12:00:00 | *** GOING LONG ***
+2023-01-18T12:00:00's price 20677.4707, buy 0.04831345 units.
+2023-01-18T12:00:00 | current balance = 0.00
+2023-01-18T12:00:00 | balance:0.00+units:0.04831345*price:20677.4707=net_wealth:999.0010
+--------------------------------------------------
+2023-01-19T12:00:00 | *** GOING SHORT ***
+2023-01-19T12:00:00's price 21071.5898, sell 0.04831345 units.
+2023-01-19T12:00:00 | current balance = 1017.02
+2023-01-19T12:00:00 | balance:1017.02+units:0.0*price:21071.5898=net_wealth:1017.0242
+--------------------------------------------------
+2023-01-22T00:00:00 | *** GOING LONG ***
+2023-01-22T00:00:00's price 22783.6094, buy 0.04459377 units.
+2023-01-22T00:00:00 | current balance = 0.00
+2023-01-22T00:00:00 | balance:0.00+units:0.04459377*price:22783.6094=net_wealth:1016.0082
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, sell 0.04459377 units.
+2023-02-17T00:00:00 | current balance = 1062.17
+2023-02-17T00:00:00 | net performance [%] = 6.2167
+2023-02-17T00:00:00 | number of trades [#] = 4
+==================================================
+Trial 1 Complete [00h 15m 51s]
+net_wealth: 1063.230396722901
+
+Best net_wealth So Far: 1063.230396722901
+Total elapsed time: 00h 15m 51s
+
+Search: Running Trial #2
+
+Value             |Best Value So Far |Hyperparameter
+8                 |2                 |horizon
+730               |225               |lookback
+False             |False             |MarketFactor
+30                |5                 |lags
+0.6               |0.5               |gamma
+32                |32                |memory_size
+16                |16                |batch_size
+20                |5                 |n_steps
+0.96              |0.96              |gae_lambda
+10                |0.2               |gradient_clip_
+5                 |3                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3992.000000   4000.000000
+mean      0.000426    19495.007760  ...   19569.323229  19539.018967
+std       0.028529    16512.401386  ...   16547.547425  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7397.927368   7381.677368
+50%       0.000789    10706.818994  ...   10891.359863  10860.569824
+75%       0.012261    30336.414380  ...   30400.544434  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+step_num: 200 | loss: 0.9550 | profit rate:    0.1 | accuracy: 0.32
+step_num: 400 | loss: 0.3898 | profit rate:    0.1 | accuracy: 0.31
+step_num: 600 | loss: 0.8794 | profit rate:    0.1 | accuracy: 0.32
+step_num: 800 | loss: 0.4796 | profit rate:    0.0 | accuracy: 0.33
+step_num: 1000 | loss: 0.3456 | profit rate:    0.0 | accuracy: 0.32
+step_num: 1200 | loss: 0.6515 | profit rate:    1.3 | accuracy: 0.34
+step_num: 1400 | loss: 0.5844 | profit rate:    2.8 | accuracy: 0.34
+step_num: 1600 | loss: 0.1701 | profit rate:    2.5 | accuracy: 0.33
+step_num: 1800 | loss: 0.4487 | profit rate:    2.8 | accuracy: 0.30
+step_num: 2000 | loss: 0.7351 | profit rate:    0.2 | accuracy: 0.31
+step_num: 2200 | loss: 0.0197 | profit rate:    0.4 | accuracy: 0.31
+step_num: 2400 | loss: 0.7457 | profit rate:    0.2 | accuracy: 0.30
+step_num: 2600 | loss: 0.6768 | profit rate:    0.0 | accuracy: 0.31
+step_num: 2800 | loss: 0.6276 | profit rate:    0.0 | accuracy: 0.31
+step_num: 3000 | loss: 0.1832 | profit rate:    0.0 | accuracy: 0.32
+episode:   1/8,耗时:1.11分/1.11分,训练集: | step: 3147 | average_treward: -149.1 | max_treward: 0.0000 | average profit rate:  0.000
+step_num: 3200 | loss: 0.0176 | profit rate:    0.8 | accuracy: 0.11
+step_num: 3400 | loss: 0.2208 | profit rate:    7.9 | accuracy: 0.19
+step_num: 3600 | loss: 0.3419 | profit rate:    9.2 | accuracy: 0.21
+step_num: 3800 | loss: 0.8815 | profit rate:  238.8 | accuracy: 0.31
+step_num: 4000 | loss: 0.8181 | profit rate:   47.4 | accuracy: 0.27
+step_num: 4200 | loss: 0.0815 | profit rate:   97.2 | accuracy: 0.25
+step_num: 4400 | loss: 0.4458 | profit rate:  295.5 | accuracy: 0.27
+step_num: 4600 | loss: 0.0049 | profit rate:  284.5 | accuracy: 0.24
+step_num: 4800 | loss: 0.0079 | profit rate:  267.5 | accuracy: 0.22
+step_num: 5000 | loss: 0.0361 | profit rate:  279.3 | accuracy: 0.19
+step_num: 5200 | loss: 0.0999 | profit rate:  240.0 | accuracy: 0.18
+step_num: 5400 | loss: 0.0906 | profit rate:  769.8 | accuracy: 0.17
+step_num: 5600 | loss: 0.3417 | profit rate:  328.2 | accuracy: 0.16
+step_num: 5800 | loss: 0.5183 | profit rate:  504.5 | accuracy: 0.19
+step_num: 6000 | loss: 0.7412 | profit rate:    4.9 | accuracy: 0.20
+step_num: 6200 | loss: 0.5858 | profit rate:   18.8 | accuracy: 0.22
+model saved @ step:6294,performance:28.615,accuracy:0.22
+step_num: 6400 | loss: 0.1066 | profit rate:    0.9 | accuracy: 0.06
+step_num: 6600 | loss: 0.0354 | profit rate:    1.0 | accuracy: 0.06
+step_num: 6800 | loss: 0.6697 | profit rate:    0.8 | accuracy: 0.12
+step_num: 7000 | loss: 0.8001 | profit rate:    0.6 | accuracy: 0.22
+step_num: 7200 | loss: 0.0678 | profit rate:    0.5 | accuracy: 0.19
+step_num: 7400 | loss: 0.0620 | profit rate:    0.7 | accuracy: 0.17
+step_num: 7600 | loss: 0.0685 | profit rate:   21.4 | accuracy: 0.21
+step_num: 7800 | loss: 0.2762 | profit rate:   57.3 | accuracy: 0.21
+step_num: 8000 | loss: 0.0252 | profit rate:    3.7 | accuracy: 0.19
+step_num: 8200 | loss: 0.3028 | profit rate:    5.3 | accuracy: 0.17
+step_num: 8400 | loss: 0.0024 | profit rate:    4.4 | accuracy: 0.16
+step_num: 8600 | loss: 0.0386 | profit rate:   31.2 | accuracy: 0.16
+step_num: 8800 | loss: 0.9744 | profit rate:   12.0 | accuracy: 0.15
+step_num: 9000 | loss: 0.6604 | profit rate:    1.3 | accuracy: 0.16
+step_num: 9200 | loss: 0.3350 | profit rate:    0.7 | accuracy: 0.19
+step_num: 9400 | loss: 0.2414 | profit rate:    0.6 | accuracy: 0.20
+episode:   3/8,耗时:1.36分/3.70分,训练集: | step: 9441 | average_treward:   -7.7 | max_treward: 81.7697 | average profit rate:  9.734
+step_num: 9600 | loss: 0.1063 | profit rate:    1.0 | accuracy: 0.04
+step_num: 9800 | loss: 0.2530 | profit rate:    1.9 | accuracy: 0.29
+step_num: 10000 | loss: 0.2534 | profit rate:    2.6 | accuracy: 0.28
+step_num: 10200 | loss: 0.0104 | profit rate:    3.8 | accuracy: 0.24
+step_num: 10400 | loss: 0.0887 | profit rate:    2.0 | accuracy: 0.20
+step_num: 10600 | loss: 0.3018 | profit rate:    3.1 | accuracy: 0.19
+step_num: 10800 | loss: 0.0006 | profit rate:    4.1 | accuracy: 0.17
+step_num: 11000 | loss: 0.0010 | profit rate:    4.1 | accuracy: 0.15
+step_num: 11200 | loss: 0.0637 | profit rate:    5.0 | accuracy: 0.14
+step_num: 11400 | loss: 0.7372 | profit rate:    2.3 | accuracy: 0.15
+step_num: 11600 | loss: 0.1213 | profit rate:    5.5 | accuracy: 0.15
+step_num: 11800 | loss: 0.0036 | profit rate:   16.6 | accuracy: 0.15
+step_num: 12000 | loss: 0.0347 | profit rate:    7.9 | accuracy: 0.15
+step_num: 12200 | loss: 0.0050 | profit rate:   15.8 | accuracy: 0.14
+step_num: 12400 | loss: 0.5994 | profit rate:  850.4 | accuracy: 0.17
+model saved @ step:12588,performance:375.216,accuracy:0.18
+step_num: 12600 | loss: 0.0076 | profit rate:    1.0 | accuracy: 0.00
+step_num: 12800 | loss: 0.8685 | profit rate:    1.2 | accuracy: 0.16
+step_num: 13000 | loss: 0.0759 | profit rate:    3.9 | accuracy: 0.28
+step_num: 13200 | loss: 0.2970 | profit rate:   26.8 | accuracy: 0.32
+step_num: 13400 | loss: 0.4415 | profit rate:   55.8 | accuracy: 0.29
+step_num: 13600 | loss: 0.5307 | profit rate:   45.6 | accuracy: 0.26
+step_num: 13800 | loss: 0.6504 | profit rate:  583.5 | accuracy: 0.27
+step_num: 14000 | loss: 0.0918 | profit rate: 1138.1 | accuracy: 0.25
+step_num: 14200 | loss: 0.0346 | profit rate: 1143.9 | accuracy: 0.22
+step_num: 14400 | loss: 0.1225 | profit rate:  655.5 | accuracy: 0.21
+step_num: 14600 | loss: 0.3176 | profit rate:  226.8 | accuracy: 0.19
+step_num: 14800 | loss: 0.0095 | profit rate:  881.8 | accuracy: 0.19
+step_num: 15000 | loss: 0.0241 | profit rate: 2784.1 | accuracy: 0.19
+step_num: 15200 | loss: 0.8305 | profit rate: 1838.5 | accuracy: 0.20
+step_num: 15400 | loss: 0.6465 | profit rate:  721.4 | accuracy: 0.20
+step_num: 15600 | loss: 0.0023 | profit rate:  536.1 | accuracy: 0.20
+episode:   5/8,耗时:1.31分/6.22分,训练集: | step: 15735 | average_treward:   69.8 | max_treward: 187.6375 | average profit rate: 214.551
+step_num: 15800 | loss: 0.0274 | profit rate:    1.0 | accuracy: 0.03
+step_num: 16000 | loss: 0.3265 | profit rate:    2.5 | accuracy: 0.18
+step_num: 16200 | loss: 0.0821 | profit rate:    2.3 | accuracy: 0.24
+step_num: 16400 | loss: 0.5168 | profit rate:   45.7 | accuracy: 0.32
+step_num: 16600 | loss: 0.2117 | profit rate:   13.1 | accuracy: 0.26
+step_num: 16800 | loss: 0.0039 | profit rate:   16.1 | accuracy: 0.23
+step_num: 17000 | loss: 0.0912 | profit rate:  363.7 | accuracy: 0.25
+step_num: 17200 | loss: 0.0392 | profit rate:  362.5 | accuracy: 0.22
+step_num: 17400 | loss: 0.0015 | profit rate:  300.0 | accuracy: 0.20
+step_num: 17600 | loss: 0.0089 | profit rate:  242.0 | accuracy: 0.18
+step_num: 17800 | loss: 0.0477 | profit rate:  257.0 | accuracy: 0.16
+step_num: 18000 | loss: 0.0763 | profit rate:  922.6 | accuracy: 0.16
+step_num: 18200 | loss: 0.4311 | profit rate:  520.3 | accuracy: 0.15
+step_num: 18400 | loss: 0.6239 | profit rate:  184.5 | accuracy: 0.17
+step_num: 18600 | loss: 0.6481 | profit rate:    9.4 | accuracy: 0.18
+step_num: 18800 | loss: 0.2160 | profit rate:   30.7 | accuracy: 0.19
+step_num: 19000 | loss: 0.0351 | profit rate:    1.0 | accuracy: 0.04
+step_num: 19200 | loss: 0.0119 | profit rate:    2.2 | accuracy: 0.14
+step_num: 19400 | loss: 0.5098 | profit rate:    5.3 | accuracy: 0.17
+step_num: 19600 | loss: 0.1491 | profit rate:   10.8 | accuracy: 0.21
+step_num: 19800 | loss: 0.2937 | profit rate:    4.6 | accuracy: 0.17
+step_num: 20000 | loss: 0.0058 | profit rate:    7.2 | accuracy: 0.15
+step_num: 20200 | loss: 0.0545 | profit rate:  192.5 | accuracy: 0.18
+step_num: 20400 | loss: 0.0491 | profit rate:  191.1 | accuracy: 0.16
+step_num: 20600 | loss: 0.0046 | profit rate:  191.1 | accuracy: 0.14
+step_num: 20800 | loss: 0.0041 | profit rate:  194.1 | accuracy: 0.13
+step_num: 21000 | loss: 0.1772 | profit rate: 1834.8 | accuracy: 0.14
+step_num: 21200 | loss: 0.0324 | profit rate: 7925.4 | accuracy: 0.15
+step_num: 21400 | loss: 0.7631 | profit rate: 2551.1 | accuracy: 0.14
+step_num: 21600 | loss: 0.6156 | profit rate: 6358.7 | accuracy: 0.15
+step_num: 21800 | loss: 0.4728 | profit rate: 184427.9 | accuracy: 0.17
+step_num: 22000 | loss: 0.1990 | profit rate: 403942.6 | accuracy: 0.19
+episode:   7/8,耗时:1.25分/8.77分,训练集: | step: 22029 | average_treward:  113.1 | max_treward: 290.6205 | average profit rate: 58741.263
+model saved @ step:22029,performance:410077.892,accuracy:0.19
+step_num: 22200 | loss: 0.2339 | profit rate:    3.2 | accuracy: 0.12
+step_num: 22400 | loss: 0.2482 | profit rate:    5.3 | accuracy: 0.31
+step_num: 22600 | loss: 0.1818 | profit rate:   91.8 | accuracy: 0.34
+step_num: 22800 | loss: 0.0030 | profit rate:  280.2 | accuracy: 0.33
+step_num: 23000 | loss: 0.3938 | profit rate:  172.4 | accuracy: 0.30
+step_num: 23200 | loss: 0.3666 | profit rate:  903.8 | accuracy: 0.30
+step_num: 23400 | loss: 0.0012 | profit rate: 13098.1 | accuracy: 0.29
+step_num: 23600 | loss: 0.5523 | profit rate: 12303.9 | accuracy: 0.27
+step_num: 23800 | loss: 0.0069 | profit rate: 9565.3 | accuracy: 0.25
+step_num: 24000 | loss: 0.1238 | profit rate: 8628.9 | accuracy: 0.23
+step_num: 24200 | loss: 0.2496 | profit rate: 125038.8 | accuracy: 0.24
+step_num: 24400 | loss: 0.0035 | profit rate: 288390.9 | accuracy: 0.23
+step_num: 24600 | loss: 0.6193 | profit rate: 176215.3 | accuracy: 0.23
+step_num: 24800 | loss: 0.4298 | profit rate: 102997.3 | accuracy: 0.23
+step_num: 25000 | loss: 0.9323 | profit rate: 6088802.9 | accuracy: 0.25
+  0%|          | 0/66 [00:00<?, ?it/s]model saved @ step:25176,performance:2912305.741,accuracy:0.26
+----------------------------------------finished----------------------------------------
+ 20%|█▉        | 13/66 [00:00<00:00, 123.40it/s]100%|██████████| 66/66 [00:00<00:00, 357.50it/s]
+==================================================
+2023-01-15T12:00:00 | *** START BACKTEST ***
+2023-01-15T12:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-21T12:00:00 | *** GOING LONG ***
+2023-01-21T12:00:00's price 22783.5508, buy 0.04384742 units.
+2023-01-21T12:00:00 | current balance = 0.00
+2023-01-21T12:00:00 | balance:0.00+units:0.04384742*price:22783.5508=net_wealth:999.0010
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, sell 0.04384742 units.
+2023-02-17T00:00:00 | current balance = 1044.39
+2023-02-17T00:00:00 | net performance [%] = 4.4390
+2023-02-17T00:00:00 | number of trades [#] = 2
+==================================================
+Trial 2 Complete [00h 10m 04s]
+net_wealth: 1045.4354178598032
+
+Best net_wealth So Far: 1063.230396722901
+Total elapsed time: 00h 25m 55s
+
+Search: Running Trial #3
+
+Value             |Best Value So Far |Hyperparameter
+14                |2                 |horizon
+730               |225               |lookback
+True              |False             |MarketFactor
+5                 |5                 |lags
+0.6               |0.5               |gamma
+2000              |32                |memory_size
+16                |16                |batch_size
+256               |5                 |n_steps
+0.96              |0.96              |gae_lambda
+2                 |0.2               |gradient_clip_
+3                 |3                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  3986.000000     3986.000000  ...    3972.000000   3986.000000
+mean      0.000420    19548.426063  ...   19645.214756  19591.732240
+std       0.028547    16516.711778  ...   16554.465330  16549.906141
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009992     7385.701892  ...    7463.300171   7412.930176
+50%       0.000789    10744.347241  ...   10920.140137  10899.495117
+75%       0.012228    30451.578345  ...   30645.630371  30413.265137
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 18 columns]
+                           log_return  ...        close
+2017-09-03 08:00:00+08:00    0.003094  ...  4486.000000
+2017-09-03 20:00:00+08:00    0.005132  ...  4509.080078
+
+[2 rows x 18 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 18 columns]
+step_num: 1000 | loss: 0.8253 | profit rate:    3.9 | accuracy: 0.34
+step_num: 1200 | loss: 0.4736 | profit rate:   53.6 | accuracy: 0.34
+step_num: 1400 | loss: 0.4145 | profit rate:   36.0 | accuracy: 0.34
+step_num: 1600 | loss: 0.3752 | profit rate:  168.5 | accuracy: 0.35
+step_num: 1800 | loss: 0.4096 | profit rate:  387.3 | accuracy: 0.36
+step_num: 2000 | loss: 0.3955 | profit rate: 1024.5 | accuracy: 0.37
+step_num: 2200 | loss: 0.3555 | profit rate: 7889.2 | accuracy: 0.37
+step_num: 2400 | loss: 0.3737 | profit rate: 52344.5 | accuracy: 0.37
+step_num: 2600 | loss: 0.3553 | profit rate: 38826.5 | accuracy: 0.37
+step_num: 2800 | loss: 0.3502 | profit rate: 294783.8 | accuracy: 0.37
+step_num: 3000 | loss: 0.3280 | profit rate: 679743.3 | accuracy: 0.37
+episode:   1/8,耗时:30.14分/30.14分,训练集: | step: 3158 | average_treward:  213.9 | max_treward: 213.9259 | average profit rate: 2637046.584
+model saved @ step:3158,performance:2637046.584,accuracy:0.37
+step_num: 3200 | loss: 0.3289 | profit rate:    0.7 | accuracy: 0.21
+step_num: 3400 | loss: 0.2820 | profit rate:    4.0 | accuracy: 0.23
+step_num: 3600 | loss: 0.2765 | profit rate:    1.0 | accuracy: 0.23
+step_num: 3800 | loss: 0.2723 | profit rate:  275.1 | accuracy: 0.29
+step_num: 4000 | loss: 0.2392 | profit rate: 1266.1 | accuracy: 0.30
+step_num: 4200 | loss: 0.2364 | profit rate: 3023.0 | accuracy: 0.31
+step_num: 4400 | loss: 0.2311 | profit rate: 1946567.8 | accuracy: 0.32
+step_num: 4600 | loss: 0.1920 | profit rate: 1721305.1 | accuracy: 0.32
+step_num: 4800 | loss: 0.2152 | profit rate: 980236122.1 | accuracy: 0.35
+step_num: 5000 | loss: 0.2106 | profit rate: 78344338095384.4 | accuracy: 0.38
+step_num: 5200 | loss: 0.2362 | profit rate: 3305884164693898.0 | accuracy: 0.39
+step_num: 5400 | loss: 0.1892 | profit rate: 1044567148274489856.0 | accuracy: 0.39
+step_num: 5600 | loss: 0.1939 | profit rate: 16979429559097001984.0 | accuracy: 0.39
+step_num: 5800 | loss: 0.1867 | profit rate: 530939413983480709120.0 | accuracy: 0.39
+step_num: 6000 | loss: 0.1886 | profit rate: 87699322977275799928832.0 | accuracy: 0.39
+step_num: 6200 | loss: 0.1589 | profit rate: 3517670594111614784372736.0 | accuracy: 0.39
+model saved @ step:6316,performance:18760066314778243774808064.000,accuracy:0.39
+step_num: 6400 | loss: 0.1325 | profit rate:    1.1 | accuracy: 0.25
+step_num: 6600 | loss: 0.1521 | profit rate:   51.9 | accuracy: 0.30
+step_num: 6800 | loss: 0.1397 | profit rate:   90.4 | accuracy: 0.29
+step_num: 7000 | loss: 0.1486 | profit rate: 3743663.2 | accuracy: 0.34
+step_num: 7200 | loss: 0.1525 | profit rate: 20081818.8 | accuracy: 0.35
+step_num: 7400 | loss: 0.1299 | profit rate: 412413035.3 | accuracy: 0.36
+step_num: 7600 | loss: 0.1764 | profit rate: 657810022132.3 | accuracy: 0.36
+step_num: 7800 | loss: 0.1436 | profit rate: 9728325364020.9 | accuracy: 0.37
+step_num: 8000 | loss: 0.1402 | profit rate: 217184778146468896.0 | accuracy: 0.41
+step_num: 8200 | loss: 0.1517 | profit rate: 25119647571082305601536.0 | accuracy: 0.43
+step_num: 8400 | loss: 0.1713 | profit rate: 1294693904114432501350400.0 | accuracy: 0.43
+step_num: 8600 | loss: 0.1268 | profit rate: 35164066110896182497908883456.0 | accuracy: 0.44
+step_num: 8800 | loss: 0.1478 | profit rate: 634822173046546663054979891200.0 | accuracy: 0.44
+step_num: 9000 | loss: 0.1375 | profit rate: 215344055897811586921413866422272.0 | accuracy: 0.45
+step_num: 9200 | loss: 0.1478 | profit rate: 10205714983404020171379116764823552.0 | accuracy: 0.44
+step_num: 9400 | loss: 0.1568 | profit rate: 1240631259201257108982751786524737536.0 | accuracy: 0.44
+episode:   3/8,耗时:46.57分/122.78分,训练集: | step: 9474 | average_treward:  842.9 | max_treward: 1397.7260 | average profit rate: 428923302057585395615610597703417856.000
+model saved @ step:9474,performance:1286769906153996217058750653307813888.000,accuracy:0.44
+step_num: 9600 | loss: 0.1015 | profit rate:    1.4 | accuracy: 0.31
+step_num: 9800 | loss: 0.1188 | profit rate:  536.4 | accuracy: 0.36
+step_num: 10000 | loss: 0.1216 | profit rate: 224664.7 | accuracy: 0.42
+step_num: 10200 | loss: 0.1401 | profit rate: 608063331.2 | accuracy: 0.44
+step_num: 10400 | loss: 0.1137 | profit rate: 43045011793.5 | accuracy: 0.46
+step_num: 10600 | loss: 0.1238 | profit rate: 212058250170245.0 | accuracy: 0.46
+step_num: 10800 | loss: 0.1192 | profit rate: 13040638430138146.0 | accuracy: 0.46
+step_num: 11000 | loss: 0.1215 | profit rate: 322072793536244672.0 | accuracy: 0.48
+step_num: 11200 | loss: 0.1108 | profit rate: 454583101789568420020224.0 | accuracy: 0.51
+step_num: 11400 | loss: 0.1115 | profit rate: 4002310963531488832027361280.0 | accuracy: 0.51
+step_num: 11600 | loss: 0.1258 | profit rate: 7873516823783087443407680831488.0 | accuracy: 0.51
+step_num: 11800 | loss: 0.1356 | profit rate: 53101553009425700137079252677820416.0 | accuracy: 0.52
+step_num: 12000 | loss: 0.1283 | profit rate: 33398277285714845708291983424461209600.0 | accuracy: 0.52
+step_num: 12200 | loss: 0.1142 | profit rate: 15419946684789010429889097556382451761152.0 | accuracy: 0.53
+step_num: 12400 | loss: 0.1050 | profit rate: 2081001992279734664292118535512638816780288.0 | accuracy: 0.52
+step_num: 12600 | loss: 0.0993 | profit rate: 129141588802305252318294879815650822332612608.0 | accuracy: 0.51
+model saved @ step:12632,performance:142627160875670107741134785461184103641513984.000,accuracy:0.51
+step_num: 12800 | loss: 0.0869 | profit rate:   33.9 | accuracy: 0.36
+step_num: 13000 | loss: 0.1141 | profit rate: 1603.5 | accuracy: 0.40
+step_num: 13200 | loss: 0.0966 | profit rate: 3459154.0 | accuracy: 0.46
+step_num: 13400 | loss: 0.1178 | profit rate: 40192922138.0 | accuracy: 0.48
+step_num: 13600 | loss: 0.1085 | profit rate: 6696521569731.4 | accuracy: 0.50
+step_num: 13800 | loss: 0.1291 | profit rate: 84978561752675168.0 | accuracy: 0.49
+step_num: 14000 | loss: 0.0881 | profit rate: 32915922518491459584.0 | accuracy: 0.51
+step_num: 14200 | loss: 0.1098 | profit rate: 16702550316608449937408.0 | accuracy: 0.53
+step_num: 14400 | loss: 0.0929 | profit rate: 1150712108296157883592937046016.0 | accuracy: 0.56
+step_num: 14600 | loss: 0.0874 | profit rate: 30663472759517071889049597977296896.0 | accuracy: 0.57
+step_num: 14800 | loss: 0.1043 | profit rate: 96281079960205185171215719841868546048.0 | accuracy: 0.57
+step_num: 15000 | loss: 0.0992 | profit rate: 2584235743581128793922629346501249489436672.0 | accuracy: 0.58
+step_num: 15200 | loss: 0.0926 | profit rate: 4140984823921305198769589703083510080531857408.0 | accuracy: 0.58
+step_num: 15400 | loss: 0.1028 | profit rate: 75694377766469112572279463381305177370171579301888.0 | accuracy: 0.58
+step_num: 15600 | loss: 0.0941 | profit rate: 13371867015935704662958936375315885581298289084465152.0 | accuracy: 0.58
+episode:   5/8,耗时:46.83分/216.97分,训练集: | step: 15790 | average_treward: 1269.3 | max_treward: 2103.4294 | average profit rate: 104022050584909312623014367039497520504550789868421120.000
+model saved @ step:15790,performance:520110252781919399587897531778172681291763645518184448.000,accuracy:0.57
+step_num: 15800 | loss: 0.0771 | profit rate:    1.2 | accuracy: 0.36
+step_num: 16000 | loss: 0.0857 | profit rate:   75.9 | accuracy: 0.44
+step_num: 16200 | loss: 0.0933 | profit rate: 3573.7 | accuracy: 0.49
+step_num: 16400 | loss: 0.0857 | profit rate: 688918270.8 | accuracy: 0.52
+step_num: 16600 | loss: 0.0717 | profit rate: 1822472256375.9 | accuracy: 0.54
+step_num: 16800 | loss: 0.1157 | profit rate: 652962369193833.0 | accuracy: 0.55
+step_num: 17000 | loss: 0.0909 | profit rate: 222175819515805040640.0 | accuracy: 0.56
+step_num: 17200 | loss: 0.0901 | profit rate: 19216816981280817152000.0 | accuracy: 0.57
+step_num: 17400 | loss: 0.0842 | profit rate: 416662826353531757214564352.0 | accuracy: 0.59
+step_num: 17600 | loss: 0.0834 | profit rate: 5803037887456681487746124224659456.0 | accuracy: 0.61
+step_num: 17800 | loss: 0.0835 | profit rate: 46170001739053572969191287997889249280.0 | accuracy: 0.61
+step_num: 18000 | loss: 0.0649 | profit rate: 1781536644535546115742731653872022517186560.0 | accuracy: 0.63
+step_num: 18200 | loss: 0.0683 | profit rate: 140683875806426202114430229150718804753987403776.0 | accuracy: 0.63
+step_num: 18400 | loss: 0.0714 | profit rate: 479408799736205339601702579930310175235949748813824.0 | accuracy: 0.63
+step_num: 18600 | loss: 0.0826 | profit rate: 9200527608066988566270042580117732710293258453464907776.0 | accuracy: 0.63
+step_num: 18800 | loss: 0.0694 | profit rate: 432554739892810516080724516137204057990903212289185284096.0 | accuracy: 0.63
+model saved @ step:18948,performance:29170446035827867876406716000640807142617830560696448843776.000,accuracy:0.62
+step_num: 19000 | loss: 0.0522 | profit rate:    1.5 | accuracy: 0.40
+step_num: 19200 | loss: 0.0662 | profit rate: 2430.0 | accuracy: 0.49
+step_num: 19400 | loss: 0.0789 | profit rate: 294390.9 | accuracy: 0.57
+step_num: 19600 | loss: 0.0730 | profit rate: 1699212473768.3 | accuracy: 0.61
+step_num: 19800 | loss: 0.0612 | profit rate: 3378960602292159.5 | accuracy: 0.62
+step_num: 20000 | loss: 0.0788 | profit rate: 3108548831896238592.0 | accuracy: 0.63
+step_num: 20200 | loss: 0.0581 | profit rate: 1320614604388471081533440.0 | accuracy: 0.62
+step_num: 20400 | loss: 0.1090 | profit rate: 131370659294769665510735872.0 | accuracy: 0.63
+step_num: 20600 | loss: 0.0747 | profit rate: 3028370475362258174085085265920.0 | accuracy: 0.65
+step_num: 20800 | loss: 0.0679 | profit rate: 320827312892973190981363470519582588928.0 | accuracy: 0.66
+step_num: 21000 | loss: 0.0786 | profit rate: 16881783140717918279744959009228825076695040.0 | accuracy: 0.66
+step_num: 21200 | loss: 0.0592 | profit rate: 6760272240877397257972740400484033355373837549568.0 | accuracy: 0.68
+step_num: 21400 | loss: 0.0583 | profit rate: 24190059157482385209063314448601895685033076291796992.0 | accuracy: 0.68
+step_num: 21600 | loss: 0.0770 | profit rate: 154710921218306003542978859483267898183562239819355521024.0 | accuracy: 0.68
+step_num: 21800 | loss: 0.0693 | profit rate: 3462054765828387086268928342767929621387941534857272225693696.0 | accuracy: 0.68
+step_num: 22000 | loss: 0.0528 | profit rate: 4247474745369542891603819622923149958739720372062339858708824064.0 | accuracy: 0.68
+episode:   7/8,耗时:50.83分/311.17分,训练集: | step: 22106 | average_treward: 1598.2 | max_treward: 2532.1883 | average profit rate: 1535547840818818401332361725114857885440903462533963960612290560.000
+model saved @ step:22106,performance:10748805714765583104072822087621213342514983357351691547096121344.000,accuracy:0.67
+step_num: 22200 | loss: 0.0584 | profit rate:    2.4 | accuracy: 0.52
+step_num: 22400 | loss: 0.0533 | profit rate: 23194.3 | accuracy: 0.58
+step_num: 22600 | loss: 0.0622 | profit rate: 206198028.0 | accuracy: 0.68
+step_num: 22800 | loss: 0.0638 | profit rate: 523499797239207.4 | accuracy: 0.69
+step_num: 23000 | loss: 0.0585 | profit rate: 3628992573062508032.0 | accuracy: 0.69
+step_num: 23200 | loss: 0.0579 | profit rate: 2645178004785714429952.0 | accuracy: 0.69
+step_num: 23400 | loss: 0.0639 | profit rate: 870948248859377774092091392.0 | accuracy: 0.68
+step_num: 23600 | loss: 0.0571 | profit rate: 416666558926393668797087088640.0 | accuracy: 0.69
+step_num: 23800 | loss: 0.0748 | profit rate: 417363378509090820324888236133449728.0 | accuracy: 0.71
+step_num: 24000 | loss: 0.0565 | profit rate: 1305325698925953583366970201100680601534464.0 | accuracy: 0.72
+step_num: 24200 | loss: 0.0701 | profit rate: 49095575478176369034082696388749267311494430720.0 | accuracy: 0.71
+step_num: 24400 | loss: 0.0724 | profit rate: 28182783593938886529669666636071687898171250009178112.0 | accuracy: 0.72
+step_num: 24600 | loss: 0.0641 | profit rate: 800248112633626099611462024150963075092566767668450820096.0 | accuracy: 0.73
+step_num: 24800 | loss: 0.0539 | profit rate: 9368520712469557479859869554115832277831015555880555678531584.0 | accuracy: 0.72
+step_num: 25000 | loss: 0.0652 | profit rate: 46354192392037178108391513696633169881725605950013498429741727744.0 | accuracy: 0.72
+step_num: 25200 | loss: 0.0769 | profit rate: 14171419583159339459702000006892093248349167297793067660178427478016.0 | accuracy: 0.71
+model saved @ step:25264,performance:26746568082603803487656230236833214450613403210766367220408325767168.000,accuracy:0.70
+----------------------------------------finished----------------------------------------
+  0%|          | 0/91 [00:00<?, ?it/s] 21%|██        | 19/91 [00:00<00:00, 187.06it/s] 92%|█████████▏| 84/91 [00:00<00:00, 453.77it/s]100%|██████████| 91/91 [00:00<00:00, 418.04it/s]
+==================================================
+2023-01-03T00:00:00 | *** START BACKTEST ***
+2023-01-03T00:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-06T00:00:00 | *** GOING LONG ***
+2023-01-06T00:00:00's price 16738.2207, buy 0.05968376 units.
+2023-01-06T00:00:00 | current balance = 0.00
+2023-01-06T00:00:00 | balance:0.00+units:0.05968376*price:16738.2207=net_wealth:999.0010
+--------------------------------------------------
+2023-01-07T00:00:00 | *** GOING SHORT ***
+2023-01-07T00:00:00's price 16918.3008, sell 0.05968376 units.
+2023-01-07T00:00:00 | current balance = 1008.74
+2023-01-07T00:00:00 | balance:1008.74+units:0.0*price:16918.3008=net_wealth:1008.7391
+--------------------------------------------------
+2023-01-08T12:00:00 | *** GOING LONG ***
+2023-01-08T12:00:00's price 17127.8301, buy 0.05883584 units.
+2023-01-08T12:00:00 | current balance = 0.00
+2023-01-08T12:00:00 | balance:0.00+units:0.05883584*price:17127.8301=net_wealth:1007.7314
+--------------------------------------------------
+2023-01-10T00:00:00 | *** GOING SHORT ***
+2023-01-10T00:00:00's price 17252.8906, sell 0.05883584 units.
+2023-01-10T00:00:00 | current balance = 1014.07
+2023-01-10T00:00:00 | balance:1014.07+units:0.0*price:17252.8906=net_wealth:1014.0743
+--------------------------------------------------
+2023-01-11T12:00:00 | *** GOING LONG ***
+2023-01-11T12:00:00's price 17943.2598, buy 0.05645909 units.
+2023-01-11T12:00:00 | current balance = 0.00
+2023-01-11T12:00:00 | balance:0.00+units:0.05645909*price:17943.2598=net_wealth:1013.0613
+--------------------------------------------------
+2023-01-12T12:00:00 | *** GOING SHORT ***
+2023-01-12T12:00:00's price 18846.6191, sell 0.05645909 units.
+2023-01-12T12:00:00 | current balance = 1063.00
+2023-01-12T12:00:00 | balance:1063.00+units:0.0*price:18846.6191=net_wealth:1063.0001
+--------------------------------------------------
+2023-01-16T12:00:00 | *** GOING LONG ***
+2023-01-16T12:00:00's price 21185.6504, buy 0.05012529 units.
+2023-01-16T12:00:00 | current balance = 0.00
+2023-01-16T12:00:00 | balance:0.00+units:0.05012529*price:21185.6504=net_wealth:1061.9381
+--------------------------------------------------
+2023-01-19T00:00:00 | *** GOING SHORT ***
+2023-01-19T00:00:00's price 20743.7207, sell 0.05012529 units.
+2023-01-19T00:00:00 | current balance = 1038.75
+2023-01-19T00:00:00 | balance:1038.75+units:0.0*price:20743.7207=net_wealth:1038.7465
+--------------------------------------------------
+2023-01-20T00:00:00 | *** GOING LONG ***
+2023-01-20T00:00:00's price 20963.5098, buy 0.04950066 units.
+2023-01-20T00:00:00 | current balance = 0.00
+2023-01-20T00:00:00 | balance:0.00+units:0.04950066*price:20963.5098=net_wealth:1037.7088
+--------------------------------------------------
+2023-01-20T12:00:00 | *** GOING SHORT ***
+2023-01-20T12:00:00's price 22667.2109, sell 0.04950066 units.
+2023-01-20T12:00:00 | current balance = 1120.92
+2023-01-20T12:00:00 | balance:1120.92+units:0.0*price:22667.2109=net_wealth:1120.9211
+--------------------------------------------------
+2023-01-21T00:00:00 | *** GOING LONG ***
+2023-01-21T00:00:00's price 22905.6504, buy 0.0488875 units.
+2023-01-21T00:00:00 | current balance = 0.00
+2023-01-21T00:00:00 | balance:0.00+units:0.0488875*price:22905.6504=net_wealth:1119.8013
+--------------------------------------------------
+2023-01-22T00:00:00 | *** GOING SHORT ***
+2023-01-22T00:00:00's price 22783.6094, sell 0.0488875 units.
+2023-01-22T00:00:00 | current balance = 1112.72
+2023-01-22T00:00:00 | balance:1112.72+units:0.0*price:22783.6094=net_wealth:1112.7212
+--------------------------------------------------
+2023-01-23T00:00:00 | *** GOING LONG ***
+2023-01-23T00:00:00's price 22904.5801, buy 0.04853214 units.
+2023-01-23T00:00:00 | current balance = 0.00
+2023-01-23T00:00:00 | balance:0.00+units:0.04853214*price:22904.5801=net_wealth:1111.6095
+--------------------------------------------------
+2023-01-26T00:00:00 | *** GOING SHORT ***
+2023-01-26T00:00:00's price 22992.9395, sell 0.04853214 units.
+2023-01-26T00:00:00 | current balance = 1114.78
+2023-01-26T00:00:00 | balance:1114.78+units:0.0*price:22992.9395=net_wealth:1114.7819
+--------------------------------------------------
+2023-01-29T00:00:00 | *** GOING LONG ***
+2023-01-29T00:00:00's price 23432.1699, buy 0.04752727 units.
+2023-01-29T00:00:00 | current balance = 0.00
+2023-01-29T00:00:00 | balance:0.00+units:0.04752727*price:23432.1699=net_wealth:1113.6682
+--------------------------------------------------
+2023-01-29T12:00:00 | *** GOING SHORT ***
+2023-01-29T12:00:00's price 23742.3008, sell 0.04752727 units.
+2023-01-29T12:00:00 | current balance = 1127.28
+2023-01-29T12:00:00 | balance:1127.28+units:0.0*price:23742.3008=net_wealth:1127.2795
+--------------------------------------------------
+2023-01-30T12:00:00 | *** GOING LONG ***
+2023-01-30T12:00:00's price 22826.1504, buy 0.04933605 units.
+2023-01-30T12:00:00 | current balance = 0.00
+2023-01-30T12:00:00 | balance:0.00+units:0.04933605*price:22826.1504=net_wealth:1126.1534
+--------------------------------------------------
+2023-02-06T00:00:00 | *** GOING SHORT ***
+2023-02-06T00:00:00's price 22878.2305, sell 0.04933605 units.
+2023-02-06T00:00:00 | current balance = 1127.59
+2023-02-06T00:00:00 | balance:1127.59+units:0.0*price:22878.2305=net_wealth:1127.5941
+--------------------------------------------------
+2023-02-06T12:00:00 | *** GOING LONG ***
+2023-02-06T12:00:00's price 22762.5195, buy 0.04948777 units.
+2023-02-06T12:00:00 | current balance = 0.00
+2023-02-06T12:00:00 | balance:0.00+units:0.04948777*price:22762.5195=net_wealth:1126.4676
+--------------------------------------------------
+2023-02-07T00:00:00 | *** GOING SHORT ***
+2023-02-07T00:00:00's price 22977.2402, sell 0.04948777 units.
+2023-02-07T00:00:00 | current balance = 1135.96
+2023-02-07T00:00:00 | balance:1135.96+units:0.0*price:22977.2402=net_wealth:1135.9566
+--------------------------------------------------
+2023-02-07T12:00:00 | *** GOING LONG ***
+2023-02-07T12:00:00's price 23240.4609, buy 0.04882952 units.
+2023-02-07T12:00:00 | current balance = 0.00
+2023-02-07T12:00:00 | balance:0.00+units:0.04882952*price:23240.4609=net_wealth:1134.8217
+--------------------------------------------------
+2023-02-09T12:00:00 | *** GOING SHORT ***
+2023-02-09T12:00:00's price 21796.3496, sell 0.04882952 units.
+2023-02-09T12:00:00 | current balance = 1063.24
+2023-02-09T12:00:00 | balance:1063.24+units:0.0*price:21796.3496=net_wealth:1063.2422
+--------------------------------------------------
+2023-02-10T00:00:00 | *** GOING LONG ***
+2023-02-10T00:00:00's price 21733.5195, buy 0.04887284 units.
+2023-02-10T00:00:00 | current balance = 0.00
+2023-02-10T00:00:00 | balance:0.00+units:0.04887284*price:21733.5195=net_wealth:1062.1800
+--------------------------------------------------
+2023-02-10T12:00:00 | *** GOING SHORT ***
+2023-02-10T12:00:00's price 21625.1895, sell 0.04887284 units.
+2023-02-10T12:00:00 | current balance = 1055.83
+2023-02-10T12:00:00 | balance:1055.83+units:0.0*price:21625.1895=net_wealth:1055.8287
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, 0.0 unit trades .
+2023-02-17T00:00:00 | current balance = 1055.83
+2023-02-17T00:00:00 | net performance [%] = 5.5829
+2023-02-17T00:00:00 | number of trades [#] = 24
+==================================================
+Trial 3 Complete [05h 57m 39s]
+net_wealth: 1055.8287059710867
+
+Best net_wealth So Far: 1063.230396722901
+Total elapsed time: 06h 23m 34s
+
+Search: Running Trial #4
+
+Value             |Best Value So Far |Hyperparameter
+10                |2                 |horizon
+365               |225               |lookback
+True              |False             |MarketFactor
+7                 |5                 |lags
+0.95              |0.5               |gamma
+512               |32                |memory_size
+16                |16                |batch_size
+128               |5                 |n_steps
+0.98              |0.96              |gae_lambda
+1                 |0.2               |gradient_clip_
+5                 |3                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  3986.000000     3986.000000  ...    3976.000000   3986.000000
+mean      0.000420    19548.426063  ...   19629.856585  19591.732240
+std       0.028547    16516.711778  ...   16553.212814  16549.906141
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009992     7385.701892  ...    7440.984985   7412.930176
+50%       0.000789    10744.347241  ...   10917.189941  10899.495117
+75%       0.012228    30451.578345  ...   30499.227051  30413.265137
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 18 columns]
+                           log_return  ...        close
+2017-09-03 08:00:00+08:00    0.003094  ...  4486.000000
+2017-09-03 20:00:00+08:00    0.005132  ...  4509.080078
+
+[2 rows x 18 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 18 columns]
+step_num: 400 | loss: 0.4337 | profit rate:    0.5 | accuracy: 0.31
+step_num: 600 | loss: 0.5413 | profit rate:    0.2 | accuracy: 0.31
+step_num: 800 | loss: 0.5465 | profit rate:    0.0 | accuracy: 0.31
+step_num: 1000 | loss: 0.5714 | profit rate:    0.0 | accuracy: 0.30
+step_num: 1200 | loss: 0.5029 | profit rate:    0.0 | accuracy: 0.31
+step_num: 1400 | loss: 0.4370 | profit rate:    0.0 | accuracy: 0.31
+step_num: 1600 | loss: 0.4318 | profit rate:    0.0 | accuracy: 0.30
+step_num: 1800 | loss: 0.3159 | profit rate:    0.0 | accuracy: 0.30
+step_num: 2000 | loss: 0.4404 | profit rate:    0.0 | accuracy: 0.31
+step_num: 2200 | loss: 0.4183 | profit rate:    0.0 | accuracy: 0.31
+step_num: 2400 | loss: 0.5803 | profit rate:    0.0 | accuracy: 0.32
+step_num: 2600 | loss: 0.5002 | profit rate:    0.0 | accuracy: 0.32
+step_num: 2800 | loss: 0.4825 | profit rate:    0.0 | accuracy: 0.33
+step_num: 3000 | loss: 0.4511 | profit rate:    0.0 | accuracy: 0.33
+step_num: 3200 | loss: 0.4026 | profit rate:    0.0 | accuracy: 0.32
+step_num: 3400 | loss: 0.4147 | profit rate:    0.0 | accuracy: 0.32
+episode:   1/8,耗时:11.32分/11.32分,训练集: | step: 3521 | average_treward:  -67.1 | max_treward: 0.0000 | average profit rate:  0.000
+step_num: 3600 | loss: 0.4174 | profit rate:    1.5 | accuracy: 0.44
+step_num: 3800 | loss: 0.4905 | profit rate:    4.1 | accuracy: 0.38
+step_num: 4000 | loss: 0.5443 | profit rate:   16.6 | accuracy: 0.38
+step_num: 4200 | loss: 0.4762 | profit rate:   10.3 | accuracy: 0.35
+step_num: 4400 | loss: 0.5190 | profit rate:    0.0 | accuracy: 0.32
+step_num: 4600 | loss: 0.3359 | profit rate:    0.0 | accuracy: 0.29
+step_num: 4800 | loss: 0.2724 | profit rate:    0.0 | accuracy: 0.27
+step_num: 5000 | loss: 0.3206 | profit rate:    0.0 | accuracy: 0.26
+step_num: 5200 | loss: 0.2295 | profit rate:    0.0 | accuracy: 0.24
+step_num: 5400 | loss: 0.1591 | profit rate:    0.0 | accuracy: 0.22
+step_num: 5600 | loss: 0.1046 | profit rate:    0.0 | accuracy: 0.21
+step_num: 5800 | loss: 0.1909 | profit rate:    0.0 | accuracy: 0.20
+step_num: 6000 | loss: 0.1734 | profit rate:    0.0 | accuracy: 0.20
+step_num: 6200 | loss: 0.1687 | profit rate:    0.0 | accuracy: 0.20
+step_num: 6400 | loss: 0.2820 | profit rate:    0.0 | accuracy: 0.20
+step_num: 6600 | loss: 0.2942 | profit rate:    0.0 | accuracy: 0.20
+step_num: 6800 | loss: 0.3055 | profit rate:    0.0 | accuracy: 0.20
+step_num: 7000 | loss: 0.2573 | profit rate:    0.0 | accuracy: 0.21
+model saved @ step:7042,performance:0.016,accuracy:0.21
+step_num: 7200 | loss: 0.2270 | profit rate:    5.1 | accuracy: 0.26
+step_num: 7400 | loss: 0.3365 | profit rate:   19.8 | accuracy: 0.26
+step_num: 7600 | loss: 0.3491 | profit rate:   10.7 | accuracy: 0.26
+step_num: 7800 | loss: 0.3057 | profit rate:   56.4 | accuracy: 0.25
+step_num: 8000 | loss: 0.2610 | profit rate:    0.6 | accuracy: 0.22
+step_num: 8200 | loss: 0.3194 | profit rate:    1.5 | accuracy: 0.22
+step_num: 8400 | loss: 0.2407 | profit rate:    0.1 | accuracy: 0.21
+step_num: 8600 | loss: 0.2783 | profit rate:    0.2 | accuracy: 0.21
+step_num: 8800 | loss: 0.2075 | profit rate:    0.1 | accuracy: 0.20
+step_num: 9000 | loss: 0.2920 | profit rate:    0.1 | accuracy: 0.18
+step_num: 9200 | loss: 0.2823 | profit rate:    3.6 | accuracy: 0.19
+step_num: 9400 | loss: 0.3965 | profit rate:   33.9 | accuracy: 0.20
+step_num: 9600 | loss: 0.4067 | profit rate:  297.9 | accuracy: 0.21
+step_num: 9800 | loss: 0.3860 | profit rate:  237.6 | accuracy: 0.21
+step_num: 10000 | loss: 0.3576 | profit rate: 1712.9 | accuracy: 0.22
+step_num: 10200 | loss: 0.3670 | profit rate:  431.8 | accuracy: 0.22
+step_num: 10400 | loss: 0.3217 | profit rate:  710.4 | accuracy: 0.22
+episode:   3/8,耗时:52.50分/76.11分,训练集: | step: 10563 | average_treward:   39.6 | max_treward: 183.7067 | average profit rate: 1144.500
+model saved @ step:10563,performance:3433.483,accuracy:0.22
+step_num: 10600 | loss: 0.3331 | profit rate:    2.7 | accuracy: 0.37
+step_num: 10800 | loss: 0.4452 | profit rate:    9.3 | accuracy: 0.33
+step_num: 11000 | loss: 0.2860 | profit rate:  105.0 | accuracy: 0.32
+step_num: 11200 | loss: 0.3180 | profit rate:   39.8 | accuracy: 0.31
+step_num: 11400 | loss: 0.3179 | profit rate:    3.5 | accuracy: 0.29
+step_num: 11600 | loss: 0.2706 | profit rate:    0.5 | accuracy: 0.26
+step_num: 11800 | loss: 0.2178 | profit rate:    0.1 | accuracy: 0.26
+step_num: 12000 | loss: 0.2173 | profit rate:    0.1 | accuracy: 0.25
+step_num: 12200 | loss: 0.2679 | profit rate:    0.6 | accuracy: 0.24
+step_num: 12400 | loss: 0.2961 | profit rate:    0.4 | accuracy: 0.22
+step_num: 12600 | loss: 0.1155 | profit rate:    0.1 | accuracy: 0.21
+step_num: 12800 | loss: 0.1832 | profit rate:    1.0 | accuracy: 0.20
+step_num: 13000 | loss: 0.2440 | profit rate:    0.8 | accuracy: 0.21
+step_num: 13200 | loss: 0.3371 | profit rate:  261.6 | accuracy: 0.22
+step_num: 13400 | loss: 0.3528 | profit rate:   47.2 | accuracy: 0.22
+step_num: 13600 | loss: 0.4169 | profit rate:  179.1 | accuracy: 0.23
+step_num: 13800 | loss: 0.4345 | profit rate:    7.5 | accuracy: 0.23
+step_num: 14000 | loss: 0.3144 | profit rate:   38.0 | accuracy: 0.23
+model saved @ step:14084,performance:46.201,accuracy:0.22
+step_num: 14200 | loss: 0.2626 | profit rate:    2.7 | accuracy: 0.19
+step_num: 14400 | loss: 0.4481 | profit rate:   30.4 | accuracy: 0.31
+step_num: 14600 | loss: 0.4244 | profit rate:  153.6 | accuracy: 0.34
+step_num: 14800 | loss: 0.4012 | profit rate:   52.5 | accuracy: 0.32
+step_num: 15000 | loss: 0.3054 | profit rate:    1.2 | accuracy: 0.28
+step_num: 15200 | loss: 0.3021 | profit rate:    5.1 | accuracy: 0.27
+step_num: 15400 | loss: 0.2948 | profit rate:    1.2 | accuracy: 0.27
+step_num: 15600 | loss: 0.4417 | profit rate:    2.6 | accuracy: 0.26
+step_num: 15800 | loss: 0.2154 | profit rate:    1.7 | accuracy: 0.25
+step_num: 16000 | loss: 0.1479 | profit rate:    1.6 | accuracy: 0.23
+step_num: 16200 | loss: 0.2318 | profit rate:   11.5 | accuracy: 0.22
+step_num: 16400 | loss: 0.4085 | profit rate:  115.7 | accuracy: 0.23
+step_num: 16600 | loss: 0.5474 | profit rate:  520.9 | accuracy: 0.24
+step_num: 16800 | loss: 0.3364 | profit rate: 31476.6 | accuracy: 0.25
+step_num: 17000 | loss: 0.4752 | profit rate: 43658.5 | accuracy: 0.26
+step_num: 17200 | loss: 0.5027 | profit rate: 51396.2 | accuracy: 0.26
+step_num: 17400 | loss: 0.4414 | profit rate: 85444.2 | accuracy: 0.27
+step_num: 17600 | loss: 0.4159 | profit rate: 231325.0 | accuracy: 0.27
+episode:   5/8,耗时:13.39分/103.46分,训练集: | step: 17605 | average_treward:  118.4 | max_treward: 284.7579 | average profit rate: 46960.940
+model saved @ step:17605,performance:231325.000,accuracy:0.27
+step_num: 17800 | loss: 0.4707 | profit rate:    2.8 | accuracy: 0.28
+step_num: 18000 | loss: 0.4471 | profit rate:   14.5 | accuracy: 0.36
+step_num: 18200 | loss: 0.3994 | profit rate:   28.4 | accuracy: 0.33
+step_num: 18400 | loss: 0.4098 | profit rate:    9.2 | accuracy: 0.32
+step_num: 18600 | loss: 0.3048 | profit rate:    3.9 | accuracy: 0.28
+step_num: 18800 | loss: 0.2989 | profit rate:   20.7 | accuracy: 0.28
+step_num: 19000 | loss: 0.2478 | profit rate:    7.0 | accuracy: 0.28
+step_num: 19200 | loss: 0.3012 | profit rate:    3.2 | accuracy: 0.26
+step_num: 19400 | loss: 0.2849 | profit rate:    1.5 | accuracy: 0.25
+step_num: 19600 | loss: 0.1874 | profit rate:    4.1 | accuracy: 0.24
+step_num: 19800 | loss: 0.1874 | profit rate:    8.5 | accuracy: 0.23
+step_num: 20000 | loss: 0.4386 | profit rate:   98.9 | accuracy: 0.24
+step_num: 20200 | loss: 0.3266 | profit rate: 3457.3 | accuracy: 0.25
+step_num: 20400 | loss: 0.4518 | profit rate: 84081.4 | accuracy: 0.26
+step_num: 20600 | loss: 0.4117 | profit rate: 1129755.5 | accuracy: 0.27
+step_num: 20800 | loss: 0.4101 | profit rate: 329548.9 | accuracy: 0.27
+step_num: 21000 | loss: 0.4762 | profit rate: 977389.7 | accuracy: 0.27
+model saved @ step:21126,performance:2460081.234,accuracy:0.27
+step_num: 21200 | loss: 0.3871 | profit rate:    2.8 | accuracy: 0.39
+step_num: 21400 | loss: 0.3588 | profit rate:   16.0 | accuracy: 0.28
+step_num: 21600 | loss: 0.3532 | profit rate:   19.7 | accuracy: 0.28
+step_num: 21800 | loss: 0.3981 | profit rate:   20.3 | accuracy: 0.29
+step_num: 22000 | loss: 0.3886 | profit rate:    1.1 | accuracy: 0.27
+step_num: 22200 | loss: 0.3348 | profit rate:    3.0 | accuracy: 0.24
+step_num: 22400 | loss: 0.3113 | profit rate:    4.2 | accuracy: 0.26
+step_num: 22600 | loss: 0.3626 | profit rate:   47.3 | accuracy: 0.26
+step_num: 22800 | loss: 0.2870 | profit rate:   52.1 | accuracy: 0.25
+step_num: 23000 | loss: 0.2087 | profit rate:   33.4 | accuracy: 0.24
+step_num: 23200 | loss: 0.2323 | profit rate:   26.1 | accuracy: 0.23
+step_num: 23400 | loss: 0.2609 | profit rate:  518.5 | accuracy: 0.23
+step_num: 23600 | loss: 0.2906 | profit rate: 9040.6 | accuracy: 0.25
+step_num: 23800 | loss: 0.4298 | profit rate: 6147381.6 | accuracy: 0.27
+step_num: 24000 | loss: 0.4333 | profit rate: 11608557.7 | accuracy: 0.28
+step_num: 24200 | loss: 0.5176 | profit rate: 9309115.1 | accuracy: 0.28
+step_num: 24400 | loss: 0.4694 | profit rate: 14423728.2 | accuracy: 0.29
+step_num: 24600 | loss: 0.4444 | profit rate: 273742874.7 | accuracy: 0.29
+episode:   7/8,耗时:13.28分/130.40分,训练集: | step: 24647 | average_treward:  202.7 | max_treward: 451.3660 | average profit rate: 50373179.590
+model saved @ step:24647,performance:349917371.200,accuracy:0.29
+step_num: 24800 | loss: 0.3676 | profit rate:    2.3 | accuracy: 0.25
+step_num: 25000 | loss: 0.4163 | profit rate:    8.5 | accuracy: 0.31
+step_num: 25200 | loss: 0.4045 | profit rate:    9.1 | accuracy: 0.33
+step_num: 25400 | loss: 0.4205 | profit rate:  105.3 | accuracy: 0.32
+step_num: 25600 | loss: 0.3377 | profit rate:   10.5 | accuracy: 0.29
+step_num: 25800 | loss: 0.2722 | profit rate:   25.6 | accuracy: 0.30
+step_num: 26000 | loss: 0.2895 | profit rate:   40.0 | accuracy: 0.30
+step_num: 26200 | loss: 0.4129 | profit rate: 1148.0 | accuracy: 0.30
+step_num: 26400 | loss: 0.2692 | profit rate:  484.8 | accuracy: 0.28
+step_num: 26600 | loss: 0.4540 | profit rate:  919.9 | accuracy: 0.28
+step_num: 26800 | loss: 0.2930 | profit rate: 4059.6 | accuracy: 0.26
+step_num: 27000 | loss: 0.4087 | profit rate: 20621.8 | accuracy: 0.27
+step_num: 27200 | loss: 0.3316 | profit rate: 535537.9 | accuracy: 0.27
+step_num: 27400 | loss: 0.5761 | profit rate: 53613499.1 | accuracy: 0.28
+step_num: 27600 | loss: 0.5770 | profit rate: 735777098.7 | accuracy: 0.29
+step_num: 27800 | loss: 0.4269 | profit rate: 606856628.7 | accuracy: 0.28
+step_num: 28000 | loss: 0.4195 | profit rate: 6908692662.5 | accuracy: 0.29
+model saved @ step:28168,performance:57098126536.877,accuracy:0.29
+----------------------------------------finished----------------------------------------
+  0%|          | 0/89 [00:00<?, ?it/s] 12%|█▏        | 11/89 [00:00<00:00, 108.38it/s] 78%|███████▊  | 69/89 [00:00<00:00, 380.13it/s]100%|██████████| 89/89 [00:00<00:00, 374.01it/s]
+==================================================
+2023-01-04T00:00:00 | *** START BACKTEST ***
+2023-01-04T00:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-17T12:00:00 | *** GOING LONG ***
+2023-01-17T12:00:00's price 21134.8105, buy 0.04726798 units.
+2023-01-17T12:00:00 | current balance = 0.00
+2023-01-17T12:00:00 | balance:0.00+units:0.04726798*price:21134.8105=net_wealth:999.0010
+--------------------------------------------------
+2023-01-18T12:00:00 | *** GOING SHORT ***
+2023-01-18T12:00:00's price 20677.4707, sell 0.04726798 units.
+2023-01-18T12:00:00 | current balance = 976.41
+2023-01-18T12:00:00 | balance:976.41+units:0.0*price:20677.4707=net_wealth:976.4061
+--------------------------------------------------
+2023-01-22T00:00:00 | *** GOING LONG ***
+2023-01-22T00:00:00's price 22783.6094, buy 0.04281278 units.
+2023-01-22T00:00:00 | current balance = 0.00
+2023-01-22T00:00:00 | balance:0.00+units:0.04281278*price:22783.6094=net_wealth:975.4307
+--------------------------------------------------
+2023-01-25T12:00:00 | *** GOING SHORT ***
+2023-01-25T12:00:00's price 23060.9395, sell 0.04281278 units.
+2023-01-25T12:00:00 | current balance = 986.32
+2023-01-25T12:00:00 | balance:986.32+units:0.0*price:23060.9395=net_wealth:986.3166
+--------------------------------------------------
+2023-01-31T00:00:00 | *** GOING LONG ***
+2023-01-31T00:00:00's price 22865.4297, buy 0.043092570000000004 units.
+2023-01-31T00:00:00 | current balance = 0.00
+2023-01-31T00:00:00 | balance:0.00+units:0.043092570000000004*price:22865.4297=net_wealth:985.3313
+--------------------------------------------------
+2023-02-02T12:00:00 | *** GOING SHORT ***
+2023-02-02T12:00:00's price 23488.9395, sell 0.043092570000000004 units.
+2023-02-02T12:00:00 | current balance = 1011.19
+2023-02-02T12:00:00 | balance:1011.19+units:0.0*price:23488.9395=net_wealth:1011.1877
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, 0.0 unit trades .
+2023-02-17T00:00:00 | current balance = 1011.19
+2023-02-17T00:00:00 | net performance [%] = 1.1188
+2023-02-17T00:00:00 | number of trades [#] = 6
+==================================================
+Trial 4 Complete [02h 23m 40s]
+net_wealth: 1011.1877357013941
+
+Best net_wealth So Far: 1063.230396722901
+Total elapsed time: 08h 47m 14s
+
+Search: Running Trial #5
+
+Value             |Best Value So Far |Hyperparameter
+10                |2                 |horizon
+365               |225               |lookback
+False             |False             |MarketFactor
+7                 |5                 |lags
+0.9               |0.5               |gamma
+64                |32                |memory_size
+16                |16                |batch_size
+5                 |5                 |n_steps
+0.96              |0.96              |gae_lambda
+10                |0.2               |gradient_clip_
+5                 |3                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3990.000000   4000.000000
+mean      0.000426    19495.007760  ...   19576.781145  19539.018967
+std       0.028529    16512.401386  ...   16548.340311  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7400.387329   7381.677368
+50%       0.000789    10706.818994  ...   10895.830078  10860.569824
+75%       0.012261    30336.414380  ...   30407.414551  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+step_num: 200 | loss: 0.7342 | profit rate:    1.3 | accuracy: 0.38
+step_num: 400 | loss: 0.4692 | profit rate:    3.0 | accuracy: 0.38
+step_num: 600 | loss: 1.0523 | profit rate:   11.0 | accuracy: 0.37
+step_num: 800 | loss: 0.7421 | profit rate:    1.6 | accuracy: 0.37
+step_num: 1000 | loss: 0.9410 | profit rate:   38.2 | accuracy: 0.37
+step_num: 1200 | loss: 0.5541 | profit rate:   59.9 | accuracy: 0.36
+step_num: 1400 | loss: 0.4604 | profit rate:   16.0 | accuracy: 0.35
+step_num: 1600 | loss: 0.2244 | profit rate:  411.3 | accuracy: 0.33
+step_num: 1800 | loss: 0.5774 | profit rate:   73.8 | accuracy: 0.34
+step_num: 2000 | loss: 0.4304 | profit rate:  134.3 | accuracy: 0.34
+step_num: 2200 | loss: 1.0494 | profit rate: 821505.0 | accuracy: 0.37
+step_num: 2400 | loss: 0.9449 | profit rate: 46968.6 | accuracy: 0.38
+step_num: 2600 | loss: 0.4982 | profit rate: 5466.5 | accuracy: 0.37
+step_num: 2800 | loss: 0.5784 | profit rate: 8641.0 | accuracy: 0.37
+step_num: 3000 | loss: 0.5003 | profit rate: 17125.6 | accuracy: 0.37
+step_num: 3200 | loss: 0.0702 | profit rate: 2962.9 | accuracy: 0.35
+step_num: 3400 | loss: 0.3504 | profit rate:  687.3 | accuracy: 0.34
+episode:   1/8,耗时:2.70分/2.70分,训练集: | step: 3535 | average_treward:   85.8 | max_treward: 85.7695 | average profit rate: 701.978
+model saved @ step:3535,performance:701.978,accuracy:0.33
+step_num: 3600 | loss: 0.0482 | profit rate:    1.8 | accuracy: 0.09
+step_num: 3800 | loss: 0.0868 | profit rate:    8.6 | accuracy: 0.17
+step_num: 4000 | loss: 0.6063 | profit rate:    1.9 | accuracy: 0.21
+step_num: 4200 | loss: 0.0273 | profit rate:   24.0 | accuracy: 0.20
+step_num: 4400 | loss: 0.6527 | profit rate:   10.9 | accuracy: 0.21
+step_num: 4600 | loss: 0.9290 | profit rate:  355.2 | accuracy: 0.27
+step_num: 4800 | loss: 0.6622 | profit rate:  489.3 | accuracy: 0.28
+step_num: 5000 | loss: 0.6535 | profit rate:  172.0 | accuracy: 0.27
+step_num: 5200 | loss: 0.6540 | profit rate:  224.1 | accuracy: 0.26
+step_num: 5400 | loss: 0.5242 | profit rate:   64.0 | accuracy: 0.28
+step_num: 5600 | loss: 0.7341 | profit rate: 69787.2 | accuracy: 0.31
+step_num: 5800 | loss: 0.7271 | profit rate: 34769326.2 | accuracy: 0.33
+step_num: 6000 | loss: 0.0630 | profit rate: 1518129.6 | accuracy: 0.32
+step_num: 6200 | loss: 0.4172 | profit rate: 8628244.8 | accuracy: 0.33
+step_num: 6400 | loss: 0.0686 | profit rate: 678937.1 | accuracy: 0.32
+step_num: 6600 | loss: 0.0362 | profit rate: 445883.4 | accuracy: 0.31
+step_num: 6800 | loss: 0.1569 | profit rate: 482104.5 | accuracy: 0.30
+step_num: 7000 | loss: 0.3584 | profit rate: 59846.2 | accuracy: 0.29
+model saved @ step:7070,performance:58509.607,accuracy:0.28
+step_num: 7200 | loss: 0.0523 | profit rate:    2.1 | accuracy: 0.14
+step_num: 7400 | loss: 0.8181 | profit rate:   20.9 | accuracy: 0.27
+step_num: 7600 | loss: 0.6308 | profit rate:  266.8 | accuracy: 0.29
+step_num: 7800 | loss: 0.6455 | profit rate:  172.5 | accuracy: 0.27
+step_num: 8000 | loss: 0.9003 | profit rate:  284.6 | accuracy: 0.30
+step_num: 8200 | loss: 0.4468 | profit rate:  108.7 | accuracy: 0.31
+step_num: 8400 | loss: 0.2373 | profit rate: 2146.7 | accuracy: 0.32
+step_num: 8600 | loss: 0.2288 | profit rate: 1129.1 | accuracy: 0.31
+step_num: 8800 | loss: 0.5497 | profit rate:  760.9 | accuracy: 0.32
+step_num: 9000 | loss: 0.6909 | profit rate:  422.9 | accuracy: 0.33
+step_num: 9200 | loss: 0.8677 | profit rate: 3557786.6 | accuracy: 0.36
+step_num: 9400 | loss: 0.8246 | profit rate: 104985339.2 | accuracy: 0.38
+step_num: 9600 | loss: 0.5577 | profit rate: 17317732.8 | accuracy: 0.37
+step_num: 9800 | loss: 0.9049 | profit rate: 47063358.4 | accuracy: 0.37
+step_num: 10000 | loss: 0.6613 | profit rate: 11836127.9 | accuracy: 0.36
+step_num: 10200 | loss: 0.0050 | profit rate: 34529582.4 | accuracy: 0.35
+step_num: 10400 | loss: 0.4567 | profit rate: 31938285.6 | accuracy: 0.34
+step_num: 10600 | loss: 0.1957 | profit rate: 58103077.6 | accuracy: 0.34
+episode:   3/8,耗时:2.99分/8.64分,训练集: | step: 10605 | average_treward:  166.6 | max_treward: 223.1493 | average profit rate: 18482155.199
+model saved @ step:10605,performance:55387254.012,accuracy:0.34
+step_num: 10800 | loss: 0.5288 | profit rate:  285.6 | accuracy: 0.39
+step_num: 11000 | loss: 0.3641 | profit rate: 1831.6 | accuracy: 0.31
+step_num: 11200 | loss: 0.0239 | profit rate: 8162.0 | accuracy: 0.30
+step_num: 11400 | loss: 0.6456 | profit rate:  726.8 | accuracy: 0.28
+step_num: 11600 | loss: 0.8435 | profit rate: 20379.1 | accuracy: 0.34
+step_num: 11800 | loss: 0.5911 | profit rate: 6979.3 | accuracy: 0.33
+step_num: 12000 | loss: 0.6883 | profit rate: 1795.6 | accuracy: 0.33
+step_num: 12200 | loss: 0.4561 | profit rate: 14196.3 | accuracy: 0.32
+step_num: 12400 | loss: 0.7121 | profit rate: 2023.3 | accuracy: 0.34
+step_num: 12600 | loss: 0.6379 | profit rate: 76697.5 | accuracy: 0.36
+step_num: 12800 | loss: 0.8686 | profit rate: 721449160.2 | accuracy: 0.38
+step_num: 13000 | loss: 0.1937 | profit rate: 167925919.1 | accuracy: 0.38
+step_num: 13200 | loss: 0.5306 | profit rate: 178625269.1 | accuracy: 0.38
+step_num: 13400 | loss: 0.5278 | profit rate: 154231926.1 | accuracy: 0.37
+step_num: 13600 | loss: 0.6956 | profit rate: 2100029787.0 | accuracy: 0.38
+step_num: 13800 | loss: 0.4243 | profit rate: 3728985095.5 | accuracy: 0.37
+step_num: 14000 | loss: 0.5469 | profit rate: 2500171797.0 | accuracy: 0.37
+model saved @ step:14140,performance:5516194935.478,accuracy:0.36
+step_num: 14200 | loss: 0.9523 | profit rate:   65.6 | accuracy: 0.66
+step_num: 14400 | loss: 0.2060 | profit rate: 2061.9 | accuracy: 0.43
+step_num: 14600 | loss: 0.7336 | profit rate: 1509.3 | accuracy: 0.40
+step_num: 14800 | loss: 0.2637 | profit rate: 4546.4 | accuracy: 0.34
+step_num: 15000 | loss: 0.6890 | profit rate:  403.4 | accuracy: 0.34
+step_num: 15200 | loss: 0.9481 | profit rate:  254.2 | accuracy: 0.35
+step_num: 15400 | loss: 0.7436 | profit rate: 4080.3 | accuracy: 0.38
+step_num: 15600 | loss: 0.7851 | profit rate: 1572.8 | accuracy: 0.37
+step_num: 15800 | loss: 0.6836 | profit rate: 29023.0 | accuracy: 0.36
+step_num: 16000 | loss: 0.4334 | profit rate: 36742.0 | accuracy: 0.38
+step_num: 16200 | loss: 0.9366 | profit rate: 1284124.5 | accuracy: 0.40
+step_num: 16400 | loss: 0.7610 | profit rate: 607767305.1 | accuracy: 0.41
+step_num: 16600 | loss: 0.2261 | profit rate: 97993435.6 | accuracy: 0.40
+step_num: 16800 | loss: 0.4273 | profit rate: 1171062153.0 | accuracy: 0.41
+step_num: 17000 | loss: 0.4338 | profit rate: 1531196861.5 | accuracy: 0.40
+step_num: 17200 | loss: 0.3447 | profit rate: 3394718883.1 | accuracy: 0.40
+step_num: 17400 | loss: 0.6082 | profit rate: 7258304473.2 | accuracy: 0.38
+step_num: 17600 | loss: 0.5684 | profit rate: 14100341185.4 | accuracy: 0.38
+episode:   5/8,耗时:2.65分/14.10分,训练集: | step: 17675 | average_treward:  214.4 | max_treward: 316.2328 | average profit rate: 3608248952.021
+model saved @ step:17675,performance:12469603359.030,accuracy:0.38
+step_num: 17800 | loss: 0.3833 | profit rate:   35.7 | accuracy: 0.43
+step_num: 18000 | loss: 1.0705 | profit rate:  643.9 | accuracy: 0.44
+step_num: 18200 | loss: 0.5286 | profit rate: 3591.5 | accuracy: 0.41
+step_num: 18400 | loss: 0.5317 | profit rate: 1718.3 | accuracy: 0.35
+step_num: 18600 | loss: 0.9574 | profit rate: 2665.5 | accuracy: 0.37
+step_num: 18800 | loss: 0.6626 | profit rate:  198.0 | accuracy: 0.37
+step_num: 19000 | loss: 0.2743 | profit rate: 4886.8 | accuracy: 0.38
+step_num: 19200 | loss: 0.2135 | profit rate: 22017.1 | accuracy: 0.37
+step_num: 19400 | loss: 0.5858 | profit rate: 29423.8 | accuracy: 0.38
+step_num: 19600 | loss: 0.7485 | profit rate: 8400.6 | accuracy: 0.38
+step_num: 19800 | loss: 1.2209 | profit rate: 4487550.4 | accuracy: 0.41
+step_num: 20000 | loss: 0.7942 | profit rate: 31757444.7 | accuracy: 0.41
+step_num: 20200 | loss: 0.8813 | profit rate: 6185093.0 | accuracy: 0.40
+step_num: 20400 | loss: 0.9391 | profit rate: 105809610.0 | accuracy: 0.41
+step_num: 20600 | loss: 0.4560 | profit rate: 351539744.7 | accuracy: 0.40
+step_num: 20800 | loss: 0.1262 | profit rate: 2894496754.2 | accuracy: 0.40
+step_num: 21000 | loss: 0.6400 | profit rate: 2128734529.9 | accuracy: 0.39
+step_num: 21200 | loss: 0.5868 | profit rate: 7836568655.6 | accuracy: 0.39
+model saved @ step:21210,performance:7392982976.669,accuracy:0.39
+step_num: 21400 | loss: 0.6612 | profit rate:  218.3 | accuracy: 0.61
+step_num: 21600 | loss: 0.3152 | profit rate:  600.6 | accuracy: 0.46
+step_num: 21800 | loss: 0.2677 | profit rate: 2589.0 | accuracy: 0.40
+step_num: 22000 | loss: 0.5677 | profit rate:  217.1 | accuracy: 0.36
+step_num: 22200 | loss: 0.8422 | profit rate: 7466.7 | accuracy: 0.41
+step_num: 22400 | loss: 0.4721 | profit rate: 3186.8 | accuracy: 0.41
+step_num: 22600 | loss: 0.5735 | profit rate: 3264.5 | accuracy: 0.40
+step_num: 22800 | loss: 0.3084 | profit rate: 103545.6 | accuracy: 0.39
+step_num: 23000 | loss: 0.7888 | profit rate: 13225.2 | accuracy: 0.40
+step_num: 23200 | loss: 0.5371 | profit rate: 1475631.9 | accuracy: 0.42
+step_num: 23400 | loss: 1.0785 | profit rate: 3119625479.5 | accuracy: 0.44
+step_num: 23600 | loss: 0.2613 | profit rate: 114269769.4 | accuracy: 0.42
+step_num: 23800 | loss: 0.6618 | profit rate: 156193987.8 | accuracy: 0.42
+step_num: 24000 | loss: 0.5588 | profit rate: 645517495.1 | accuracy: 0.42
+step_num: 24200 | loss: 0.5834 | profit rate: 13341765235.0 | accuracy: 0.42
+step_num: 24400 | loss: 0.0989 | profit rate: 122718960194.8 | accuracy: 0.41
+step_num: 24600 | loss: 0.5564 | profit rate: 280186282522.4 | accuracy: 0.41
+episode:   7/8,耗时:2.73分/19.63分,训练集: | step: 24745 | average_treward:  258.2 | max_treward: 410.3196 | average profit rate: 151267562771.779
+model saved @ step:24745,performance:1033438711665.677,accuracy:0.41
+step_num: 24800 | loss: 0.8953 | profit rate:  100.1 | accuracy: 0.79
+step_num: 25000 | loss: 0.5596 | profit rate: 1064.5 | accuracy: 0.57
+step_num: 25200 | loss: 0.5816 | profit rate:  329.7 | accuracy: 0.47
+step_num: 25400 | loss: 0.1906 | profit rate:  916.3 | accuracy: 0.38
+step_num: 25600 | loss: 0.7797 | profit rate:  101.7 | accuracy: 0.39
+step_num: 25800 | loss: 0.9266 | profit rate:   76.3 | accuracy: 0.39
+step_num: 26000 | loss: 0.9093 | profit rate:  730.4 | accuracy: 0.42
+step_num: 26200 | loss: 0.7694 | profit rate: 1305.4 | accuracy: 0.41
+step_num: 26400 | loss: 0.7395 | profit rate: 141295.4 | accuracy: 0.41
+step_num: 26600 | loss: 0.6400 | profit rate: 150385.0 | accuracy: 0.42
+step_num: 26800 | loss: 0.9267 | profit rate: 2352893.1 | accuracy: 0.44
+step_num: 27000 | loss: 0.8233 | profit rate: 823670102.3 | accuracy: 0.44
+step_num: 27200 | loss: 0.1402 | profit rate: 56079836.8 | accuracy: 0.42
+step_num: 27400 | loss: 0.4645 | profit rate: 2844849786.4 | accuracy: 0.43
+step_num: 27600 | loss: 0.6692 | profit rate: 9914443049.2 | accuracy: 0.42
+step_num: 27800 | loss: 0.5579 | profit rate: 87484203907.3 | accuracy: 0.42
+step_num: 28000 | loss: 0.5228 | profit rate: 99908322410.1 | accuracy: 0.41
+step_num: 28200 | loss: 0.5688 | profit rate: 597651758784.8 | accuracy: 0.41
+----------------------------------------finished----------------------------------------
+  0%|          | 0/89 [00:00<?, ?it/s] 19%|█▉        | 17/89 [00:00<00:00, 169.06it/s] 85%|████████▌ | 76/89 [00:00<00:00, 415.26it/s]100%|██████████| 89/89 [00:00<00:00, 395.34it/s]
+==================================================
+2023-01-04T00:00:00 | *** START BACKTEST ***
+2023-01-04T00:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-12T12:00:00 | *** GOING LONG ***
+2023-01-12T12:00:00's price 18846.6191, buy 0.05300685 units.
+2023-01-12T12:00:00 | current balance = 0.00
+2023-01-12T12:00:00 | balance:0.00+units:0.05300685*price:18846.6191=net_wealth:999.0010
+--------------------------------------------------
+2023-02-02T00:00:00 | *** GOING SHORT ***
+2023-02-02T00:00:00's price 23820.4902, sell 0.05300685 units.
+2023-02-02T00:00:00 | current balance = 1261.39
+2023-02-02T00:00:00 | balance:1261.39+units:0.0*price:23820.4902=net_wealth:1261.3876
+--------------------------------------------------
+2023-02-05T00:00:00 | *** GOING LONG ***
+2023-02-05T00:00:00's price 23356.3301, buy 0.053952230000000004 units.
+2023-02-05T00:00:00 | current balance = 0.00
+2023-02-05T00:00:00 | balance:0.00+units:0.053952230000000004*price:23356.3301=net_wealth:1260.1275
+--------------------------------------------------
+2023-02-05T12:00:00 | *** GOING SHORT ***
+2023-02-05T12:00:00's price 22932.9102, sell 0.053952230000000004 units.
+2023-02-05T12:00:00 | current balance = 1236.05
+2023-02-05T12:00:00 | balance:1236.05+units:0.0*price:22932.9102=net_wealth:1236.0457
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, 0.0 unit trades .
+2023-02-17T00:00:00 | current balance = 1236.05
+2023-02-17T00:00:00 | net performance [%] = 23.6046
+2023-02-17T00:00:00 | number of trades [#] = 4
+==================================================
+Trial 5 Complete [00h 22m 22s]
+net_wealth: 1236.0457331719358
+
+Best net_wealth So Far: 1236.0457331719358
+Total elapsed time: 09h 09m 36s
+
+Search: Running Trial #6
+
+Value             |Best Value So Far |Hyperparameter
+8                 |10                |horizon
+225               |365               |lookback
+False             |False             |MarketFactor
+30                |7                 |lags
+0.8               |0.9               |gamma
+2000              |64                |memory_size
+16                |16                |batch_size
+32                |5                 |n_steps
+0.96              |0.96              |gae_lambda
+10                |10                |gradient_clip_
+3                 |5                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3992.000000   4000.000000
+mean      0.000426    19495.007760  ...   19569.323229  19539.018967
+std       0.028529    16512.401386  ...   16547.547425  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7397.927368   7381.677368
+50%       0.000789    10706.818994  ...   10891.359863  10860.569824
+75%       0.012261    30336.414380  ...   30400.544434  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+step_num: 1000 | loss: 0.8865 | profit rate:    0.1 | accuracy: 0.32
+step_num: 1200 | loss: 0.4466 | profit rate:    0.0 | accuracy: 0.31
+step_num: 1400 | loss: 0.4110 | profit rate:    0.0 | accuracy: 0.31
+step_num: 1600 | loss: 0.4336 | profit rate:    0.0 | accuracy: 0.31
+step_num: 1800 | loss: 0.4273 | profit rate:    0.0 | accuracy: 0.32
+step_num: 2000 | loss: 0.4115 | profit rate:    0.0 | accuracy: 0.32
+step_num: 2200 | loss: 0.3945 | profit rate:    0.0 | accuracy: 0.32
+step_num: 2400 | loss: 0.3942 | profit rate:    0.0 | accuracy: 0.33
+step_num: 2600 | loss: 0.3980 | profit rate:    0.0 | accuracy: 0.33
+step_num: 2800 | loss: 0.4107 | profit rate:    0.0 | accuracy: 0.33
+step_num: 3000 | loss: 0.3982 | profit rate:    0.0 | accuracy: 0.33
+step_num: 3200 | loss: 0.4280 | profit rate:    0.0 | accuracy: 0.33
+step_num: 3400 | loss: 0.4196 | profit rate:    0.0 | accuracy: 0.33
+step_num: 3600 | loss: 0.3517 | profit rate:    0.0 | accuracy: 0.32
+episode:   1/8,耗时:7.35分/7.35分,训练集: | step: 3652 | average_treward:  -58.7 | max_treward: 0.0000 | average profit rate:  0.003
+step_num: 3800 | loss: 0.3709 | profit rate:    0.0 | accuracy: 0.25
+step_num: 4000 | loss: 0.3878 | profit rate:    0.2 | accuracy: 0.24
+step_num: 4200 | loss: 0.3411 | profit rate:    0.5 | accuracy: 0.28
+step_num: 4400 | loss: 0.3401 | profit rate:    1.2 | accuracy: 0.29
+step_num: 4600 | loss: 0.3015 | profit rate:    0.1 | accuracy: 0.28
+step_num: 4800 | loss: 0.2635 | profit rate:    0.7 | accuracy: 0.27
+step_num: 5000 | loss: 0.2523 | profit rate:    1.7 | accuracy: 0.27
+step_num: 5200 | loss: 0.2621 | profit rate:    4.9 | accuracy: 0.28
+step_num: 5400 | loss: 0.2351 | profit rate:    2.6 | accuracy: 0.27
+step_num: 5600 | loss: 0.2359 | profit rate:    3.2 | accuracy: 0.26
+step_num: 5800 | loss: 0.2325 | profit rate:   39.2 | accuracy: 0.27
+step_num: 6000 | loss: 0.2447 | profit rate: 4198.6 | accuracy: 0.28
+step_num: 6200 | loss: 0.2369 | profit rate: 8219.4 | accuracy: 0.28
+step_num: 6400 | loss: 0.2550 | profit rate: 171454.5 | accuracy: 0.29
+step_num: 6600 | loss: 0.2437 | profit rate: 784205.3 | accuracy: 0.29
+step_num: 6800 | loss: 0.2592 | profit rate: 4855657.3 | accuracy: 0.30
+step_num: 7000 | loss: 0.2578 | profit rate: 38817107166.0 | accuracy: 0.31
+step_num: 7200 | loss: 0.2702 | profit rate: 213348403186.6 | accuracy: 0.32
+model saved @ step:7304,performance:306949801375.083,accuracy:0.32
+step_num: 7400 | loss: 0.2625 | profit rate:    2.1 | accuracy: 0.35
+step_num: 7600 | loss: 0.2927 | profit rate:    0.9 | accuracy: 0.29
+step_num: 7800 | loss: 0.2797 | profit rate:    8.7 | accuracy: 0.31
+step_num: 8000 | loss: 0.2771 | profit rate:  359.2 | accuracy: 0.33
+step_num: 8200 | loss: 0.2879 | profit rate:  105.8 | accuracy: 0.34
+step_num: 8400 | loss: 0.2779 | profit rate: 1049.4 | accuracy: 0.35
+step_num: 8600 | loss: 0.2703 | profit rate: 49037.6 | accuracy: 0.36
+step_num: 8800 | loss: 0.2779 | profit rate: 89247.2 | accuracy: 0.36
+step_num: 9000 | loss: 0.2616 | profit rate: 615547.5 | accuracy: 0.35
+step_num: 9200 | loss: 0.2505 | profit rate: 4855103.1 | accuracy: 0.35
+step_num: 9400 | loss: 0.2407 | profit rate: 164446207.0 | accuracy: 0.36
+step_num: 9600 | loss: 0.2582 | profit rate: 118514414143.5 | accuracy: 0.37
+step_num: 9800 | loss: 0.2863 | profit rate: 63481426217.8 | accuracy: 0.37
+step_num: 10000 | loss: 0.2504 | profit rate: 101862238587.2 | accuracy: 0.37
+step_num: 10200 | loss: 0.2573 | profit rate: 2143198674791.3 | accuracy: 0.37
+step_num: 10400 | loss: 0.2710 | profit rate: 395369492238635.8 | accuracy: 0.37
+step_num: 10600 | loss: 0.2394 | profit rate: 382528287730916352.0 | accuracy: 0.38
+step_num: 10800 | loss: 0.2521 | profit rate: 9538253955586285568.0 | accuracy: 0.38
+episode:   3/8,耗时:9.86分/27.11分,训练集: | step: 10956 | average_treward:  449.4 | max_treward: 846.5900 | average profit rate: 13103190159254398976.000
+model saved @ step:10956,performance:39309570170813399040.000,accuracy:0.38
+step_num: 11000 | loss: 0.2306 | profit rate:    0.6 | accuracy: 0.31
+step_num: 11200 | loss: 0.2226 | profit rate:    5.7 | accuracy: 0.29
+step_num: 11400 | loss: 0.2336 | profit rate:  194.9 | accuracy: 0.34
+step_num: 11600 | loss: 0.2370 | profit rate: 2217.5 | accuracy: 0.34
+step_num: 11800 | loss: 0.2671 | profit rate: 16152.4 | accuracy: 0.36
+step_num: 12000 | loss: 0.3115 | profit rate: 468711.7 | accuracy: 0.39
+step_num: 12200 | loss: 0.2391 | profit rate: 7255135.1 | accuracy: 0.39
+step_num: 12400 | loss: 0.2487 | profit rate: 411528444.2 | accuracy: 0.40
+step_num: 12600 | loss: 0.2470 | profit rate: 35999234697.6 | accuracy: 0.40
+step_num: 12800 | loss: 0.2477 | profit rate: 102980801564.5 | accuracy: 0.39
+step_num: 13000 | loss: 0.2463 | profit rate: 619467325513.8 | accuracy: 0.39
+step_num: 13200 | loss: 0.2540 | profit rate: 556489509793953.6 | accuracy: 0.40
+step_num: 13400 | loss: 0.2260 | profit rate: 10632056683417066.0 | accuracy: 0.40
+step_num: 13600 | loss: 0.2310 | profit rate: 54863225993880016.0 | accuracy: 0.40
+step_num: 13800 | loss: 0.2705 | profit rate: 1194829553289943296.0 | accuracy: 0.40
+step_num: 14000 | loss: 0.2356 | profit rate: 462688119696520708096.0 | accuracy: 0.40
+step_num: 14200 | loss: 0.2460 | profit rate: 187780380647236535582720.0 | accuracy: 0.41
+step_num: 14400 | loss: 0.2389 | profit rate: 37522203102917999420506112.0 | accuracy: 0.41
+step_num: 14600 | loss: 0.2260 | profit rate: 273825917061435995029766144.0 | accuracy: 0.41
+model saved @ step:14608,performance:263285990211877460150059008.000,accuracy:0.41
+step_num: 14800 | loss: 0.2161 | profit rate:   92.3 | accuracy: 0.41
+step_num: 15000 | loss: 0.2304 | profit rate:  761.7 | accuracy: 0.37
+step_num: 15200 | loss: 0.2290 | profit rate: 19011.4 | accuracy: 0.40
+step_num: 15400 | loss: 0.2251 | profit rate: 1594594.1 | accuracy: 0.41
+step_num: 15600 | loss: 0.2644 | profit rate: 35300932.1 | accuracy: 0.43
+step_num: 15800 | loss: 0.2705 | profit rate: 1292301248.3 | accuracy: 0.42
+step_num: 16000 | loss: 0.2669 | profit rate: 73942588150.9 | accuracy: 0.43
+step_num: 16200 | loss: 0.2621 | profit rate: 2828487052801.8 | accuracy: 0.43
+step_num: 16400 | loss: 0.2488 | profit rate: 267201885022790.9 | accuracy: 0.44
+step_num: 16600 | loss: 0.2580 | profit rate: 994717832813812.4 | accuracy: 0.42
+step_num: 16800 | loss: 0.2659 | profit rate: 2418674669200367616.0 | accuracy: 0.45
+step_num: 17000 | loss: 0.2526 | profit rate: 469260192215853826048.0 | accuracy: 0.45
+step_num: 17200 | loss: 0.2360 | profit rate: 10513237379107650535424.0 | accuracy: 0.45
+step_num: 17400 | loss: 0.2420 | profit rate: 34983797314437051842560.0 | accuracy: 0.44
+step_num: 17600 | loss: 0.2385 | profit rate: 6735386066277497512656896.0 | accuracy: 0.44
+step_num: 17800 | loss: 0.2647 | profit rate: 571516129022343235130884096.0 | accuracy: 0.45
+step_num: 18000 | loss: 0.2513 | profit rate: 851543143776571718994701058048.0 | accuracy: 0.46
+step_num: 18200 | loss: 0.2329 | profit rate: 6439322059596454962862583971840.0 | accuracy: 0.46
+episode:   5/8,耗时:9.83分/46.80分,训练集: | step: 18260 | average_treward:  765.3 | max_treward: 1323.4288 | average profit rate: 1490052578707089810674080022528.000
+model saved @ step:18260,performance:7449999607505928708981790867456.000,accuracy:0.46
+step_num: 18400 | loss: 0.2426 | profit rate:   42.8 | accuracy: 0.44
+step_num: 18600 | loss: 0.2313 | profit rate: 2216.6 | accuracy: 0.43
+step_num: 18800 | loss: 0.2635 | profit rate: 151634.6 | accuracy: 0.44
+step_num: 19000 | loss: 0.2505 | profit rate: 25986089.6 | accuracy: 0.46
+step_num: 19200 | loss: 0.2477 | profit rate: 630753230.9 | accuracy: 0.49
+step_num: 19400 | loss: 0.2958 | profit rate: 286300368067.3 | accuracy: 0.49
+step_num: 19600 | loss: 0.2821 | profit rate: 3608583918543.8 | accuracy: 0.48
+step_num: 19800 | loss: 0.2504 | profit rate: 92097781559443.9 | accuracy: 0.48
+step_num: 20000 | loss: 0.2878 | profit rate: 17667908718602032.0 | accuracy: 0.47
+step_num: 20200 | loss: 0.2422 | profit rate: 33592230651903200.0 | accuracy: 0.46
+step_num: 20400 | loss: 0.2661 | profit rate: 14551204395378567168.0 | accuracy: 0.48
+step_num: 20600 | loss: 0.2350 | profit rate: 119736704053023539724288.0 | accuracy: 0.49
+step_num: 20800 | loss: 0.2546 | profit rate: 14983571355421606846398464.0 | accuracy: 0.49
+step_num: 21000 | loss: 0.2788 | profit rate: 3268441104821787824930947072.0 | accuracy: 0.49
+step_num: 21200 | loss: 0.2379 | profit rate: 318698073936013412007466237952.0 | accuracy: 0.49
+step_num: 21400 | loss: 0.2580 | profit rate: 104238866321324742183404053725184.0 | accuracy: 0.50
+step_num: 21600 | loss: 0.2836 | profit rate: 39486650059901661322088821349679104.0 | accuracy: 0.50
+step_num: 21800 | loss: 0.2336 | profit rate: 1847373864679546166255601485392904192.0 | accuracy: 0.50
+model saved @ step:21912,performance:4565911595548971760476173180214444032.000,accuracy:0.50
+step_num: 22000 | loss: 0.2210 | profit rate:    3.6 | accuracy: 0.39
+step_num: 22200 | loss: 0.2613 | profit rate:  148.6 | accuracy: 0.44
+step_num: 22400 | loss: 0.2704 | profit rate: 6368.4 | accuracy: 0.46
+step_num: 22600 | loss: 0.2717 | profit rate: 179474.6 | accuracy: 0.46
+step_num: 22800 | loss: 0.2704 | profit rate: 1907179.3 | accuracy: 0.48
+step_num: 23000 | loss: 0.3141 | profit rate: 1521912845.8 | accuracy: 0.50
+step_num: 23200 | loss: 0.2790 | profit rate: 30419791668.2 | accuracy: 0.49
+step_num: 23400 | loss: 0.2442 | profit rate: 965126811550.2 | accuracy: 0.49
+step_num: 23600 | loss: 0.2811 | profit rate: 53162930700339.7 | accuracy: 0.49
+step_num: 23800 | loss: 0.2882 | profit rate: 862165345427929.4 | accuracy: 0.48
+step_num: 24000 | loss: 0.2808 | profit rate: 57700134876809552.0 | accuracy: 0.49
+step_num: 24200 | loss: 0.2521 | profit rate: 446564704504569462784.0 | accuracy: 0.49
+step_num: 24400 | loss: 0.2569 | profit rate: 81091207516815668281344.0 | accuracy: 0.49
+step_num: 24600 | loss: 0.2572 | profit rate: 34056732982341983409274880.0 | accuracy: 0.50
+step_num: 24800 | loss: 0.2543 | profit rate: 5509601548330571728789962752.0 | accuracy: 0.49
+step_num: 25000 | loss: 0.2557 | profit rate: 1687028723258565656689514643456.0 | accuracy: 0.50
+step_num: 25200 | loss: 0.2353 | profit rate: 662739373303330652403371570364416.0 | accuracy: 0.50
+step_num: 25400 | loss: 0.2599 | profit rate: 264218715809836066189479575749132288.0 | accuracy: 0.51
+episode:   7/8,耗时:10.16分/139.03分,训练集: | step: 25564 | average_treward:  999.7 | max_treward: 1605.4671 | average profit rate: 1231793861731857495620309412602707968.000
+model saved @ step:25564,performance:4056637986311137062067127400729149440.000,accuracy:0.51
+step_num: 25600 | loss: 0.2285 | profit rate:    0.4 | accuracy: 0.35
+step_num: 25800 | loss: 0.2379 | profit rate:   90.4 | accuracy: 0.46
+step_num: 26000 | loss: 0.2663 | profit rate: 3845.6 | accuracy: 0.49
+step_num: 26200 | loss: 0.2786 | profit rate: 66109.8 | accuracy: 0.53
+step_num: 26400 | loss: 0.2715 | profit rate: 1705097.4 | accuracy: 0.51
+step_num: 26600 | loss: 0.2451 | profit rate: 827181609.1 | accuracy: 0.54
+step_num: 26800 | loss: 0.2881 | profit rate: 48629176941.8 | accuracy: 0.53
+step_num: 27000 | loss: 0.2785 | profit rate: 8844059515429.8 | accuracy: 0.54
+step_num: 27200 | loss: 0.3306 | profit rate: 2682229471485236.0 | accuracy: 0.53
+step_num: 27400 | loss: 0.2857 | profit rate: 110084562104466176.0 | accuracy: 0.53
+step_num: 27600 | loss: 0.2633 | profit rate: 1331976080829069824.0 | accuracy: 0.53
+step_num: 27800 | loss: 0.2603 | profit rate: 10171624814050474459136.0 | accuracy: 0.54
+step_num: 28000 | loss: 0.2688 | profit rate: 4590671822507218772688896.0 | accuracy: 0.53
+step_num: 28200 | loss: 0.2596 | profit rate: 21302856677925014678425042944.0 | accuracy: 0.54
+step_num: 28400 | loss: 0.2550 | profit rate: 7467752443691896419868745924608.0 | accuracy: 0.54
+step_num: 28600 | loss: 0.2537 | profit rate: 1349592041846450725503966602330112.0 | accuracy: 0.54
+step_num: 28800 | loss: 0.2514 | profit rate: 184134101163318493548666307632693248.0 | accuracy: 0.54
+step_num: 29000 | loss: 0.2302 | profit rate: 154458573475518775060311994345646456832.0 | accuracy: 0.55
+step_num: 29200 | loss: 0.2278 | profit rate: 4315162631298382200622789581312956039168.0 | accuracy: 0.55
+model saved @ step:29216,performance:4124012598558019516877968469532843442176.000,accuracy:0.55
+----------------------------------------finished----------------------------------------
+  0%|          | 0/66 [00:00<?, ?it/s] 26%|██▌       | 17/66 [00:00<00:00, 164.76it/s]100%|██████████| 66/66 [00:00<00:00, 322.01it/s]
+==================================================
+2023-01-15T12:00:00 | *** START BACKTEST ***
+2023-01-15T12:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-16T00:00:00 | *** GOING LONG ***
+2023-01-16T00:00:00's price 20817.5605, buy 0.04798833 units.
+2023-01-16T00:00:00 | current balance = 0.00
+2023-01-16T00:00:00 | balance:0.00+units:0.04798833*price:20817.5605=net_wealth:999.0010
+--------------------------------------------------
+2023-01-20T12:00:00 | *** GOING SHORT ***
+2023-01-20T12:00:00's price 22667.2109, sell 0.04798833 units.
+2023-01-20T12:00:00 | current balance = 1086.67
+2023-01-20T12:00:00 | balance:1086.67+units:0.0*price:22667.2109=net_wealth:1086.6749
+--------------------------------------------------
+2023-01-21T00:00:00 | *** GOING LONG ***
+2023-01-21T00:00:00's price 22905.6504, buy 0.0473939 units.
+2023-01-21T00:00:00 | current balance = 0.00
+2023-01-21T00:00:00 | balance:0.00+units:0.0473939*price:22905.6504=net_wealth:1085.5893
+--------------------------------------------------
+2023-01-28T12:00:00 | *** GOING SHORT ***
+2023-01-28T12:00:00's price 23022.5996, sell 0.0473939 units.
+2023-01-28T12:00:00 | current balance = 1090.04
+2023-01-28T12:00:00 | balance:1090.04+units:0.0*price:23022.5996=net_wealth:1090.0408
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, 0.0 unit trades .
+2023-02-17T00:00:00 | current balance = 1090.04
+2023-02-17T00:00:00 | net performance [%] = 9.0041
+2023-02-17T00:00:00 | number of trades [#] = 4
+==================================================
+Trial 6 Complete [02h 29m 02s]
+net_wealth: 1090.0408324568155
+
+Best net_wealth So Far: 1236.0457331719358
+Total elapsed time: 11h 38m 38s
+
+Search: Running Trial #7
+
+Value             |Best Value So Far |Hyperparameter
+12                |10                |horizon
+730               |365               |lookback
+False             |False             |MarketFactor
+20                |7                 |lags
+0.97              |0.9               |gamma
+64                |64                |memory_size
+16                |16                |batch_size
+64                |5                 |n_steps
+0.96              |0.96              |gae_lambda
+0.5               |10                |gradient_clip_
+3                 |5                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3988.000000   4000.000000
+mean      0.000426    19495.007760  ...   19584.189283  19539.018967
+std       0.028529    16512.401386  ...   16549.181936  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7405.509888   7381.677368
+50%       0.000789    10706.818994  ...   10898.970215  10860.569824
+75%       0.012261    30336.414380  ...   30411.654785  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+step_num: 200 | loss: 1.2131 | profit rate:    0.1 | accuracy: 0.24
+step_num: 400 | loss: 0.4368 | profit rate:    0.0 | accuracy: 0.24
+step_num: 600 | loss: 0.8638 | profit rate:    0.1 | accuracy: 0.28
+step_num: 800 | loss: 0.7546 | profit rate:    0.0 | accuracy: 0.27
+step_num: 1000 | loss: 0.5788 | profit rate:    0.0 | accuracy: 0.29
+step_num: 1200 | loss: 0.8349 | profit rate:    0.1 | accuracy: 0.32
+step_num: 1400 | loss: 0.6072 | profit rate:    3.9 | accuracy: 0.34
+step_num: 1600 | loss: 0.2027 | profit rate:    0.3 | accuracy: 0.34
+step_num: 1800 | loss: 0.9898 | profit rate:    0.4 | accuracy: 0.33
+step_num: 2000 | loss: 2.4370 | profit rate:    0.0 | accuracy: 0.34
+step_num: 2200 | loss: 0.6107 | profit rate:    0.2 | accuracy: 0.36
+step_num: 2400 | loss: 0.7479 | profit rate:    0.5 | accuracy: 0.37
+step_num: 2600 | loss: 0.7312 | profit rate:    0.2 | accuracy: 0.38
+step_num: 2800 | loss: 1.1473 | profit rate:    0.0 | accuracy: 0.38
+step_num: 3000 | loss: 0.6264 | profit rate:    0.0 | accuracy: 0.38
+episode:   1/8,耗时:1.25分/1.25分,训练集: | step: 3157 | average_treward: -125.8 | max_treward: 0.0000 | average profit rate:  0.000
+step_num: 3200 | loss: 0.2065 | profit rate:    0.9 | accuracy: 0.14
+step_num: 3400 | loss: 0.6328 | profit rate:    0.3 | accuracy: 0.14
+step_num: 3600 | loss: 0.1826 | profit rate:    0.3 | accuracy: 0.13
+step_num: 3800 | loss: 0.8227 | profit rate:    0.4 | accuracy: 0.23
+step_num: 4000 | loss: 0.2125 | profit rate:    0.1 | accuracy: 0.23
+step_num: 4200 | loss: 0.3500 | profit rate:    0.1 | accuracy: 0.21
+step_num: 4400 | loss: 0.4384 | profit rate:    1.9 | accuracy: 0.24
+step_num: 4600 | loss: 0.4808 | profit rate:    2.4 | accuracy: 0.24
+step_num: 4800 | loss: 2.3738 | profit rate:    0.0 | accuracy: 0.25
+step_num: 5000 | loss: 0.3917 | profit rate:    0.0 | accuracy: 0.24
+step_num: 5200 | loss: 0.4695 | profit rate:    0.0 | accuracy: 0.24
+step_num: 5400 | loss: 0.0110 | profit rate:    0.0 | accuracy: 0.24
+step_num: 5600 | loss: 0.3259 | profit rate:    0.0 | accuracy: 0.23
+step_num: 5800 | loss: 0.7469 | profit rate:    0.0 | accuracy: 0.24
+step_num: 6000 | loss: 0.3345 | profit rate:    0.0 | accuracy: 0.25
+step_num: 6200 | loss: 0.3288 | profit rate:    0.0 | accuracy: 0.25
+step_num: 6400 | loss: 0.0045 | profit rate:    1.0 | accuracy: 0.05
+step_num: 6600 | loss: 0.4007 | profit rate:    0.2 | accuracy: 0.13
+step_num: 6800 | loss: 0.1494 | profit rate:    0.4 | accuracy: 0.15
+step_num: 7000 | loss: 0.6721 | profit rate:    2.4 | accuracy: 0.22
+step_num: 7200 | loss: 0.5238 | profit rate:    0.8 | accuracy: 0.18
+step_num: 7400 | loss: 0.0175 | profit rate:    2.1 | accuracy: 0.17
+step_num: 7600 | loss: 0.3022 | profit rate:   26.4 | accuracy: 0.21
+step_num: 7800 | loss: 0.0750 | profit rate:   24.9 | accuracy: 0.18
+step_num: 8000 | loss: 0.3943 | profit rate:   10.3 | accuracy: 0.17
+step_num: 8200 | loss: 0.0112 | profit rate:    2.3 | accuracy: 0.16
+step_num: 8400 | loss: 0.2508 | profit rate:    1.9 | accuracy: 0.16
+step_num: 8600 | loss: 0.3991 | profit rate:   95.2 | accuracy: 0.17
+step_num: 8800 | loss: 0.0851 | profit rate:  160.7 | accuracy: 0.16
+step_num: 9000 | loss: 0.3271 | profit rate:   15.7 | accuracy: 0.17
+step_num: 9200 | loss: 0.5117 | profit rate:    5.9 | accuracy: 0.19
+step_num: 9400 | loss: 0.6698 | profit rate:    1.5 | accuracy: 0.19
+episode:   3/8,耗时:1.40分/4.05分,训练集: | step: 9471 | average_treward:  -41.4 | max_treward: 87.6210 | average profit rate:  0.563
+model saved @ step:9471,performance:1.689,accuracy:0.19
+step_num: 9600 | loss: 0.1343 | profit rate:    0.8 | accuracy: 0.04
+step_num: 9800 | loss: 0.0051 | profit rate:    0.1 | accuracy: 0.09
+step_num: 10000 | loss: 0.4457 | profit rate:    2.6 | accuracy: 0.17
+step_num: 10200 | loss: 0.3882 | profit rate:    8.6 | accuracy: 0.23
+step_num: 10400 | loss: 0.1374 | profit rate:    1.4 | accuracy: 0.19
+step_num: 10600 | loss: 0.1475 | profit rate:    6.4 | accuracy: 0.19
+step_num: 10800 | loss: 0.0402 | profit rate:  398.2 | accuracy: 0.22
+step_num: 11000 | loss: 0.0347 | profit rate:  514.5 | accuracy: 0.20
+step_num: 11200 | loss: 0.1886 | profit rate: 1352.4 | accuracy: 0.19
+step_num: 11400 | loss: 0.1538 | profit rate: 2984.7 | accuracy: 0.18
+step_num: 11600 | loss: 0.3247 | profit rate: 1081.4 | accuracy: 0.18
+step_num: 11800 | loss: 0.2026 | profit rate: 17597.3 | accuracy: 0.19
+step_num: 12000 | loss: 0.6298 | profit rate: 15154.9 | accuracy: 0.18
+step_num: 12200 | loss: 0.3286 | profit rate: 7085.8 | accuracy: 0.19
+step_num: 12400 | loss: 0.2020 | profit rate:  542.0 | accuracy: 0.20
+step_num: 12600 | loss: 0.1346 | profit rate:  319.7 | accuracy: 0.21
+model saved @ step:12628,performance:319.657,accuracy:0.20
+step_num: 12800 | loss: 0.0063 | profit rate:    0.9 | accuracy: 0.03
+step_num: 13000 | loss: 0.1974 | profit rate:    0.1 | accuracy: 0.09
+step_num: 13200 | loss: 0.9731 | profit rate:    2.0 | accuracy: 0.22
+step_num: 13400 | loss: 0.3812 | profit rate:    2.9 | accuracy: 0.24
+step_num: 13600 | loss: 0.2962 | profit rate:    1.2 | accuracy: 0.21
+step_num: 13800 | loss: 0.6124 | profit rate:    7.9 | accuracy: 0.22
+step_num: 14000 | loss: 0.0167 | profit rate:  130.7 | accuracy: 0.23
+step_num: 14200 | loss: 0.0176 | profit rate:  151.3 | accuracy: 0.21
+step_num: 14400 | loss: 1.1957 | profit rate:    5.9 | accuracy: 0.21
+step_num: 14600 | loss: 0.6942 | profit rate:    2.4 | accuracy: 0.21
+step_num: 14800 | loss: 0.4234 | profit rate:   14.6 | accuracy: 0.21
+step_num: 15000 | loss: 0.0074 | profit rate:   71.3 | accuracy: 0.21
+step_num: 15200 | loss: 0.8662 | profit rate:   78.5 | accuracy: 0.21
+step_num: 15400 | loss: 0.7093 | profit rate:    3.9 | accuracy: 0.21
+step_num: 15600 | loss: 0.4163 | profit rate:   32.4 | accuracy: 0.22
+episode:   5/8,耗时:1.43分/6.90分,训练集: | step: 15785 | average_treward:   28.1 | max_treward: 155.8362 | average profit rate: 64.817
+step_num: 15800 | loss: 0.0203 | profit rate:    1.0 | accuracy: 0.06
+step_num: 16000 | loss: 0.3683 | profit rate:    0.2 | accuracy: 0.02
+step_num: 16200 | loss: 0.2044 | profit rate:    0.1 | accuracy: 0.08
+step_num: 16400 | loss: 1.1084 | profit rate:   61.1 | accuracy: 0.22
+step_num: 16600 | loss: 0.2252 | profit rate:   17.7 | accuracy: 0.21
+step_num: 16800 | loss: 0.3474 | profit rate:   19.4 | accuracy: 0.20
+step_num: 17000 | loss: 0.5375 | profit rate:  230.1 | accuracy: 0.21
+step_num: 17200 | loss: 0.2228 | profit rate:  359.7 | accuracy: 0.21
+step_num: 17400 | loss: 0.2392 | profit rate: 1024.5 | accuracy: 0.19
+step_num: 17600 | loss: 0.9143 | profit rate: 1102214.3 | accuracy: 0.22
+step_num: 17800 | loss: 0.5173 | profit rate: 466588.4 | accuracy: 0.22
+step_num: 18000 | loss: 0.0825 | profit rate: 2060885.8 | accuracy: 0.22
+step_num: 18200 | loss: 0.1013 | profit rate: 18810289.3 | accuracy: 0.22
+step_num: 18400 | loss: 0.6533 | profit rate: 22799351.0 | accuracy: 0.22
+step_num: 18600 | loss: 0.2968 | profit rate: 78485806.9 | accuracy: 0.22
+step_num: 18800 | loss: 0.4193 | profit rate: 255993984.5 | accuracy: 0.23
+model saved @ step:18942,performance:142919218.467,accuracy:0.22
+step_num: 19000 | loss: 0.0729 | profit rate:    1.0 | accuracy: 0.07
+step_num: 19200 | loss: 0.3389 | profit rate:    0.1 | accuracy: 0.08
+step_num: 19400 | loss: 0.2878 | profit rate:    0.0 | accuracy: 0.15
+step_num: 19600 | loss: 0.8945 | profit rate:   16.6 | accuracy: 0.26
+step_num: 19800 | loss: 0.4878 | profit rate:    3.5 | accuracy: 0.23
+step_num: 20000 | loss: 0.3064 | profit rate:    6.2 | accuracy: 0.21
+step_num: 20200 | loss: 0.5734 | profit rate:   82.3 | accuracy: 0.23
+step_num: 20400 | loss: 0.0951 | profit rate:  119.1 | accuracy: 0.21
+step_num: 20600 | loss: 0.7042 | profit rate: 5508.3 | accuracy: 0.22
+step_num: 20800 | loss: 0.8392 | profit rate: 48138109.7 | accuracy: 0.26
+step_num: 21000 | loss: 0.5755 | profit rate: 1574218.9 | accuracy: 0.26
+step_num: 21200 | loss: 0.1874 | profit rate: 39349451.7 | accuracy: 0.26
+step_num: 21400 | loss: 0.0374 | profit rate: 206626856.1 | accuracy: 0.25
+step_num: 21600 | loss: 0.2295 | profit rate: 164720837.5 | accuracy: 0.25
+step_num: 21800 | loss: 0.2565 | profit rate: 718720419.0 | accuracy: 0.25
+step_num: 22000 | loss: 0.0093 | profit rate: 552379156.5 | accuracy: 0.25
+episode:   7/8,耗时:1.43分/9.74分,训练集: | step: 22099 | average_treward:  104.2 | max_treward: 309.4481 | average profit rate: 133508297.762
+model saved @ step:22099,performance:791638541.784,accuracy:0.25
+step_num: 22200 | loss: 0.0726 | profit rate:    0.9 | accuracy: 0.05
+step_num: 22400 | loss: 0.2217 | profit rate:    0.2 | accuracy: 0.07
+step_num: 22600 | loss: 0.7500 | profit rate:    4.9 | accuracy: 0.14
+step_num: 22800 | loss: 0.9200 | profit rate:  173.0 | accuracy: 0.25
+step_num: 23000 | loss: 0.5840 | profit rate: 1431.5 | accuracy: 0.30
+step_num: 23200 | loss: 0.9997 | profit rate: 22895.4 | accuracy: 0.31
+step_num: 23400 | loss: 0.7354 | profit rate: 246169.4 | accuracy: 0.34
+step_num: 23600 | loss: 0.8128 | profit rate: 112225.0 | accuracy: 0.36
+step_num: 23800 | loss: 0.7840 | profit rate: 2322.3 | accuracy: 0.36
+step_num: 24000 | loss: 0.5874 | profit rate: 14298.4 | accuracy: 0.37
+step_num: 24200 | loss: 0.3107 | profit rate:  173.0 | accuracy: 0.35
+step_num: 24400 | loss: 0.6167 | profit rate: 11195.6 | accuracy: 0.35
+step_num: 24600 | loss: 0.1459 | profit rate: 59286.4 | accuracy: 0.33
+step_num: 24800 | loss: 0.0916 | profit rate: 27329.4 | accuracy: 0.32
+step_num: 25000 | loss: 0.2448 | profit rate: 93001.5 | accuracy: 0.32
+step_num: 25200 | loss: 0.1480 | profit rate: 56600.8 | accuracy: 0.31
+----------------------------------------finished----------------------------------------
+  0%|          | 0/76 [00:00<?, ?it/s] 24%|██▎       | 18/76 [00:00<00:00, 179.11it/s] 89%|████████▉ | 68/76 [00:00<00:00, 361.67it/s]100%|██████████| 76/76 [00:00<00:00, 337.50it/s]
+==================================================
+2023-01-10T12:00:00 | *** START BACKTEST ***
+2023-01-10T12:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-14T12:00:00 | *** GOING LONG ***
+2023-01-14T12:00:00's price 20954.9199, buy 0.04767376 units.
+2023-01-14T12:00:00 | current balance = 0.00
+2023-01-14T12:00:00 | balance:0.00+units:0.04767376*price:20954.9199=net_wealth:999.0010
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, sell 0.04767376 units.
+2023-02-17T00:00:00 | current balance = 1135.53
+2023-02-17T00:00:00 | net performance [%] = 13.5529
+2023-02-17T00:00:00 | number of trades [#] = 2
+==================================================
+Trial 7 Complete [00h 11m 15s]
+net_wealth: 1136.6652207352631
+
+Best net_wealth So Far: 1236.0457331719358
+Total elapsed time: 11h 49m 53s
+
+Search: Running Trial #8
+
+Value             |Best Value So Far |Hyperparameter
+12                |10                |horizon
+365               |365               |lookback
+False             |False             |MarketFactor
+30                |7                 |lags
+0.95              |0.9               |gamma
+256               |64                |memory_size
+32                |16                |batch_size
+64                |5                 |n_steps
+0.98              |0.96              |gae_lambda
+0.5               |10                |gradient_clip_
+3                 |5                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3988.000000   4000.000000
+mean      0.000426    19495.007760  ...   19584.189283  19539.018967
+std       0.028529    16512.401386  ...   16549.181936  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7405.509888   7381.677368
+50%       0.000789    10706.818994  ...   10898.970215  10860.569824
+75%       0.012261    30336.414380  ...   30411.654785  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+step_num: 200 | loss: 0.5603 | profit rate:    0.6 | accuracy: 0.29
+step_num: 400 | loss: 0.5013 | profit rate:    0.2 | accuracy: 0.32
+step_num: 600 | loss: 0.6248 | profit rate:    0.0 | accuracy: 0.31
+step_num: 800 | loss: 0.4979 | profit rate:    0.0 | accuracy: 0.30
+step_num: 1000 | loss: 0.7801 | profit rate:    0.1 | accuracy: 0.34
+step_num: 1200 | loss: 0.5723 | profit rate:    0.0 | accuracy: 0.33
+step_num: 1400 | loss: 0.6545 | profit rate:    0.0 | accuracy: 0.34
+step_num: 1600 | loss: 0.7315 | profit rate:    0.0 | accuracy: 0.35
+step_num: 1800 | loss: 0.4587 | profit rate:    0.0 | accuracy: 0.35
+step_num: 2000 | loss: 0.5011 | profit rate:    0.7 | accuracy: 0.37
+step_num: 2200 | loss: 0.6898 | profit rate: 1059.4 | accuracy: 0.39
+step_num: 2400 | loss: 0.9356 | profit rate:    4.1 | accuracy: 0.39
+step_num: 2600 | loss: 0.3340 | profit rate:    0.9 | accuracy: 0.37
+step_num: 2800 | loss: 0.5683 | profit rate:    1.3 | accuracy: 0.38
+step_num: 3000 | loss: 0.5523 | profit rate:    1.6 | accuracy: 0.38
+step_num: 3200 | loss: 0.6835 | profit rate:  412.5 | accuracy: 0.39
+step_num: 3400 | loss: 0.5561 | profit rate: 20778.3 | accuracy: 0.40
+episode:   1/8,耗时:1.67分/1.67分,训练集: | step: 3512 | average_treward:  202.4 | max_treward: 202.3885 | average profit rate: 144019.996
+model saved @ step:3512,performance:144019.996,accuracy:0.40
+step_num: 3600 | loss: 0.8128 | profit rate:    0.0 | accuracy: 0.29
+step_num: 3800 | loss: 0.6255 | profit rate:    0.1 | accuracy: 0.37
+step_num: 4000 | loss: 0.5312 | profit rate:    0.3 | accuracy: 0.44
+step_num: 4200 | loss: 0.5466 | profit rate:    0.0 | accuracy: 0.42
+step_num: 4400 | loss: 1.0300 | profit rate:    0.0 | accuracy: 0.39
+step_num: 4600 | loss: 0.3253 | profit rate:    0.0 | accuracy: 0.34
+step_num: 4800 | loss: 0.3757 | profit rate:    0.0 | accuracy: 0.31
+step_num: 5000 | loss: 0.2880 | profit rate:    0.0 | accuracy: 0.29
+step_num: 5200 | loss: 0.2843 | profit rate:    0.0 | accuracy: 0.29
+step_num: 5400 | loss: 0.5000 | profit rate:    0.0 | accuracy: 0.30
+step_num: 5600 | loss: 0.4212 | profit rate:    0.0 | accuracy: 0.28
+step_num: 5800 | loss: 0.0419 | profit rate:    0.0 | accuracy: 0.26
+step_num: 6000 | loss: 0.2161 | profit rate:    0.0 | accuracy: 0.26
+step_num: 6200 | loss: 0.4656 | profit rate:    0.0 | accuracy: 0.27
+step_num: 6400 | loss: 0.5108 | profit rate:    0.0 | accuracy: 0.26
+step_num: 6600 | loss: 0.6415 | profit rate:    0.0 | accuracy: 0.27
+step_num: 6800 | loss: 0.4177 | profit rate:    0.0 | accuracy: 0.28
+step_num: 7000 | loss: 0.2849 | profit rate:    0.0 | accuracy: 0.27
+step_num: 7200 | loss: 0.1925 | profit rate:    0.2 | accuracy: 0.01
+step_num: 7400 | loss: 0.3008 | profit rate:    0.1 | accuracy: 0.12
+step_num: 7600 | loss: 0.3864 | profit rate:    0.4 | accuracy: 0.15
+step_num: 7800 | loss: 0.3726 | profit rate:    0.0 | accuracy: 0.14
+step_num: 8000 | loss: 0.0346 | profit rate:    0.0 | accuracy: 0.11
+step_num: 8200 | loss: 0.0976 | profit rate:    0.0 | accuracy: 0.10
+step_num: 8400 | loss: 0.1195 | profit rate:    0.0 | accuracy: 0.10
+step_num: 8600 | loss: 0.2279 | profit rate:    0.0 | accuracy: 0.10
+step_num: 8800 | loss: 0.4567 | profit rate:    0.0 | accuracy: 0.13
+step_num: 9000 | loss: 0.5665 | profit rate:    0.0 | accuracy: 0.14
+step_num: 9200 | loss: 0.2376 | profit rate:    0.0 | accuracy: 0.14
+step_num: 9400 | loss: 0.0553 | profit rate:    0.0 | accuracy: 0.13
+step_num: 9600 | loss: 0.3888 | profit rate:    0.0 | accuracy: 0.15
+step_num: 9800 | loss: 0.3732 | profit rate:    0.0 | accuracy: 0.16
+step_num: 10000 | loss: 0.9036 | profit rate:    0.1 | accuracy: 0.18
+step_num: 10200 | loss: 0.6087 | profit rate:    0.0 | accuracy: 0.20
+step_num: 10400 | loss: 0.5180 | profit rate:    0.0 | accuracy: 0.22
+episode:   3/8,耗时:1.88分/5.47分,训练集: | step: 10536 | average_treward:   -6.2 | max_treward: 202.3885 | average profit rate: 48006.848
+step_num: 10600 | loss: 0.5704 | profit rate:    2.1 | accuracy: 0.31
+step_num: 10800 | loss: 0.7893 | profit rate:    1.0 | accuracy: 0.42
+step_num: 11000 | loss: 0.6799 | profit rate:   19.0 | accuracy: 0.45
+step_num: 11200 | loss: 0.4888 | profit rate:    8.1 | accuracy: 0.42
+step_num: 11400 | loss: 0.7359 | profit rate:    0.0 | accuracy: 0.39
+step_num: 11600 | loss: 0.5013 | profit rate:    0.0 | accuracy: 0.35
+step_num: 11800 | loss: 0.2520 | profit rate:    0.0 | accuracy: 0.31
+step_num: 12000 | loss: 0.3982 | profit rate:    0.0 | accuracy: 0.32
+step_num: 12200 | loss: 0.2656 | profit rate:    0.0 | accuracy: 0.31
+step_num: 12400 | loss: 0.3943 | profit rate:    0.0 | accuracy: 0.31
+step_num: 12600 | loss: 0.3415 | profit rate:    0.0 | accuracy: 0.29
+step_num: 12800 | loss: 0.1666 | profit rate:    0.0 | accuracy: 0.27
+step_num: 13000 | loss: 0.2021 | profit rate:    0.0 | accuracy: 0.26
+step_num: 13200 | loss: 0.4398 | profit rate:    0.0 | accuracy: 0.26
+step_num: 13400 | loss: 0.5488 | profit rate:    0.0 | accuracy: 0.26
+step_num: 13600 | loss: 0.4391 | profit rate:    0.0 | accuracy: 0.26
+step_num: 13800 | loss: 0.2337 | profit rate:    0.0 | accuracy: 0.25
+step_num: 14000 | loss: 0.0591 | profit rate:    0.0 | accuracy: 0.24
+step_num: 14200 | loss: 0.1732 | profit rate:    0.4 | accuracy: 0.05
+step_num: 14400 | loss: 0.3469 | profit rate:    2.0 | accuracy: 0.21
+step_num: 14600 | loss: 0.6163 | profit rate:    0.0 | accuracy: 0.21
+step_num: 14800 | loss: 0.2530 | profit rate:    0.0 | accuracy: 0.22
+step_num: 15000 | loss: 0.2638 | profit rate:    0.0 | accuracy: 0.21
+step_num: 15200 | loss: 0.2219 | profit rate:    0.0 | accuracy: 0.20
+step_num: 15400 | loss: 0.4870 | profit rate:    0.0 | accuracy: 0.22
+step_num: 15600 | loss: 0.4562 | profit rate:    0.0 | accuracy: 0.22
+step_num: 15800 | loss: 0.3240 | profit rate:    0.0 | accuracy: 0.23
+step_num: 16000 | loss: 0.2555 | profit rate:    0.0 | accuracy: 0.22
+step_num: 16200 | loss: 0.2626 | profit rate:    0.0 | accuracy: 0.21
+step_num: 16400 | loss: 0.0799 | profit rate:    0.0 | accuracy: 0.20
+step_num: 16600 | loss: 0.2689 | profit rate:    0.0 | accuracy: 0.20
+step_num: 16800 | loss: 0.0297 | profit rate:    0.0 | accuracy: 0.19
+step_num: 17000 | loss: 0.5137 | profit rate:    0.0 | accuracy: 0.21
+step_num: 17200 | loss: 0.9577 | profit rate:    0.0 | accuracy: 0.22
+step_num: 17400 | loss: 0.4810 | profit rate:    0.0 | accuracy: 0.23
+episode:   5/8,耗时:1.87分/9.23分,训练集: | step: 17560 | average_treward: -107.7 | max_treward: 202.3885 | average profit rate: 28804.109
+step_num: 17600 | loss: 0.3549 | profit rate:    1.0 | accuracy: 0.00
+step_num: 17800 | loss: 0.1542 | profit rate:    1.4 | accuracy: 0.08
+step_num: 18000 | loss: 0.3283 | profit rate:    1.4 | accuracy: 0.15
+step_num: 18200 | loss: 0.3062 | profit rate:    0.4 | accuracy: 0.20
+step_num: 18400 | loss: 0.4481 | profit rate:    0.0 | accuracy: 0.22
+step_num: 18600 | loss: 0.1680 | profit rate:    0.0 | accuracy: 0.20
+step_num: 18800 | loss: 0.2200 | profit rate:    0.0 | accuracy: 0.18
+step_num: 19000 | loss: 0.2796 | profit rate:    0.0 | accuracy: 0.19
+step_num: 19200 | loss: 0.3127 | profit rate:    0.0 | accuracy: 0.20
+step_num: 19400 | loss: 0.1917 | profit rate:    0.0 | accuracy: 0.20
+step_num: 19600 | loss: 0.2477 | profit rate:    0.0 | accuracy: 0.19
+step_num: 19800 | loss: 0.2247 | profit rate:    0.0 | accuracy: 0.18
+step_num: 20000 | loss: 0.2096 | profit rate:    0.0 | accuracy: 0.17
+step_num: 20200 | loss: 0.2733 | profit rate:    0.0 | accuracy: 0.18
+step_num: 20400 | loss: 0.0731 | profit rate:    0.0 | accuracy: 0.17
+step_num: 20600 | loss: 0.5821 | profit rate:    0.0 | accuracy: 0.18
+step_num: 20800 | loss: 0.6350 | profit rate:    0.0 | accuracy: 0.20
+step_num: 21000 | loss: 0.3289 | profit rate:    0.0 | accuracy: 0.21
+step_num: 21200 | loss: 0.4925 | profit rate:    0.3 | accuracy: 0.15
+step_num: 21400 | loss: 0.4674 | profit rate:    1.6 | accuracy: 0.27
+step_num: 21600 | loss: 0.5736 | profit rate:   18.2 | accuracy: 0.30
+step_num: 21800 | loss: 0.5651 | profit rate:    3.9 | accuracy: 0.29
+step_num: 22000 | loss: 0.4166 | profit rate:    0.0 | accuracy: 0.26
+step_num: 22200 | loss: 0.0277 | profit rate:    0.0 | accuracy: 0.22
+step_num: 22400 | loss: 0.1259 | profit rate:    0.0 | accuracy: 0.21
+step_num: 22600 | loss: 0.4570 | profit rate:    0.0 | accuracy: 0.21
+step_num: 22800 | loss: 0.6355 | profit rate:    0.0 | accuracy: 0.22
+step_num: 23000 | loss: 0.2480 | profit rate:    0.0 | accuracy: 0.22
+step_num: 23200 | loss: 0.3822 | profit rate:    0.0 | accuracy: 0.21
+step_num: 23400 | loss: 0.1836 | profit rate:    0.0 | accuracy: 0.20
+step_num: 23600 | loss: 0.5510 | profit rate:    0.0 | accuracy: 0.23
+step_num: 23800 | loss: 0.5760 | profit rate:    0.0 | accuracy: 0.24
+step_num: 24000 | loss: 0.9762 | profit rate:    0.0 | accuracy: 0.26
+step_num: 24200 | loss: 0.8937 | profit rate:    0.0 | accuracy: 0.27
+step_num: 24400 | loss: 0.5918 | profit rate:    0.7 | accuracy: 0.30
+episode:   7/8,耗时:1.88分/12.99分,训练集: | step: 24584 | average_treward:  -72.2 | max_treward: 202.3885 | average profit rate: 20575.347
+step_num: 24600 | loss: 0.6795 | profit rate:    0.9 | accuracy: 0.41
+step_num: 24800 | loss: 0.8495 | profit rate:    5.2 | accuracy: 0.47
+step_num: 25000 | loss: 0.5251 | profit rate:    9.3 | accuracy: 0.41
+step_num: 25200 | loss: 0.5484 | profit rate:    7.6 | accuracy: 0.41
+step_num: 25400 | loss: 0.6866 | profit rate:    0.1 | accuracy: 0.37
+step_num: 25600 | loss: 0.3775 | profit rate:    0.0 | accuracy: 0.31
+step_num: 25800 | loss: 0.1195 | profit rate:    0.0 | accuracy: 0.27
+step_num: 26000 | loss: 0.5681 | profit rate:    0.0 | accuracy: 0.30
+step_num: 26200 | loss: 0.4316 | profit rate:    0.1 | accuracy: 0.30
+step_num: 26400 | loss: 0.5241 | profit rate:    1.3 | accuracy: 0.32
+step_num: 26600 | loss: 0.5195 | profit rate:    0.1 | accuracy: 0.32
+step_num: 26800 | loss: 0.6338 | profit rate:    0.0 | accuracy: 0.31
+step_num: 27000 | loss: 0.7804 | profit rate:    0.0 | accuracy: 0.31
+step_num: 27200 | loss: 0.6107 | profit rate:    0.0 | accuracy: 0.33
+step_num: 27400 | loss: 0.6497 | profit rate:    0.0 | accuracy: 0.35
+step_num: 27600 | loss: 0.5707 | profit rate:    0.3 | accuracy: 0.36
+step_num: 27800 | loss: 0.6851 | profit rate:   20.3 | accuracy: 0.37
+step_num: 28000 | loss: 0.5591 | profit rate: 2850.1 | accuracy: 0.38
+model saved @ step:28096,performance:4750.271,accuracy:0.39
+  0%|          | 0/66 [00:00<?, ?it/s]----------------------------------------finished----------------------------------------
+ 18%|█▊        | 12/66 [00:00<00:00, 119.73it/s] 80%|████████  | 53/66 [00:00<00:00, 290.25it/s]100%|██████████| 66/66 [00:00<00:00, 289.06it/s]
+==================================================
+2023-01-15T12:00:00 | *** START BACKTEST ***
+2023-01-15T12:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-02-03T00:00:00 | *** GOING LONG ***
+2023-02-03T00:00:00's price 23534.1309, buy 0.042448980000000004 units.
+2023-02-03T00:00:00 | current balance = 0.00
+2023-02-03T00:00:00 | balance:0.00+units:0.042448980000000004*price:23534.1309=net_wealth:999.0010
+--------------------------------------------------
+2023-02-07T00:00:00 | *** GOING SHORT ***
+2023-02-07T00:00:00's price 22977.2402, sell 0.042448980000000004 units.
+2023-02-07T00:00:00 | current balance = 974.39
+2023-02-07T00:00:00 | balance:974.39+units:0.0*price:22977.2402=net_wealth:974.3862
+--------------------------------------------------
+2023-02-07T12:00:00 | *** GOING LONG ***
+2023-02-07T12:00:00's price 23240.4609, buy 0.04188435 units.
+2023-02-07T12:00:00 | current balance = 0.00
+2023-02-07T12:00:00 | balance:0.00+units:0.04188435*price:23240.4609=net_wealth:973.4128
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, sell 0.04188435 units.
+2023-02-17T00:00:00 | current balance = 997.63
+2023-02-17T00:00:00 | net performance [%] = -0.2368
+2023-02-17T00:00:00 | number of trades [#] = 4
+==================================================
+Trial 8 Complete [00h 14m 58s]
+net_wealth: 998.6309308828593
+
+Best net_wealth So Far: 1236.0457331719358
+Total elapsed time: 12h 04m 51s
+
+Search: Running Trial #9
+
+Value             |Best Value So Far |Hyperparameter
+10                |10                |horizon
+225               |365               |lookback
+False             |False             |MarketFactor
+14                |7                 |lags
+0.95              |0.9               |gamma
+32                |64                |memory_size
+16                |16                |batch_size
+64                |5                 |n_steps
+0.96              |0.96              |gae_lambda
+1                 |10                |gradient_clip_
+3                 |5                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  4000.000000     4000.000000  ...    3990.000000   4000.000000
+mean      0.000426    19495.007760  ...   19576.781145  19539.018967
+std       0.028529    16512.401386  ...   16548.340311  16544.846301
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009987     7350.115240  ...    7400.387329   7381.677368
+50%       0.000789    10706.818994  ...   10895.830078  10860.569824
+75%       0.012261    30336.414380  ...   30407.414551  30331.140625
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 8 columns]
+                           log_return  ...        close
+2017-08-27 08:00:00+08:00   -0.003249  ...  4323.370117
+2017-08-27 20:00:00+08:00   -0.003095  ...  4310.009766
+
+[2 rows x 8 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 8 columns]
+step_num: 200 | loss: 0.9953 | profit rate:    0.7 | accuracy: 0.38
+step_num: 400 | loss: 0.4965 | profit rate:    0.1 | accuracy: 0.31
+step_num: 600 | loss: 0.7067 | profit rate:    0.8 | accuracy: 0.32
+step_num: 800 | loss: 0.3522 | profit rate:    0.1 | accuracy: 0.30
+step_num: 1000 | loss: 0.7667 | profit rate:    0.3 | accuracy: 0.31
+step_num: 1200 | loss: 0.6862 | profit rate:    5.7 | accuracy: 0.33
+step_num: 1400 | loss: 0.7570 | profit rate:    0.6 | accuracy: 0.34
+step_num: 1600 | loss: 1.0270 | profit rate:    0.2 | accuracy: 0.34
+step_num: 1800 | loss: 0.5815 | profit rate:    0.0 | accuracy: 0.34
+step_num: 2000 | loss: 0.6909 | profit rate:    0.0 | accuracy: 0.35
+step_num: 2200 | loss: 0.9430 | profit rate:    0.0 | accuracy: 0.35
+step_num: 2400 | loss: 0.7081 | profit rate:    0.3 | accuracy: 0.36
+step_num: 2600 | loss: 0.5987 | profit rate:    0.1 | accuracy: 0.37
+step_num: 2800 | loss: 0.7790 | profit rate:    0.0 | accuracy: 0.37
+step_num: 3000 | loss: 0.7790 | profit rate:    0.0 | accuracy: 0.37
+step_num: 3200 | loss: 0.4171 | profit rate:    0.0 | accuracy: 0.37
+step_num: 3400 | loss: 0.8150 | profit rate:    0.1 | accuracy: 0.38
+step_num: 3600 | loss: 0.9971 | profit rate:    0.2 | accuracy: 0.38
+episode:   1/8,耗时:1.84分/1.84分,训练集: | step: 3668 | average_treward:  -24.1 | max_treward: 0.0000 | average profit rate:  0.240
+step_num: 3800 | loss: 0.9676 | profit rate:    0.0 | accuracy: 0.23
+step_num: 4000 | loss: 0.6494 | profit rate:    0.3 | accuracy: 0.39
+step_num: 4200 | loss: 0.6781 | profit rate:    0.8 | accuracy: 0.39
+step_num: 4400 | loss: 1.1479 | profit rate:    0.0 | accuracy: 0.38
+step_num: 4600 | loss: 0.8028 | profit rate:    0.2 | accuracy: 0.38
+step_num: 4800 | loss: 1.0848 | profit rate:  205.5 | accuracy: 0.44
+step_num: 5000 | loss: 0.8180 | profit rate:  205.5 | accuracy: 0.44
+step_num: 5200 | loss: 0.4803 | profit rate:  236.3 | accuracy: 0.43
+step_num: 5400 | loss: 0.9581 | profit rate:    0.2 | accuracy: 0.42
+step_num: 5600 | loss: 0.5826 | profit rate:    0.4 | accuracy: 0.43
+step_num: 5800 | loss: 0.9603 | profit rate:   12.2 | accuracy: 0.44
+step_num: 6000 | loss: 0.7933 | profit rate: 317828.6 | accuracy: 0.46
+step_num: 6200 | loss: 0.7043 | profit rate: 27637.6 | accuracy: 0.46
+step_num: 6400 | loss: 0.7521 | profit rate: 13392.6 | accuracy: 0.46
+step_num: 6600 | loss: 0.5917 | profit rate: 40142.9 | accuracy: 0.46
+step_num: 6800 | loss: 0.8574 | profit rate: 25547.5 | accuracy: 0.45
+step_num: 7000 | loss: 1.0079 | profit rate: 363538.3 | accuracy: 0.45
+step_num: 7200 | loss: 0.7569 | profit rate: 531603.0 | accuracy: 0.44
+model saved @ step:7336,performance:2483250.900,accuracy:0.44
+step_num: 7400 | loss: 0.7023 | profit rate:    0.1 | accuracy: 0.37
+step_num: 7600 | loss: 0.3037 | profit rate:    0.0 | accuracy: 0.23
+step_num: 7800 | loss: 0.7150 | profit rate:    0.0 | accuracy: 0.22
+step_num: 8000 | loss: 0.5204 | profit rate:    0.1 | accuracy: 0.23
+step_num: 8200 | loss: 0.4358 | profit rate:    0.1 | accuracy: 0.20
+step_num: 8400 | loss: 0.8701 | profit rate:   67.3 | accuracy: 0.28
+step_num: 8600 | loss: 0.4615 | profit rate:  225.7 | accuracy: 0.32
+step_num: 8800 | loss: 0.1553 | profit rate: 2165.2 | accuracy: 0.30
+step_num: 9000 | loss: 0.0878 | profit rate:   66.1 | accuracy: 0.30
+step_num: 9200 | loss: 0.4571 | profit rate:   39.3 | accuracy: 0.30
+step_num: 9400 | loss: 0.6791 | profit rate:   25.8 | accuracy: 0.32
+step_num: 9600 | loss: 1.2105 | profit rate: 349248.4 | accuracy: 0.36
+step_num: 9800 | loss: 0.5657 | profit rate: 27423207.9 | accuracy: 0.38
+step_num: 10000 | loss: 0.6759 | profit rate: 414039.4 | accuracy: 0.36
+step_num: 10200 | loss: 1.0868 | profit rate: 2035207.8 | accuracy: 0.37
+step_num: 10400 | loss: 0.2645 | profit rate: 1090018.3 | accuracy: 0.36
+step_num: 10600 | loss: 0.0140 | profit rate: 329304.3 | accuracy: 0.34
+step_num: 10800 | loss: 0.4199 | profit rate: 659462.3 | accuracy: 0.34
+step_num: 11000 | loss: 0.1767 | profit rate: 680327.1 | accuracy: 0.33
+episode:   3/8,耗时:2.03分/5.88分,训练集: | step: 11004 | average_treward:  152.5 | max_treward: 267.0840 | average profit rate: 1051477.878
+model saved @ step:11004,performance:671182.494,accuracy:0.33
+step_num: 11200 | loss: 0.4515 | profit rate:    0.0 | accuracy: 0.26
+step_num: 11400 | loss: 0.1092 | profit rate:    0.1 | accuracy: 0.22
+step_num: 11600 | loss: 0.5849 | profit rate:    0.0 | accuracy: 0.22
+step_num: 11800 | loss: 0.2139 | profit rate:    0.1 | accuracy: 0.20
+step_num: 12000 | loss: 0.7138 | profit rate:    5.2 | accuracy: 0.25
+step_num: 12200 | loss: 1.0029 | profit rate:  178.3 | accuracy: 0.30
+step_num: 12400 | loss: 0.0735 | profit rate: 1107.6 | accuracy: 0.30
+step_num: 12600 | loss: 0.9284 | profit rate: 1150.0 | accuracy: 0.30
+step_num: 12800 | loss: 0.6663 | profit rate:   19.0 | accuracy: 0.29
+step_num: 13000 | loss: 0.5737 | profit rate:    2.3 | accuracy: 0.31
+step_num: 13200 | loss: 1.1335 | profit rate: 8347.1 | accuracy: 0.34
+step_num: 13400 | loss: 1.1842 | profit rate: 12321362.5 | accuracy: 0.37
+step_num: 13600 | loss: 0.1004 | profit rate: 563184.1 | accuracy: 0.35
+step_num: 13800 | loss: 0.4987 | profit rate: 1689597.5 | accuracy: 0.37
+step_num: 14000 | loss: 0.2574 | profit rate: 166862.4 | accuracy: 0.35
+step_num: 14200 | loss: 0.1574 | profit rate: 45432.2 | accuracy: 0.34
+step_num: 14400 | loss: 0.3552 | profit rate: 76350.9 | accuracy: 0.32
+step_num: 14600 | loss: 0.0822 | profit rate: 107675.5 | accuracy: 0.31
+step_num: 14800 | loss: 0.1544 | profit rate:    0.1 | accuracy: 0.26
+step_num: 15000 | loss: 0.2764 | profit rate:    3.6 | accuracy: 0.27
+step_num: 15200 | loss: 0.2616 | profit rate:    8.5 | accuracy: 0.23
+step_num: 15400 | loss: 0.0131 | profit rate:   19.7 | accuracy: 0.24
+step_num: 15600 | loss: 0.6595 | profit rate:   97.8 | accuracy: 0.26
+step_num: 15800 | loss: 0.8104 | profit rate: 224394.9 | accuracy: 0.34
+step_num: 16000 | loss: 0.1025 | profit rate: 111096.7 | accuracy: 0.34
+step_num: 16200 | loss: 0.7663 | profit rate: 933624.2 | accuracy: 0.33
+step_num: 16400 | loss: 0.4951 | profit rate: 421784.6 | accuracy: 0.33
+step_num: 16600 | loss: 0.4022 | profit rate: 90616.6 | accuracy: 0.34
+step_num: 16800 | loss: 0.5203 | profit rate: 6751905.7 | accuracy: 0.37
+step_num: 17000 | loss: 0.7648 | profit rate: 62681624403.0 | accuracy: 0.39
+step_num: 17200 | loss: 0.0153 | profit rate: 2756822112.2 | accuracy: 0.38
+step_num: 17400 | loss: 0.9084 | profit rate: 370675049.0 | accuracy: 0.38
+step_num: 17600 | loss: 0.1114 | profit rate: 1344586034.9 | accuracy: 0.38
+step_num: 17800 | loss: 1.1272 | profit rate: 275474396.7 | accuracy: 0.36
+step_num: 18000 | loss: 0.2803 | profit rate: 648164716.0 | accuracy: 0.35
+step_num: 18200 | loss: 0.7715 | profit rate: 539452781.1 | accuracy: 0.33
+episode:   5/8,耗时:2.02分/9.93分,训练集: | step: 18340 | average_treward:  208.9 | max_treward: 336.0348 | average profit rate: 325065058.305
+model saved @ step:18340,performance:1622063182.379,accuracy:0.33
+step_num: 18400 | loss: 1.0560 | profit rate:    0.1 | accuracy: 0.38
+step_num: 18600 | loss: 0.0031 | profit rate:    0.2 | accuracy: 0.20
+step_num: 18800 | loss: 1.2291 | profit rate:    1.3 | accuracy: 0.25
+step_num: 19000 | loss: 0.4837 | profit rate:   10.9 | accuracy: 0.27
+step_num: 19200 | loss: 0.3564 | profit rate:   16.3 | accuracy: 0.23
+step_num: 19400 | loss: 1.2174 | profit rate: 5014.0 | accuracy: 0.31
+step_num: 19600 | loss: 0.5807 | profit rate: 12306.7 | accuracy: 0.34
+step_num: 19800 | loss: 0.1266 | profit rate: 776017.1 | accuracy: 0.33
+step_num: 20000 | loss: 0.0688 | profit rate: 61777.6 | accuracy: 0.33
+step_num: 20200 | loss: 0.6226 | profit rate: 32006.4 | accuracy: 0.33
+step_num: 20400 | loss: 0.7013 | profit rate: 27676.6 | accuracy: 0.34
+step_num: 20600 | loss: 2.0334 | profit rate: 422024748.7 | accuracy: 0.38
+step_num: 20800 | loss: 0.5308 | profit rate: 5645466911.2 | accuracy: 0.39
+step_num: 21000 | loss: 0.6512 | profit rate: 794944983.0 | accuracy: 0.37
+step_num: 21200 | loss: 1.1193 | profit rate: 12434210227.3 | accuracy: 0.39
+step_num: 21400 | loss: 0.1851 | profit rate: 1245771940.0 | accuracy: 0.37
+step_num: 21600 | loss: 0.0150 | profit rate: 1052583135.1 | accuracy: 0.35
+step_num: 21800 | loss: 0.5099 | profit rate: 2014195763.9 | accuracy: 0.34
+step_num: 22000 | loss: 0.1232 | profit rate: 5352999453.6 | accuracy: 0.34
+model saved @ step:22008,performance:5317965424.447,accuracy:0.33
+step_num: 22200 | loss: 0.3335 | profit rate:    0.9 | accuracy: 0.34
+step_num: 22400 | loss: 0.0073 | profit rate:   31.7 | accuracy: 0.33
+step_num: 22600 | loss: 0.6778 | profit rate:   16.6 | accuracy: 0.33
+step_num: 22800 | loss: 0.0550 | profit rate:   98.8 | accuracy: 0.29
+step_num: 23000 | loss: 0.5350 | profit rate:  667.2 | accuracy: 0.33
+step_num: 23200 | loss: 1.1321 | profit rate: 18809.6 | accuracy: 0.37
+step_num: 23400 | loss: 0.6727 | profit rate: 679440.2 | accuracy: 0.38
+step_num: 23600 | loss: 1.0339 | profit rate: 652054.9 | accuracy: 0.37
+step_num: 23800 | loss: 0.6975 | profit rate: 6237921.1 | accuracy: 0.36
+step_num: 24000 | loss: 0.5254 | profit rate: 4248341.4 | accuracy: 0.37
+step_num: 24200 | loss: 0.9102 | profit rate: 938849809.6 | accuracy: 0.39
+step_num: 24400 | loss: 1.0145 | profit rate: 122465552380.2 | accuracy: 0.41
+step_num: 24600 | loss: 0.2057 | profit rate: 12043290395.1 | accuracy: 0.39
+step_num: 24800 | loss: 0.8697 | profit rate: 120287580699.6 | accuracy: 0.40
+step_num: 25000 | loss: 0.4104 | profit rate: 90988353267.9 | accuracy: 0.40
+step_num: 25200 | loss: 0.3864 | profit rate: 90785857558.2 | accuracy: 0.39
+step_num: 25400 | loss: 0.5877 | profit rate: 139978754321.3 | accuracy: 0.37
+step_num: 25600 | loss: 0.2292 | profit rate: 629798961853.3 | accuracy: 0.37
+episode:   7/8,耗时:2.07分/74.26分,训练集: | step: 25676 | average_treward:  253.4 | max_treward: 372.9718 | average profit rate: 82392104848.077
+step_num: 25800 | loss: 0.3080 | profit rate:    0.0 | accuracy: 0.26
+step_num: 26000 | loss: 0.6036 | profit rate:    1.1 | accuracy: 0.43
+step_num: 26200 | loss: 0.6803 | profit rate:    5.1 | accuracy: 0.38
+step_num: 26400 | loss: 0.0177 | profit rate:   26.4 | accuracy: 0.36
+step_num: 26600 | loss: 0.7827 | profit rate:   23.8 | accuracy: 0.34
+step_num: 26800 | loss: 0.9782 | profit rate: 156507.2 | accuracy: 0.40
+step_num: 27000 | loss: 0.1208 | profit rate: 37566.7 | accuracy: 0.40
+step_num: 27200 | loss: 0.8066 | profit rate: 146393.4 | accuracy: 0.39
+step_num: 27400 | loss: 0.7380 | profit rate: 306859.7 | accuracy: 0.38
+step_num: 27600 | loss: 0.5422 | profit rate: 54786.3 | accuracy: 0.39
+step_num: 27800 | loss: 0.7902 | profit rate: 7258795.3 | accuracy: 0.41
+step_num: 28000 | loss: 0.9795 | profit rate: 5878544343.0 | accuracy: 0.43
+step_num: 28200 | loss: 0.0245 | profit rate: 629180002.4 | accuracy: 0.41
+step_num: 28400 | loss: 0.7526 | profit rate: 489495647.1 | accuracy: 0.41
+step_num: 28600 | loss: 0.2097 | profit rate: 3115093892.5 | accuracy: 0.42
+step_num: 28800 | loss: 0.4922 | profit rate: 14702749429.4 | accuracy: 0.41
+step_num: 29000 | loss: 0.1571 | profit rate: 70358318013.6 | accuracy: 0.40
+step_num: 29200 | loss: 0.7053 | profit rate: 49915623297.2 | accuracy: 0.40
+----------------------------------------finished----------------------------------------
+  0%|          | 0/82 [00:00<?, ?it/s] 16%|█▌        | 13/82 [00:00<00:00, 126.98it/s] 39%|███▉      | 32/82 [00:00<00:00, 162.12it/s] 65%|██████▍   | 53/82 [00:00<00:00, 181.34it/s] 93%|█████████▎| 76/82 [00:00<00:00, 199.14it/s]100%|██████████| 82/82 [00:00<00:00, 185.48it/s]
+==================================================
+2023-01-07T12:00:00 | *** START BACKTEST ***
+2023-01-07T12:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-01-12T12:00:00 | *** GOING LONG ***
+2023-01-12T12:00:00's price 18846.6191, buy 0.05300685 units.
+2023-01-12T12:00:00 | current balance = 0.00
+2023-01-12T12:00:00 | balance:0.00+units:0.05300685*price:18846.6191=net_wealth:999.0010
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, sell 0.05300685 units.
+2023-02-17T00:00:00 | current balance = 1262.56
+2023-02-17T00:00:00 | net performance [%] = 26.2556
+2023-02-17T00:00:00 | number of trades [#] = 2
+==================================================
+Trial 9 Complete [01h 16m 23s]
+net_wealth: 1263.819599171069
+
+Best net_wealth So Far: 1263.819599171069
+Total elapsed time: 13h 21m 14s
+
+Search: Running Trial #10
+
+Value             |Best Value So Far |Hyperparameter
+14                |10                |horizon
+365               |225               |lookback
+True              |False             |MarketFactor
+5                 |14                |lags
+0.5               |0.95              |gamma
+256               |32                |memory_size
+16                |16                |batch_size
+32                |64                |n_steps
+0.96              |0.96              |gae_lambda
+0.2               |1                 |gradient_clip_
+3                 |3                 |epochs
+
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+Data columns (total 9 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   open        4020 non-null   float64
+ 1   high        4020 non-null   float64
+ 2   low         4020 non-null   float64
+ 3   close       4020 non-null   float64
+ 4   volume      4020 non-null   float64
+ 5   amount      4020 non-null   float64
+ 6   num_trades  4020 non-null   int64  
+ 7   bid_volume  4020 non-null   float64
+ 8   bid_amount  4020 non-null   float64
+dtypes: float64(8), int64(1)
+memory usage: 314.1 KB
+从json中读出Data.info:None
+        log_return  Roll_price_sma  ...  horizon_price         close
+count  3986.000000     3986.000000  ...    3972.000000   3986.000000
+mean      0.000420    19548.426063  ...   19645.214756  19591.732240
+std       0.028547    16516.711778  ...   16554.465330  16549.906141
+min      -0.268357     3359.310486  ...    2919.000000   2919.000000
+25%      -0.009992     7385.701892  ...    7463.300171   7412.930176
+50%       0.000789    10744.347241  ...   10920.140137  10899.495117
+75%       0.012228    30451.578345  ...   30645.630371  30413.265137
+max       0.237092    64595.437500  ...   67594.976562  67594.976562
+
+[8 rows x 18 columns]
+                           log_return  ...        close
+2017-09-03 08:00:00+08:00    0.003094  ...  4486.000000
+2017-09-03 20:00:00+08:00    0.005132  ...  4509.080078
+
+[2 rows x 18 columns]
+                           log_return  ...         close
+2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
+2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+
+[2 rows x 18 columns]
+step_num: 200 | loss: 0.6716 | profit rate:    0.9 | accuracy: 0.31
+step_num: 400 | loss: 0.5169 | profit rate:    0.6 | accuracy: 0.32
+step_num: 600 | loss: 0.5117 | profit rate:    1.1 | accuracy: 0.33
+step_num: 800 | loss: 0.4584 | profit rate:    0.3 | accuracy: 0.33
+step_num: 1000 | loss: 0.4774 | profit rate:    2.9 | accuracy: 0.35
+step_num: 1200 | loss: 0.5394 | profit rate:    0.1 | accuracy: 0.34
+step_num: 1400 | loss: 0.3688 | profit rate:    0.0 | accuracy: 0.32
+step_num: 1600 | loss: 0.2886 | profit rate:   32.1 | accuracy: 0.32
+step_num: 1800 | loss: 0.5050 | profit rate:   13.1 | accuracy: 0.33
+step_num: 2000 | loss: 0.4279 | profit rate:  340.7 | accuracy: 0.35
+step_num: 2200 | loss: 0.5016 | profit rate: 2152981.7 | accuracy: 0.37
+step_num: 2400 | loss: 0.7727 | profit rate: 5741.3 | accuracy: 0.37
+step_num: 2600 | loss: 0.2387 | profit rate: 17529.3 | accuracy: 0.35
+step_num: 2800 | loss: 0.3057 | profit rate: 86880.7 | accuracy: 0.35
+step_num: 3000 | loss: 0.2528 | profit rate: 1056953.1 | accuracy: 0.35
+step_num: 3200 | loss: 0.3433 | profit rate: 1585912.5 | accuracy: 0.34
+step_num: 3400 | loss: 0.2396 | profit rate: 1856408.1 | accuracy: 0.33
+episode:   1/8,耗时:6.82分/6.82分,训练集: | step: 3523 | average_treward:  186.4 | max_treward: 186.4227 | average profit rate: 5307048.389
+model saved @ step:3523,performance:5307048.389,accuracy:0.33
+step_num: 3600 | loss: 0.1669 | profit rate:    0.9 | accuracy: 0.15
+step_num: 3800 | loss: 0.1861 | profit rate:    3.8 | accuracy: 0.14
+step_num: 4000 | loss: 0.2039 | profit rate:    4.5 | accuracy: 0.17
+step_num: 4200 | loss: 0.1554 | profit rate:   10.4 | accuracy: 0.16
+step_num: 4400 | loss: 0.3353 | profit rate:    0.0 | accuracy: 0.16
+step_num: 4600 | loss: 0.1682 | profit rate:    0.0 | accuracy: 0.14
+step_num: 4800 | loss: 0.0532 | profit rate:    0.0 | accuracy: 0.12
+step_num: 5000 | loss: 0.1152 | profit rate:    0.0 | accuracy: 0.12
+step_num: 5200 | loss: 0.0251 | profit rate:    0.0 | accuracy: 0.11
+step_num: 5400 | loss: 0.0446 | profit rate:    0.0 | accuracy: 0.11
+step_num: 5600 | loss: 0.0523 | profit rate:    0.0 | accuracy: 0.10
+step_num: 5800 | loss: 0.1079 | profit rate:    0.1 | accuracy: 0.12
+step_num: 6000 | loss: 0.1809 | profit rate:    0.0 | accuracy: 0.12
+step_num: 6200 | loss: 0.1433 | profit rate:    0.1 | accuracy: 0.13
+step_num: 6400 | loss: 0.1852 | profit rate:    0.0 | accuracy: 0.13
+step_num: 6600 | loss: 0.0052 | profit rate:    0.0 | accuracy: 0.12
+step_num: 6800 | loss: 0.0085 | profit rate:    0.0 | accuracy: 0.11
+step_num: 7000 | loss: 0.0142 | profit rate:    0.0 | accuracy: 0.11
+step_num: 7200 | loss: 0.0177 | profit rate:    1.1 | accuracy: 0.01
+step_num: 7400 | loss: 0.0116 | profit rate:    1.2 | accuracy: 0.02
+step_num: 7600 | loss: 0.0175 | profit rate:    1.0 | accuracy: 0.03
+step_num: 7800 | loss: 0.0030 | profit rate:    1.1 | accuracy: 0.03
+step_num: 8000 | loss: 0.1644 | profit rate:   26.3 | accuracy: 0.05
+step_num: 8200 | loss: 0.2957 | profit rate:    2.3 | accuracy: 0.07
+step_num: 8400 | loss: 0.1785 | profit rate:    3.7 | accuracy: 0.08
+step_num: 8600 | loss: 0.1478 | profit rate:  120.2 | accuracy: 0.09
+step_num: 8800 | loss: 0.1729 | profit rate:   20.6 | accuracy: 0.11
+step_num: 9000 | loss: 0.2684 | profit rate:  326.4 | accuracy: 0.13
+step_num: 9200 | loss: 0.2374 | profit rate: 819267.0 | accuracy: 0.16
+step_num: 9400 | loss: 0.3669 | profit rate: 608349.1 | accuracy: 0.18
+step_num: 9600 | loss: 0.1612 | profit rate: 3530885.3 | accuracy: 0.18
+step_num: 9800 | loss: 0.3065 | profit rate: 3446474.5 | accuracy: 0.18
+step_num: 10000 | loss: 0.0770 | profit rate: 746906.9 | accuracy: 0.17
+step_num: 10200 | loss: 0.0182 | profit rate: 489591.7 | accuracy: 0.17
+step_num: 10400 | loss: 0.0466 | profit rate: 1450756.6 | accuracy: 0.16
+episode:   3/8,耗时:6.98分/20.78分,训练集: | step: 10569 | average_treward:  118.9 | max_treward: 201.6888 | average profit rate: 2455368.835
+model saved @ step:10569,performance:2059058.114,accuracy:0.16
+step_num: 10600 | loss: 0.0463 | profit rate:    3.4 | accuracy: 0.41
+step_num: 10800 | loss: 0.0539 | profit rate:    2.9 | accuracy: 0.09
+step_num: 11000 | loss: 0.0613 | profit rate:    2.9 | accuracy: 0.10
+step_num: 11200 | loss: 0.0224 | profit rate:    0.6 | accuracy: 0.08
+step_num: 11400 | loss: 0.0753 | profit rate:    0.4 | accuracy: 0.08
+step_num: 11600 | loss: 0.3222 | profit rate:   40.7 | accuracy: 0.14
+step_num: 11800 | loss: 0.2517 | profit rate:    1.1 | accuracy: 0.13
+step_num: 12000 | loss: 0.0297 | profit rate:    1.0 | accuracy: 0.12
+step_num: 12200 | loss: 0.1078 | profit rate:    3.1 | accuracy: 0.12
+step_num: 12400 | loss: 0.1486 | profit rate:    2.6 | accuracy: 0.12
+step_num: 12600 | loss: 0.1711 | profit rate:  542.1 | accuracy: 0.14
+step_num: 12800 | loss: 0.1468 | profit rate: 240960.6 | accuracy: 0.16
+step_num: 13000 | loss: 0.1472 | profit rate: 122242.6 | accuracy: 0.17
+step_num: 13200 | loss: 0.1061 | profit rate: 772493.7 | accuracy: 0.16
+step_num: 13400 | loss: 0.1671 | profit rate: 259624.4 | accuracy: 0.16
+step_num: 13600 | loss: 0.0236 | profit rate: 452939.5 | accuracy: 0.16
+step_num: 13800 | loss: 0.0106 | profit rate: 273364.3 | accuracy: 0.15
+step_num: 14000 | loss: 0.0605 | profit rate: 606304.0 | accuracy: 0.15
+model saved @ step:14092,performance:625044.816,accuracy:0.14
+step_num: 14200 | loss: 0.0221 | profit rate:    2.1 | accuracy: 0.11
+step_num: 14400 | loss: 0.0654 | profit rate:    1.1 | accuracy: 0.08
+step_num: 14600 | loss: 0.1362 | profit rate:    2.6 | accuracy: 0.13
+step_num: 14800 | loss: 0.0224 | profit rate:    2.5 | accuracy: 0.11
+step_num: 15000 | loss: 0.2121 | profit rate:   69.4 | accuracy: 0.15
+step_num: 15200 | loss: 0.4995 | profit rate: 3513.5 | accuracy: 0.20
+step_num: 15400 | loss: 0.1397 | profit rate:  158.3 | accuracy: 0.18
+step_num: 15600 | loss: 0.1307 | profit rate:  223.0 | accuracy: 0.17
+step_num: 15800 | loss: 0.0356 | profit rate:   85.9 | accuracy: 0.16
+step_num: 16000 | loss: 0.0477 | profit rate:  142.5 | accuracy: 0.15
+step_num: 16200 | loss: 0.2253 | profit rate: 4596380.3 | accuracy: 0.19
+step_num: 16400 | loss: 0.1524 | profit rate: 264020743.3 | accuracy: 0.21
+step_num: 16600 | loss: 0.1458 | profit rate: 191405077.7 | accuracy: 0.20
+step_num: 16800 | loss: 0.2370 | profit rate: 344245321.5 | accuracy: 0.20
+step_num: 17000 | loss: 0.1018 | profit rate: 139611977.0 | accuracy: 0.20
+step_num: 17200 | loss: 0.0072 | profit rate: 137269198.9 | accuracy: 0.19
+step_num: 17400 | loss: 0.0699 | profit rate: 200662685.9 | accuracy: 0.18
+step_num: 17600 | loss: 0.0366 | profit rate: 210330727.9 | accuracy: 0.17
+episode:   5/8,耗时:7.08分/35.05分,训练集: | step: 17615 | average_treward:  172.4 | max_treward: 293.7210 | average profit rate: 42831647.071
+model saved @ step:17615,performance:206167084.035,accuracy:0.17
+step_num: 17800 | loss: 0.0602 | profit rate:    1.3 | accuracy: 0.10
+step_num: 18000 | loss: 0.0101 | profit rate:    0.9 | accuracy: 0.06
+step_num: 18200 | loss: 0.0361 | profit rate:    0.5 | accuracy: 0.05
+step_num: 18400 | loss: 0.0384 | profit rate:    0.6 | accuracy: 0.05
+step_num: 18600 | loss: 0.2911 | profit rate:  382.1 | accuracy: 0.12
+step_num: 18800 | loss: 0.2602 | profit rate:  145.0 | accuracy: 0.14
+step_num: 19000 | loss: 0.0267 | profit rate:  114.8 | accuracy: 0.12
+step_num: 19200 | loss: 0.1504 | profit rate:  228.9 | accuracy: 0.13
+step_num: 19400 | loss: 0.0894 | profit rate:  174.7 | accuracy: 0.13
+step_num: 19600 | loss: 0.1418 | profit rate: 19628.2 | accuracy: 0.16
+step_num: 19800 | loss: 0.1612 | profit rate: 550399421.5 | accuracy: 0.19
+step_num: 20000 | loss: 0.2888 | profit rate: 810714476.0 | accuracy: 0.21
+step_num: 20200 | loss: 0.1682 | profit rate: 2202431648.4 | accuracy: 0.21
+step_num: 20400 | loss: 0.2136 | profit rate: 5033766226.4 | accuracy: 0.21
+step_num: 20600 | loss: 0.0773 | profit rate: 4978607973.5 | accuracy: 0.20
+step_num: 20800 | loss: 0.0404 | profit rate: 3530493347.4 | accuracy: 0.19
+step_num: 21000 | loss: 0.1311 | profit rate: 8619777450.4 | accuracy: 0.19
+model saved @ step:21138,performance:17268462235.730,accuracy:0.19
+step_num: 21200 | loss: 0.1136 | profit rate:    4.3 | accuracy: 0.33
+step_num: 21400 | loss: 0.0541 | profit rate:   10.8 | accuracy: 0.14
+step_num: 21600 | loss: 0.0735 | profit rate:   14.2 | accuracy: 0.14
+step_num: 21800 | loss: 0.0655 | profit rate:   21.0 | accuracy: 0.13
+step_num: 22000 | loss: 0.0685 | profit rate:    5.7 | accuracy: 0.13
+step_num: 22200 | loss: 0.1278 | profit rate:  134.4 | accuracy: 0.15
+step_num: 22400 | loss: 0.1171 | profit rate:   16.4 | accuracy: 0.14
+step_num: 22600 | loss: 0.0662 | profit rate:   45.0 | accuracy: 0.14
+step_num: 22800 | loss: 0.0649 | profit rate:   52.6 | accuracy: 0.14
+step_num: 23000 | loss: 0.0143 | profit rate:   63.3 | accuracy: 0.13
+step_num: 23200 | loss: 0.1487 | profit rate: 2925079.5 | accuracy: 0.17
+step_num: 23400 | loss: 0.2256 | profit rate: 1571593015.5 | accuracy: 0.19
+step_num: 23600 | loss: 0.1217 | profit rate: 1889267330.3 | accuracy: 0.19
+step_num: 23800 | loss: 0.1443 | profit rate: 33232377185.3 | accuracy: 0.20
+step_num: 24000 | loss: 0.1239 | profit rate: 23908056774.1 | accuracy: 0.20
+step_num: 24200 | loss: 0.0437 | profit rate: 31446800315.5 | accuracy: 0.19
+step_num: 24400 | loss: 0.0555 | profit rate: 76367877404.5 | accuracy: 0.18
+step_num: 24600 | loss: 0.1432 | profit rate: 276083792339.5 | accuracy: 0.18
+episode:   7/8,耗时:7.20分/49.47分,训练集: | step: 24661 | average_treward:  235.7 | max_treward: 408.8293 | average profit rate: 42810649108.581
+model saved @ step:24661,performance:282191923288.977,accuracy:0.18
+step_num: 24800 | loss: 0.1242 | profit rate:    4.8 | accuracy: 0.21
+step_num: 25000 | loss: 0.0949 | profit rate:    4.3 | accuracy: 0.13
+step_num: 25200 | loss: 0.0863 | profit rate:    5.2 | accuracy: 0.11
+step_num: 25400 | loss: 0.0645 | profit rate:    6.2 | accuracy: 0.11
+step_num: 25600 | loss: 0.1676 | profit rate:  236.9 | accuracy: 0.15
+step_num: 25800 | loss: 0.2328 | profit rate: 1000.6 | accuracy: 0.17
+step_num: 26000 | loss: 0.0450 | profit rate:  850.7 | accuracy: 0.16
+step_num: 26200 | loss: 0.2862 | profit rate: 6664.6 | accuracy: 0.16
+step_num: 26400 | loss: 0.0794 | profit rate: 1483.6 | accuracy: 0.14
+step_num: 26600 | loss: 0.0759 | profit rate: 8890.8 | accuracy: 0.15
+step_num: 26800 | loss: 0.1683 | profit rate: 2177538500.3 | accuracy: 0.19
+step_num: 27000 | loss: 0.1914 | profit rate: 152342596804.0 | accuracy: 0.21
+step_num: 27200 | loss: 0.1242 | profit rate: 2577748110340.4 | accuracy: 0.21
+step_num: 27400 | loss: 0.2212 | profit rate: 6622534475713.6 | accuracy: 0.22
+step_num: 27600 | loss: 0.1108 | profit rate: 14188242185704.6 | accuracy: 0.22
+step_num: 27800 | loss: 0.0407 | profit rate: 9500299301695.9 | accuracy: 0.21
+step_num: 28000 | loss: 0.1161 | profit rate: 68285189231358.7 | accuracy: 0.21
+model saved @ step:28184,performance:414666065760776.438,accuracy:0.21
+  0%|          | 0/91 [00:00<?, ?it/s]----------------------------------------finished----------------------------------------
+ 11%|█         | 10/91 [00:00<00:00, 96.47it/s] 36%|███▋      | 33/91 [00:00<00:00, 171.36it/s] 63%|██████▎   | 57/91 [00:00<00:00, 198.48it/s] 87%|████████▋ | 79/91 [00:00<00:00, 206.00it/s]100%|██████████| 91/91 [00:00<00:00, 196.84it/s]
+==================================================
+2023-01-03T00:00:00 | *** START BACKTEST ***
+2023-01-03T00:00:00 | current balance = 1000.00
+==================================================
+--------------------------------------------------
+2023-02-01T12:00:00 | *** GOING LONG ***
+2023-02-01T12:00:00's price 23732.6602, buy 0.04209389 units.
+2023-02-01T12:00:00 | current balance = 0.00
+2023-02-01T12:00:00 | balance:0.00+units:0.04209389*price:23732.6602=net_wealth:999.0010
+--------------------------------------------------
+2023-02-02T00:00:00 | *** GOING SHORT ***
+2023-02-02T00:00:00's price 23820.4902, sell 0.04209389 units.
+2023-02-02T00:00:00 | current balance = 1001.70
+2023-02-02T00:00:00 | balance:1001.70+units:0.0*price:23820.4902=net_wealth:1001.6954
+==================================================
+2023-02-17T00:00:00 | *** CLOSING OUT ***
+2023-02-17T00:00:00's price 23842.5508, 0.0 unit trades .
+2023-02-17T00:00:00 | current balance = 1001.70
+2023-02-17T00:00:00 | net performance [%] = 0.1695
+2023-02-17T00:00:00 | number of trades [#] = 2
+==================================================
+Trial 10 Complete [00h 56m 50s]
+net_wealth: 1001.6954125655889
+
+Best net_wealth So Far: 1263.819599171069
+Total elapsed time: 14h 18m 04s
+Results summary
+Results in saved_model\keras_tuner
+Showing 10 best trials
+<keras_tuner.engine.objective.Objective object at 0x0000024CFB7C9FA0>
+Trial summary
+Hyperparameters:
+horizon: 10
+lookback: 225
+MarketFactor: False
+lags: 14
+gamma: 0.95
+memory_size: 32
+batch_size: 16
+n_steps: 64
+gae_lambda: 0.96
+gradient_clip_: 1.0
+epochs: 3
+Score: 1263.819599171069
+Trial summary
+Hyperparameters:
+horizon: 10
+lookback: 365
+MarketFactor: False
+lags: 7
+gamma: 0.9
+memory_size: 64
+batch_size: 16
+n_steps: 5
+gae_lambda: 0.96
+gradient_clip_: 10.0
+epochs: 5
+Score: 1236.0457331719358
+Trial summary
+Hyperparameters:
+horizon: 12
+lookback: 730
+MarketFactor: False
+lags: 20
+gamma: 0.97
+memory_size: 64
+batch_size: 16
+n_steps: 64
+gae_lambda: 0.96
+gradient_clip_: 0.5
+epochs: 3
+Score: 1136.6652207352631
+Trial summary
+Hyperparameters:
+horizon: 8
+lookback: 225
+MarketFactor: False
+lags: 30
+gamma: 0.8
+memory_size: 2000
+batch_size: 16
+n_steps: 32
+gae_lambda: 0.96
+gradient_clip_: 10.0
+epochs: 3
+Score: 1090.0408324568155
+Trial summary
+Hyperparameters:
+horizon: 2
+lookback: 225
+MarketFactor: False
+lags: 5
+gamma: 0.5
+memory_size: 32
+batch_size: 16
+n_steps: 5
+gae_lambda: 0.96
+gradient_clip_: 0.2
+epochs: 3
+Score: 1063.230396722901
+Trial summary
+Hyperparameters:
+horizon: 14
+lookback: 730
+MarketFactor: True
+lags: 5
+gamma: 0.6
+memory_size: 2000
+batch_size: 16
+n_steps: 256
+gae_lambda: 0.96
+gradient_clip_: 2.0
+epochs: 3
+Score: 1055.8287059710867
+Trial summary
+Hyperparameters:
+horizon: 8
+lookback: 730
+MarketFactor: False
+lags: 30
+gamma: 0.6
+memory_size: 32
+batch_size: 16
+n_steps: 20
+gae_lambda: 0.96
+gradient_clip_: 10.0
+epochs: 5
+Score: 1045.4354178598032
+Trial summary
+Hyperparameters:
+horizon: 10
+lookback: 365
+MarketFactor: True
+lags: 7
+gamma: 0.95
+memory_size: 512
+batch_size: 16
+n_steps: 128
+gae_lambda: 0.98
+gradient_clip_: 1.0
+epochs: 5
+Score: 1011.1877357013941
+Trial summary
+Hyperparameters:
+horizon: 14
+lookback: 365
+MarketFactor: True
+lags: 5
+gamma: 0.5
+memory_size: 256
+batch_size: 16
+n_steps: 32
+gae_lambda: 0.96
+gradient_clip_: 0.2
+epochs: 3
+Score: 1001.6954125655889
+Trial summary
+Hyperparameters:
+horizon: 12
+lookback: 365
+MarketFactor: False
+lags: 30
+gamma: 0.95
+memory_size: 256
+batch_size: 32
+n_steps: 64
+gae_lambda: 0.98
+gradient_clip_: 0.5
+epochs: 3
+Score: 998.6309308828593
+None

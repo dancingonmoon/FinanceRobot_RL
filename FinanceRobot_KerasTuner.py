@@ -223,8 +223,8 @@ def FinRobotSearchSpace(
     return BacktestEvent.net_wealths
 
 
-# class FinRobotTuner(keras_tuner.RandomSearch):
-class FinRobotTuner(keras_tuner.Hyperband):
+class FinRobotTuner(keras_tuner.RandomSearch):
+# class FinRobotTuner(keras_tuner.Hyperband):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
@@ -232,7 +232,7 @@ class FinRobotTuner(keras_tuner.Hyperband):
             lookback=hp.Choice('lookback', [225, 365, 730]),
             MarketFactor=hp.Boolean('MarketFactor'),
             DQN_DDQN_PPO="DDQN",  # , "DDQN", "PPO"
-            lags=hp.Choice('lags', [5, 7, 14, 20]),
+            lags=hp.Choice('lags', [5, 7, 14, 20, 30]),
             gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.95, 0.97, 0.98]),
             memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),
             batch_size=hp.Choice("batch_size", [16, 32]),
@@ -242,21 +242,23 @@ class FinRobotTuner(keras_tuner.Hyperband):
             epochs=hp.Choice("epochs", [3, 5])
         )
         # Return a dictionary of metrics for KerasTuner to track.
-        metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]} # 取最终的net_wealth
+        metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
         return metrics_dict
 
 
 if __name__ == '__main__':
+    # Random Search:
     tuner = FinRobotTuner(
         # Objective is one of the keys.
         objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=6, overwrite=True, directory="saved_model", project_name="keras_tunner",
+        max_trials=10, overwrite=True, directory="saved_model", project_name="keras_tuner",
     )
-    tuner = FinRobotTuner(
-        # Objective is one of the keys.
-        objective=keras_tuner.Objective("net_wealth", "max"),
-        max_epochs=1, overwrite=True, directory="saved_model", project_name="keras_tunner",
-    )
+    # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
+    # tuner = FinRobotTuner(
+    #     # Objective is one of the keys.
+    #     objective=keras_tuner.Objective("net_wealth", "max"),
+    #     max_epochs=6, overwrite=True, directory="saved_model", project_name="keras_tuner",
+    # )
     tuner.search()
     # Retraining the model
     search_result = tuner.results_summary()
