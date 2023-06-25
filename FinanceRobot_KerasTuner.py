@@ -7,6 +7,9 @@ import sys
 import tensorflow as tf
 import keras_tuner
 
+import json
+import glob
+
 # tf.config.set_visible_devices([], 'GPU') # 让GPU不可见,仅仅使用CPU
 # 获取所有可见的物理设备
 physical_devices = tf.config.list_physical_devices()
@@ -245,6 +248,38 @@ class FinRobotTuner(keras_tuner.RandomSearch):
         metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
         return metrics_dict
 
+def result_summary_DataFrame(path,best_num, save_path ):
+    """
+    以pandas DataFrame形式列出超参按照score从大到小排列,打印,并以json文件格式存盘
+    :param
+        path: keras_tuner的project_name;
+        best_num: 提取最好的超参的前几个;
+        save_path: 转换成json文件后,存盘路径;(包含文件名.json)
+
+    :return: 超参DataFrame,最后一列为score;
+    """
+
+    # 获取所有的trial.json文件
+    trial_files = glob.glob('{}/trial_*/*.json'.format(path))
+    # 解析trial.json文件并获取每个试验的超参数配置和评估结果
+    trials = []
+    for trial_file in trial_files:
+        with open(trial_file, 'r') as f:
+            trial = json.load(f)
+            trials.append(trial)
+
+    # 根据评估结果对试验进行排序
+    sorted_trials = sorted(trials, key=lambda x: x['score'], reverse=True)
+
+    # 将hyperparameters.values,首先获得字典,再转换成DataFrame:
+    search_results_dict = [sorted_trials[i]['hyperparameters']['values'] for i in range(min(best_num, len(sorted_trials)))]
+    search_results_DF = pd.DataFrame(search_results_dict)
+    # score再单独列出,放在最后DataFrame最后一列
+    search_results_score = [sorted_trials[i]['score'] for i in range(min(best_num, len(sorted_trials)))]
+    search_results_DF['score'] = search_results_score
+    print(search_results_DF)
+    if save_path is not None:
+        search_results_DF.to_json(save_path)
 
 if __name__ == '__main__':
     # Random Search:
@@ -263,5 +298,11 @@ if __name__ == '__main__':
     # Retraining the model
     search_result = tuner.results_summary()
     print(search_result)
+
+    path = r'E:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
+    best_num = 5
+    save_path = '{}RandomSearch{}.json'.format(path,best_num)
+    result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
+
     # best_hp = tuner.get_best_hyperparameters()[0]
     # keras_code(**best_hp.values, saving_path="/tmp/best_model")
