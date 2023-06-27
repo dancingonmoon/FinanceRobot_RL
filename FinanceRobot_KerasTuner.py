@@ -4,34 +4,10 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import sys
+import keras_tuner # 由于该环境下protobuf原版本为3.17.2,运行出错,查stackoverlfow告知,升级至3.20.3, 可运行,但pip安装出现一些不兼容
 import tensorflow as tf
-import keras_tuner
 
-import json
-import glob
-
-# tf.config.set_visible_devices([], 'GPU') # 让GPU不可见,仅仅使用CPU
-# 获取所有可见的物理设备
-physical_devices = tf.config.list_physical_devices()
-for device in physical_devices:
-    if device.device_type == 'GPU':
-        tf.config.set_visible_devices(device, 'GPU')
-        # 将显存设置为动态增长模式 (可以避免多进程中,单个进程GPU内存全部分配而崩塌)
-        tf.config.experimental.set_memory_growth(device, True)
-
-from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, TupleIterator, Finance_Environment_V2, \
-    data_normalization
-from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
-from FinanceRobot_DDQNModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
-from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
-
-import numpy as np
-import pandas as pd
-from copy import deepcopy
-
-from BTCCrawl_To_DataFrame_Class import BTC_data_acquire as BTC_DataAcquire
-from BTCCrawl_To_DataFrame_Class import get_api_key
-
+x
 
 def FinRobotSearchSpace(
         horizon=10,
@@ -76,9 +52,9 @@ def FinRobotSearchSpace(
     :return: 验证数据,全部经模型策略后的total reward
     """
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
     EndDate = "2023-06-10"
@@ -286,7 +262,7 @@ if __name__ == '__main__':
     tuner = FinRobotTuner(
         # Objective is one of the keys.
         objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=10, overwrite=True, directory="saved_model", project_name="keras_tuner",
+        max_trials=25, overwrite=True, directory="saved_model", project_name="keras_tuner",
     )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
@@ -299,8 +275,8 @@ if __name__ == '__main__':
     search_result = tuner.results_summary()
     print(search_result)
 
-    path = r'E:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
-    best_num = 5
+    path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
+    best_num = 10
     save_path = '{}RandomSearch{}.json'.format(path,best_num)
     result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
 
