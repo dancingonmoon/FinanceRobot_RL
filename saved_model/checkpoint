@@ -1,6 +1,6 @@
-model_checkpoint_path: "BTC_DDQN_230627-5"
-all_model_checkpoint_paths: "BTC_DDQN_230627-4"
-all_model_checkpoint_paths: "BTC_DDQN_230627-5"
-all_model_checkpoint_timestamps: 1687871517.1002657
-all_model_checkpoint_timestamps: 1687871651.8508544
+model_checkpoint_path: "BTC_DDQN_230629-2"
+all_model_checkpoint_paths: "BTC_DDQN_230629-1"
+all_model_checkpoint_paths: "BTC_DDQN_230629-2"
+all_model_checkpoint_timestamps: 1688003986.0174844
+all_model_checkpoint_timestamps: 1688004296.1109307
 last_preserved_timestamp: 1687499055.0113618

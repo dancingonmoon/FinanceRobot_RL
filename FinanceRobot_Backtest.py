@@ -55,11 +55,15 @@ if __name__ == '__main__':
 
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
-    data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=False, close_colName='close', lags=0, window=20, horizon=10,
-                                                    interval='12h', MarketFactor=False, weekdays=7)
+    horizon = 14
+    lookback = 225
+    MarketFactor = True
 
-    data_normalized = data_normalization(data, 365, normalize_columns=[0, 1, 2, 3, 4, 5])
+    data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
+                                                    FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
+                                                    interval='12h', MarketFactor=MarketFactor, weekdays=7)
+
+    data_normalized = data_normalization(data, lookback, normalize_columns=[0, 1, 2, 3, 4, 5])
     # features = [
     #             "log_return",
     #             "Roll_price_sma",
@@ -77,15 +81,15 @@ if __name__ == '__main__':
     Test_flag = False
     train_test_text_add = 'test' if Test_flag else 'train'
 
-    DDQN_flag = False
+    DDQN_flag = True
     DQN_flag = False
-    PPO_flag = True
-    lags = 14
+    PPO_flag = False
+    lags = 7
     action_n = 3
-    gamma = 0.5
-    memory_size = 2000
-    replay_batch_size = 1000
-    batch_size = 32
+    gamma = 0.98
+    memory_size = 512
+    replay_batch_size = 256
+    batch_size = 16
     DQN_episode = 70
     DDQN_episode = 70
 

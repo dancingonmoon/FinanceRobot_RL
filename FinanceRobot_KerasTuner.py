@@ -4,10 +4,35 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import sys
-import keras_tuner # 由于该环境下protobuf原版本为3.17.2,运行出错,查stackoverlfow告知,升级至3.20.3, 可运行,但pip安装出现一些不兼容
+import keras_tuner # 由于该环境下protobuf原版本为3.17.0,运行出错,查stackoverlfow告知,升级至3.20.3,可运行,但pip安装出现一些不兼容
 import tensorflow as tf
 
-x
+
+import json
+import glob
+
+# tf.config.set_visible_devices([], 'GPU') # 让GPU不可见,仅仅使用CPU
+# 获取所有可见的物理设备
+physical_devices = tf.config.list_physical_devices()
+for device in physical_devices:
+    if device.device_type == 'GPU':
+        tf.config.set_visible_devices(device, 'GPU')
+        # 将显存设置为动态增长模式 (可以避免多进程中,单个进程GPU内存全部分配而崩塌)
+        tf.config.experimental.set_memory_growth(device, True)
+
+from FinanceRobot_Backtest_lib import Dataset_Generator, ndarray_Generator, TupleIterator, Finance_Environment_V2, \
+    data_normalization
+from FinanceRobot_Backtest_lib import BacktestingVectorV2, BacktestingEventV2
+from FinanceRobot_DDQNModel_lib import Decompose_FF_Linear, FinRobotAgentDQN, FinRobotAgentDDQN
+from FinanceRobot_PPOModel_lib import Worker, ActorModel, CriticModel, PPO2
+
+import numpy as np
+import pandas as pd
+from copy import deepcopy
+
+from BTCCrawl_To_DataFrame_Class import BTC_data_acquire as BTC_DataAcquire
+from BTCCrawl_To_DataFrame_Class import get_api_key
+
 
 def FinRobotSearchSpace(
         horizon=10,
@@ -95,8 +120,8 @@ def FinRobotSearchSpace(
     memory_size = memory_size
     replay_batch_size = int(memory_size / 2)
     batch_size = batch_size
-    DQN_episode = 8
-    DDQN_episode = 8
+    DQN_episode = 15
+    DDQN_episode = 15
     # PPO部分
     n_worker = 8
     n_step = n_step
@@ -257,28 +282,35 @@ def result_summary_DataFrame(path,best_num, save_path ):
     if save_path is not None:
         search_results_DF.to_json(save_path)
 
+    return search_results_DF
+
 if __name__ == '__main__':
     # Random Search:
-    tuner = FinRobotTuner(
-        # Objective is one of the keys.
-        objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=25, overwrite=True, directory="saved_model", project_name="keras_tuner",
-    )
+    # tuner = FinRobotTuner(
+    #     # Objective is one of the keys.
+    #     objective=keras_tuner.Objective("net_wealth", "max"),
+    #     max_trials=45, overwrite=True, directory="saved_model", project_name="keras_tuner",
+    # )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
     #     # Objective is one of the keys.
     #     objective=keras_tuner.Objective("net_wealth", "max"),
     #     max_epochs=6, overwrite=True, directory="saved_model", project_name="keras_tuner",
     # )
-    tuner.search()
+    # tuner.search()
     # Retraining the model
-    search_result = tuner.results_summary()
-    print(search_result)
+    # search_result = tuner.results_summary()
+    # print(search_result)
 
     path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
     best_num = 10
     save_path = '{}RandomSearch{}.json'.format(path,best_num)
-    result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
+    result_summary = result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
+
+    # result_summary.to_csv('{}RandomSearch{}.csv'.format(path,best_num))
+
 
     # best_hp = tuner.get_best_hyperparameters()[0]
-    # keras_code(**best_hp.values, saving_path="/tmp/best_model")
+    best_hp= result_summary.iloc[0].to_dict()
+
+    FinRobotSearchSpace(**best_hp, DQN_DDQN_PPO='DDQN',)
