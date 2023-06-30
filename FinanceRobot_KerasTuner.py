@@ -48,6 +48,9 @@ def FinRobotSearchSpace(
         gae_lambda=0.98,
         gradient_clip_norm=10.,
         epochs=5,
+        # DQN_episode = 15,
+        # DDQN_episode = 15,
+        # PPO_updates = 50,
 ):
     """
     定义超参,从
@@ -77,9 +80,9 @@ def FinRobotSearchSpace(
     :return: 验证数据,全部经模型策略后的total reward
     """
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
     EndDate = "2023-06-10"
@@ -240,11 +243,11 @@ class FinRobotTuner(keras_tuner.RandomSearch):
             gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.95, 0.97, 0.98]),
             memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),
             batch_size=hp.Choice("batch_size", [16, 32]),
-            n_step=hp.Choice("n_steps", [5, 10, 20, 32, 64, 128, 256]),
+            n_step=hp.Choice("n_step", [5, 10, 20, 32, 64, 128, 256]),
             gae_lambda=hp.Choice("gae_lambda", [0.96, 0.97, 0.98]),
-            gradient_clip_norm=hp.Choice("gradient_clip_", [0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
-            epochs=hp.Choice("epochs", [3, 5])
-        )
+            gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
+            epochs=hp.Choice("epochs", [3, 5]),
+            )
         # Return a dictionary of metrics for KerasTuner to track.
         metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
         return metrics_dict
@@ -302,15 +305,20 @@ if __name__ == '__main__':
     # search_result = tuner.results_summary()
     # print(search_result)
 
-    path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
+    path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
     best_num = 10
-    save_path = '{}RandomSearch{}.json'.format(path,best_num)
-    result_summary = result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
+    # save_path = '{}RandomSearch{}.json'.format(path,best_num)
+    # result_summary = result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
 
     # result_summary.to_csv('{}RandomSearch{}.csv'.format(path,best_num))
+    read_path = '{}RandomSearch{}.json'.format(path,best_num)
+    result_summary = pd.read_json(read_path,)
+
 
 
     # best_hp = tuner.get_best_hyperparameters()[0]
-    best_hp= result_summary.iloc[0].to_dict()
-
+    best_hp= result_summary.iloc[0] # 获得最佳的第一行;
+    best_hp = best_hp.drop('score') # 去除'score'列,因为score不属于FinRobot模型的参数;
+    best_hp = best_hp.to_dict() # 转换成字典;
+    # 使用best_hp来训练,训练次数为FinRobotSearchSpace中定义的DQN_episode,DDQN_episode,updates
     FinRobotSearchSpace(**best_hp, DQN_DDQN_PPO='DDQN',)

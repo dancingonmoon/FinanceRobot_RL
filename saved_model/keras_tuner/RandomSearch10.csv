@@ -1,4 +1,4 @@
-,horizon,lookback,MarketFactor,lags,gamma,memory_size,batch_size,n_steps,gae_lambda,gradient_clip_,epochs,score
+,horizon,lookback,MarketFactor,lags,gamma,memory_size,batch_size,n_step,gae_lambda,gradient_clip_norm,epochs,score
 0,14,225,True,7,0.98,512,16,128,0.97,1.0,5,1373.7411082719389
 1,10,730,False,30,0.97,2000,32,128,0.96,0.5,5,1357.801556920503
 2,14,365,False,5,0.9,32,16,32,0.96,2.0,3,1339.9553176727272
