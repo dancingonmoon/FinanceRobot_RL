@@ -1,29 +1,28 @@
-Backend TkAgg is interactive backend. Turning interactive mode on.
 <class 'pandas.core.frame.DataFrame'>
-DatetimeIndex: 4020 entries, 2017-08-17 00:00:00+00:00 to 2023-02-17 00:00:00+00:00
+DatetimeIndex: 4288 entries, 2017-08-17 00:00:00+00:00 to 2023-07-01 00:00:00+00:00
 Data columns (total 9 columns):
  #   Column      Non-Null Count  Dtype  
 ---  ------      --------------  -----  
- 0   open        4020 non-null   float64
- 1   high        4020 non-null   float64
- 2   low         4020 non-null   float64
- 3   close       4020 non-null   float64
- 4   volume      4020 non-null   float64
- 5   amount      4020 non-null   float64
- 6   num_trades  4020 non-null   int64  
- 7   bid_volume  4020 non-null   float64
- 8   bid_amount  4020 non-null   float64
+ 0   open        4288 non-null   float64
+ 1   high        4288 non-null   float64
+ 2   low         4288 non-null   float64
+ 3   close       4288 non-null   float64
+ 4   volume      4288 non-null   float64
+ 5   amount      4288 non-null   float64
+ 6   num_trades  4288 non-null   int64  
+ 7   bid_volume  4288 non-null   float64
+ 8   bid_amount  4288 non-null   float64
 dtypes: float64(8), int64(1)
-memory usage: 314.1 KB
-??json?ж???Data.info:None
+memory usage: 335.0 KB
+从json中读出Data.info:None
         log_return  Roll_price_sma  ...  horizon_price         close
-count  3986.000000     3986.000000  ...    3972.000000   3986.000000
-mean      0.000420    19548.426063  ...   19645.214756  19591.732240
-std       0.028547    16516.711778  ...   16554.465330  16549.906141
+count  4254.000000     4254.000000  ...    4240.000000   4254.000000
+mean      0.000451    19999.592140  ...   20109.170150  20057.530121
+std       0.027964    16092.095569  ...   16133.177888  16131.663735
 min      -0.268357     3359.310486  ...    2919.000000   2919.000000
-25%      -0.009992     7385.701892  ...    7463.300171   7412.930176
-50%       0.000789    10744.347241  ...   10920.140137  10899.495117
-75%       0.012228    30451.578345  ...   30645.630371  30413.265137
+25%      -0.009779     7605.790021  ...    7726.717529   7687.772339
+50%       0.000684    11514.460449  ...   11663.479980  11615.215332
+75%       0.011710    29445.503906  ...   29641.649902  29517.527344
 max       0.237092    64595.437500  ...   67594.976562  67594.976562
 
 [8 rows x 18 columns]
@@ -33,17 +32,41 @@ max       0.237092    64595.437500  ...   67594.976562  67594.976562
 
 [2 rows x 18 columns]
                            log_return  ...         close
-2023-02-16 20:00:00+08:00   -0.043713  ...  23517.720703
-2023-02-17 08:00:00+08:00    0.013718  ...  23842.550781
+2023-06-30 20:00:00+08:00   -0.014272  ...  30472.000000
+2023-07-01 08:00:00+08:00   -0.001577  ...  30423.990234
 
 [2 rows x 18 columns]
-2023-06-30 11:33:30.673575: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2
+2023-07-01 15:39:17.847430: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX AVX2
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2023-06-30 11:33:30.675478: I tensorflow/core/common_runtime/process_util.cc:146] Creating new thread pool with default inter op setting: 2. Tune using inter_op_parallelism_threads for best performance.
-step_num: 400 | loss: 0.6805 | profit rate:    0.7 | accuracy: 0.32
-forrtl: error (200): program aborting due to control-C event
-Image              PC                Routine            Line        Source             
-libifcoremd.dll    00007FFC044DDF54  Unknown               Unknown  Unknown
-KERNELBASE.dll     00007FFCC3C46C67  Unknown               Unknown  Unknown
-KERNEL32.DLL       00007FFCC52926AD  Unknown               Unknown  Unknown
-ntdll.dll          00007FFCC654AA68  Unknown               Unknown  Unknown
+2023-07-01 15:39:18.170402: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 5454 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 3070, pci bus id: 0000:01:00.0, compute capability: 8.6
+2023-07-01 15:39:18.398778: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
+Traceback (most recent call last):
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\py_checkpoint_reader.py", line 96, in NewCheckpointReader
+    return CheckpointReader(compat.as_bytes(filepattern))
+RuntimeError: Unsuccessful TensorSliceReader constructor: Failed to find any matching files for saved_model/BTC_DDQN_230630-32
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\tracking\util.py", line 2335, in restore
+    status = self.read(save_path, options=options)
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\tracking\util.py", line 2220, in read
+    result = self._saver.restore(save_path=save_path, options=options)
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\tracking\util.py", line 1338, in restore
+    reader = py_checkpoint_reader.NewCheckpointReader(save_path)
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\py_checkpoint_reader.py", line 100, in NewCheckpointReader
+    error_translator(e)
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\py_checkpoint_reader.py", line 35, in error_translator
+    raise errors_impl.NotFoundError(None, None, error_message)
+tensorflow.python.framework.errors_impl.NotFoundError: Unsuccessful TensorSliceReader constructor: Failed to find any matching files for saved_model/BTC_DDQN_230630-32
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "L:\Python_WorkSpace\量化交易\FinanceRobot\FinanceRobot_KerasTuner.py", line 426, in <module>
+    FinRobotSearchSpace(**best_hp, DQN_DDQN_PPO='DDQN',)
+  File "L:\Python_WorkSpace\量化交易\FinanceRobot\FinanceRobot_KerasTuner.py", line 182, in FinRobotSearchSpace
+    ckpt.restore(
+  File "C:\Users\shoub\anaconda3\envs\DataScience\lib\site-packages\tensorflow\python\training\tracking\util.py", line 2337, in restore
+    raise errors_impl.NotFoundError(
+tensorflow.python.framework.errors_impl.NotFoundError: Failed to restore from checkpoint or SavedModel at saved_model/BTC_DDQN_230630-32: Unsuccessful TensorSliceReader constructor: Failed to find any matching files for saved_model/BTC_DDQN_230630-32

@@ -41,9 +41,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
@@ -62,8 +62,11 @@ if __name__ == '__main__':
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
                                                     FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
                                                     interval='12h', MarketFactor=MarketFactor, weekdays=7)
-
-    data_normalized = data_normalization(data, lookback, normalize_columns=[0, 1, 2, 3, 4, 5])
+    if MarketFactor:
+        normalize_columns = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    else:
+        normalize_columns = [0, 1, 2, 3, 4, 5]
+    data_normalized = data_normalization(data, lookback, normalize_columns=normalize_columns)
     # features = [
     #             "log_return",
     #             "Roll_price_sma",
@@ -78,23 +81,24 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = False
+    Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
 
-    DDQN_flag = True
-    DQN_flag = False
-    PPO_flag = False
+    DQN_DDQN_PPO = 'DDQN' # 或者"DQN", "PPO"
+    # DDQN_flag = True
+    # DQN_flag = False
+    # PPO_flag = False
     lags = 7
     action_n = 3
     gamma = 0.98
     memory_size = 512
     replay_batch_size = 256
     batch_size = 16
-    DQN_episode = 70
-    DDQN_episode = 70
+    DQN_episode = 80
+    DDQN_episode = 80
 
     DQN_saved_model_filename = "230610-51"
-    DDQN_saved_model_filename = "230610-51"
+    DDQN_saved_model_filename = "230701-39"
 
     # PPO部分
     n_worker = 8
@@ -109,17 +113,17 @@ if __name__ == '__main__':
     PPO_saved_model_filename = "230617-9"
     ####################
 
-    if DDQN_flag or DQN_flag:
+    if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
         # 生成dataset, env, 建模
         dataset_train = Dataset_Generator(data_normalized[:split], lags=lags,
-                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+                                          data_columns_state=normalize_columns)
         dataset_test = Dataset_Generator(data_normalized[split:], lags=lags,
-                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+                                         data_columns_state=normalize_columns)
         # 训练environment, 测试environment:
-        env = Finance_Environment_V2(dataset_train, dataset_type='ndarray', action_n=action_n, min_performance=0.,
-                                     min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
-        env_test = Finance_Environment_V2(dataset_test, dataset_type='ndarray', action_n=action_n, min_performance=0.,
-                                          min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+        env = Finance_Environment_V2(dataset_train, dataset_type='tensorflow_Dataset', action_n=action_n, min_performance=0.,
+                                     min_accuracy=0.0)  # 允许做空,允许大亏,使得更多的训练数据出现
+        env_test = Finance_Environment_V2(dataset_test, dataset_type='tensorflow_Dataset', action_n=action_n, min_performance=0.,
+                                          min_accuracy=0.0)  # 允许做空,允许大亏,使得更多的训练数据出现
 
         # 生成模型,以及FinR_Agent:
         lags, obs_n = env.observation_space.shape
@@ -134,7 +138,7 @@ if __name__ == '__main__':
                                             memory_size=memory_size,
                                             replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
         # 生成FinR_Agent 训练,存盘,调出训练模型
-        if DDQN_flag:  # DDQN
+        if DQN_DDQN_PPO == 'DDQN':  # DDQN
             saved_path_prefix = 'saved_model/BTC_DDQN_'
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
             if not Test_flag:
@@ -158,7 +162,7 @@ if __name__ == '__main__':
                 action_strategy_mode = 'argmax'
 
 
-        elif DQN_flag:  # DQN
+        elif DQN_DDQN_PPO == 'DQN':  # DQN
             saved_path_prefix = 'saved_model/BTC_DQN_'
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
             if not Test_flag:
@@ -185,11 +189,11 @@ if __name__ == '__main__':
             print(f"{'-' * 40}finished{'-' * 40}")
 
 
-    elif PPO_flag:
+    elif DQN_DDQN_PPO == 'PPO':  # PPO
         dataset_train = ndarray_Generator(data_normalized[:split], lags=lags,
-                                          data_columns_state=[0, 1, 2, 3, 4, 5])
+                                          data_columns_state=normalize_columns)
         dataset_test = ndarray_Generator(data_normalized[split:], lags=lags,
-                                         data_columns_state=[0, 1, 2, 3, 4, 5])
+                                         data_columns_state=normalize_columns)
         iter_dataset_train = TupleIterator(dataset_train)
         iter_dataset_test = TupleIterator(dataset_test)
         # 训练environment, 测试environment:
@@ -329,6 +333,8 @@ if __name__ == '__main__':
     last_date = last_date.strftime('%y%m%dH%H')
 
     saved_path = '{}gamma0{}_lag{}_{}_{}.html'.format(saved_path_prefix, str(int(gamma * 100)), lags,
-                                                      train_test_text_add, today_date)
+                                                      train_test_text_add, last_date)
+    # 将BacktestEvent.net_wealths (pandas) 存盘:
+    BacktestEvent.net_wealths.to_json(f'{saved_path_prefix}_netwealths_{train_test_text_add}_{last_date}.json')
 
     fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)
