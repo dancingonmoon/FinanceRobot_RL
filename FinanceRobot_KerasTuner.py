@@ -273,7 +273,7 @@ def FinRobotSearchSpace(
         )
 
         # units:
-        trace7 = go.Scatter(  #
+        trace7 = go.Scatter(
             x=BacktestEvent.net_wealths.index,
             y=BacktestEvent.net_wealths['units'],  # 股/币数
             mode="markers",  # mode模式
@@ -409,7 +409,7 @@ if __name__ == '__main__':
 
     path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
     best_num = 10
-    save_path = '{}RandomSearch{}.json'.format(path,best_num)
+    save_path = '{}RandomSearch{}_PPO.json'.format(path,best_num,)
     result_summary = result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
 
     # result_summary.to_csv('{}RandomSearch{}.csv'.format(path,best_num))

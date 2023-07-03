@@ -55,9 +55,9 @@ if __name__ == '__main__':
 
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
-    horizon = 14
-    lookback = 225
-    MarketFactor = True
+    horizon = 14 # best for DDQN 14; PPO 4
+    lookback = 225 #best for DDQN 225; PPO 365;
+    MarketFactor = True #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
                                                     FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
@@ -84,16 +84,16 @@ if __name__ == '__main__':
     Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
 
-    DQN_DDQN_PPO = 'DDQN' # 或者"DQN", "PPO"
+    DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
     # DDQN_flag = True
     # DQN_flag = False
     # PPO_flag = False
-    lags = 7
+    lags = 7 # best for DDQN 7; PPO 7
     action_n = 3
-    gamma = 0.98
+    gamma = 0.98 # best for DDQN 0.98; PPO 0.8
     memory_size = 512
     replay_batch_size = 256
-    batch_size = 16
+    batch_size = 16 # best for DDQN 16; PPO 16
     DQN_episode = 80
     DDQN_episode = 80
 
@@ -102,10 +102,10 @@ if __name__ == '__main__':
 
     # PPO部分
     n_worker = 8
-    n_step = 128
-    mini_batch_size = 64  # int(n_worker * n_step / 4)
-    gae_lambda = 0.98
-    gradient_clip_norm = 10.
+    n_step = 5
+    mini_batch_size = int(n_worker*n_step/4)  # int(n_worker * n_step / 4)
+    gae_lambda = 0.96
+    gradient_clip_norm = .5
     epochs = 5
     updates = 3000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
