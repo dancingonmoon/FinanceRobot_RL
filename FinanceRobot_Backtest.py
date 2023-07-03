@@ -83,6 +83,7 @@ if __name__ == '__main__':
     #########Arguments Optimization#############
     Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
+    Pretrained_model = True
 
     DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
     # DDQN_flag = True
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     # PPO_flag = False
     lags = 7 # best for DDQN 7; PPO 7
     action_n = 3
-    gamma = 0.98 # best for DDQN 0.98; PPO 0.8
+    gamma = 0.8 # best for DDQN 0.98; PPO 0.8
     memory_size = 512
     replay_batch_size = 256
     batch_size = 16 # best for DDQN 16; PPO 16
@@ -107,10 +108,10 @@ if __name__ == '__main__':
     gae_lambda = 0.96
     gradient_clip_norm = .5
     epochs = 5
-    updates = 3000
+    updates = 2000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230617-9"
+    PPO_saved_model_filename = "230703-1"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
@@ -223,6 +224,11 @@ if __name__ == '__main__':
                                   c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step, epochs=epochs,
                                   mini_batch_size=mini_batch_size)
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+            if Pretrained_model: # 调用预训练模型
+                ckpt = tf.train.Checkpoint(actormodel=Actor, criticmodel=Critic)
+                saved_path = saved_path_prefix + PPO_saved_model_filename
+                ckpt.restore(
+                    saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,否则模型只是restore不成功,程序并不退出,浪费数天时间.
             # PPO 训练过程:
             FinR_Agent_PPO.nworker_nstep_training_loop(updates=updates)
             FinR_Agent_PPO.close_process()
