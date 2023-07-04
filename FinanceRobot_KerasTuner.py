@@ -4,12 +4,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import sys
-import keras_tuner # 由于该环境下protobuf原版本为3.17.0,运行出错,查stackoverlfow告知,升级至3.20.3,可运行,但pip安装出现一些不兼容
+import keras_tuner  # 由于该环境下protobuf原版本为3.17.0,运行出错,查stackoverlfow告知,升级至3.20.3,可运行,但pip安装出现一些不兼容
 import tensorflow as tf
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
 
 import json
 import glob
@@ -51,9 +50,9 @@ def FinRobotSearchSpace(
         gae_lambda=0.98,
         gradient_clip_norm=10.,
         epochs=5,
-        # DQN_episode = 15,
-        # DDQN_episode = 15,
-        # PPO_updates = 50,
+        actor_lr=1e-4,
+        critic_lr=5e-04,
+
 ):
     """
     定义超参,从
@@ -83,12 +82,12 @@ def FinRobotSearchSpace(
     :return: 验证数据,全部经模型策略后的total reward
     """
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
-    EndDate = "2023-07-10"
+    EndDate = "2023-09-10"
     BTC_json = "BTC_h12.json"
     BinanceBTC_json = "BinanceBTC_h12.json"
     api_key, api_secret = get_api_key(config_file_path)
@@ -117,9 +116,7 @@ def FinRobotSearchSpace(
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = False
-    train_test_text_add = 'test' if Test_flag else 'train'
-    plot_flag = False
+    Pretrained_model = False
 
     lags = lags
     action_n = 3
@@ -139,9 +136,9 @@ def FinRobotSearchSpace(
     gae_lambda = gae_lambda
     gradient_clip_norm = gradient_clip_norm
     epochs = epochs
-    updates = 900
+    updates = 1200
     today_date = pd.Timestamp.today().strftime('%y%m%d')
-
+    PPO_saved_model_filename = '230703-10'
 
     ####################
 
@@ -176,11 +173,11 @@ def FinRobotSearchSpace(
             saved_path_prefix = 'saved_model/BTC_DDQN_'
             # saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
 
-            # 调出之前训练的模型,接续训练:
-            # ckpt = tf.train.Checkpoint(model=Q)
-            # saved_path = saved_path_prefix + DDQN_saved_model_filename
-            # ckpt.restore(
-            #     saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
+            if Pretrained_model:  # 调出之前训练的模型,接续训练:
+                ckpt = tf.train.Checkpoint(model=Q)
+                saved_path = saved_path_prefix + DDQN_saved_model_filename
+                ckpt.restore(
+                    saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
 
             # DDQN 训练过程:
             FinR_Agent_DDQN.learn(episodes=DDQN_episode)
@@ -191,6 +188,12 @@ def FinRobotSearchSpace(
         elif DQN_DDQN_PPO == 'DQN':  # DQN
             saved_path_prefix = 'saved_model/BTC_DQN_'
             # saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+            if Pretrained_model:  # 调出之前训练的模型,接续训练:
+                ckpt = tf.train.Checkpoint(model=Q)
+                saved_path = saved_path_prefix + DQN_saved_model_filename
+                ckpt.restore(
+                    saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
+
             # DQN 训练过程:
             FinR_Agent_DQN.learn(episodes=DQN_episode)
             print(f"{'-' * 40}finished{'-' * 40}")
@@ -224,13 +227,18 @@ def FinRobotSearchSpace(
         for i in range(n_worker):
             worker = Worker(dataset=iter_dataset_train, dataset_type='ndarray_iterator', action_dim=action_n)
             workers.append(worker)
-        FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
-                              gae_lambda=gae_lambda,
-                              gamma=gamma,
+        FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=actor_lr, critic_lr=critic_lr,
+                              gae_lambda=gae_lambda, gamma=gamma,
                               c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step,
-                              epochs=epochs,
-                              mini_batch_size=mini_batch_size)
-        saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+                              epochs=epochs, mini_batch_size=mini_batch_size)
+        # saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
+
+        if Pretrained_model:  # 调出之前训练的模型,接续训练:
+            ckpt = tf.train.Checkpoint(actormodel=Actor, criticmodel=Critic)
+            saved_path = saved_path_prefix + PPO_saved_model_filename
+            ckpt.restore(
+                saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
+
         # PPO 训练过程:
         FinR_Agent_PPO.nworker_nstep_training_loop(updates=updates)
         FinR_Agent_PPO.close_process()
@@ -242,98 +250,11 @@ def FinRobotSearchSpace(
                                        fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
     BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode=action_strategy_mode)
 
-
-    if plot_flag:
-        # plot 绘图:
-
-        # net_wealth
-        trace5 = go.Scatter(  #
-            x=BacktestEvent.net_wealths.index,
-            y=BacktestEvent.net_wealths['net_wealth'],
-            mode="markers",  # mode模式
-            name="净资产收益",
-            showlegend=False,
-            xhoverformat="%y/%m/%d_%H:00",
-            yhoverformat=".2f",
-            # hovertemplate='日期:%{x},价格: %{y:$.0f}',
-        )
-
-        # 收盘价:
-        trace6 = go.Scatter(  #
-            x=BacktestEvent.net_wealths.index,
-            y=BacktestEvent.net_wealths['price'],  # 收盘价
-            mode="markers",  # mode模式
-            name="收盘价",
-            showlegend=False,
-            xhoverformat="%y/%m/%d_%H:00",
-            yhoverformat="$,.0f",
-            marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
-                        colorscale=['red', 'yellow', 'green'], showscale=True),
-            # hovertemplate='日期:%{x},价格: %{y:$.0f}',
-        )
-
-        # units:
-        trace7 = go.Scatter(
-            x=BacktestEvent.net_wealths.index,
-            y=BacktestEvent.net_wealths['units'],  # 股/币数
-            mode="markers",  # mode模式
-            name="股/币数",
-            showlegend=False,
-            xhoverformat="%y/%m/%d_%H:00",
-            yhoverformat="B,.5f",
-            marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
-                        colorscale=['red', 'yellow', 'green'], showscale=True),
-            # hovertemplate='日期:%{x},价格: %{y:$.0f}',
-        )
-
-        # horizon_return_after_ptc:
-        trace8 = go.Scatter(  #
-            x=BacktestEvent.net_wealths.index,
-            y=BacktestEvent.net_wealths['horizon_return_after_ptc'],  # (horizon_price-price(1-trade_commision))/price
-            mode="markers",  # mode模式
-            name="horizon涨跌幅",
-            showlegend=False,
-            xhoverformat="%y/%m/%d_%H:00",
-            yhoverformat="R,.4f",
-            marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
-                        colorscale=['red', 'yellow', 'green'], showscale=True),
-            # hovertemplate='日期:%{x},价格: %{y:$.0f}',
-        )
-        layout = dict(
-            title=dict(text='事件型回测:', font=dict(
-                color='rgb(0,125,125)', family='SimHei', size=20)),
-            margin=dict(l=50, b=10, t=50, r=15, pad=0),
-            # xaxis=dict(title="交易日期", tickangle=-30, tickformat='%y/%m/%d_%H:'),  # 设置坐标轴的标签
-        )
-
-        fig = make_subplots(rows=4, cols=1, shared_xaxes=True, subplot_titles=[
-            '模型策略净资产收益', '收盘价及策略action', '头寸及策略action', '除交易费后的horizon预期收益率'], )
-        fig.add_traces(data=[trace5], rows=1, cols=1, )
-        fig.add_traces(data=[trace6], rows=2, cols=1, )
-        fig.add_traces(data=[trace7], rows=3, cols=1, )
-        fig.add_traces(data=[trace8], rows=4, cols=1, )
-        fig.update_xaxes(tickangle=-30, tickformat='%y/%m/%d_%H:', row=1, col=1, )
-        fig.update_yaxes(title="净资产", tickformat=',.0f', row=1, col=1)
-        fig.update_yaxes(title="收盘价及策略action", tickformat='', row=2, col=1)
-        fig.update_yaxes(title="股/币数", tickformat='', row=3, col=1)
-        fig.update_yaxes(title="horizon涨跌幅", tickformat='', row=4, col=1)
-        fig.update_layout(layout)
-        # fig.show()
-
-        # 获取回测数据最后一个交易日日期.
-        last_date = BacktestEvent.net_wealths.index[-1]
-        last_date = last_date.strftime('%y%m%dH%H')
-
-        saved_path = '{}gamma0{}_lag{}_{}_{}.html'.format(saved_path_prefix, str(int(gamma * 100)), lags,
-                                                          train_test_text_add, last_date)
-        fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)
-
-
     return BacktestEvent.net_wealths
 
 
 class FinRobotTuner(keras_tuner.RandomSearch):
-# class FinRobotTuner(keras_tuner.Hyperband):
+    # class FinRobotTuner(keras_tuner.Hyperband):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
@@ -343,18 +264,21 @@ class FinRobotTuner(keras_tuner.RandomSearch):
             DQN_DDQN_PPO="PPO",  # , "DDQN", "PPO"
             lags=hp.Choice('lags', [5, 7, 14, 20, 30]),
             gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.95, 0.97, 0.98]),
-            memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),
+            memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),  # PPO时,不需要
             batch_size=hp.Choice("batch_size", [16, 32]),
-            n_step=hp.Choice("n_step", [5, 10, 20, 32, 64, 128, 256]),
-            gae_lambda=hp.Choice("gae_lambda", [0.96, 0.97, 0.98]),
+            n_step=hp.Choice("n_step", [3, 5, 10, 20, 32, 64, 128]),
+            gae_lambda=hp.Choice("gae_lambda", [0.9, 0.94, 0.96, 0.97, 0.98]),
             gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
-            epochs=hp.Choice("epochs", [3, 5]),
-            )
+            epochs=hp.Choice("epochs", [3, 5, 8]),
+            actor_lr=hp.Choice("actor_lr", [1e-3, 5e-3, 1e-4, 5e-4, 1e-5]),
+            critic_lr=hp.Choice("critic_lr", [5e-3, 1e-4, 5e-04, 1e-5, 5e-5]),
+        )
         # Return a dictionary of metrics for KerasTuner to track.
         metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
         return metrics_dict
 
-def result_summary_DataFrame(path,best_num, save_path ):
+
+def result_summary_DataFrame(path, best_num, save_path):
     """
     以pandas DataFrame形式列出超参按照score从大到小排列,打印,并以json文件格式存盘
     :param
@@ -378,7 +302,8 @@ def result_summary_DataFrame(path,best_num, save_path ):
     sorted_trials = sorted(trials, key=lambda x: x['score'], reverse=True)
 
     # 将hyperparameters.values,首先获得字典,再转换成DataFrame:
-    search_results_dict = [sorted_trials[i]['hyperparameters']['values'] for i in range(min(best_num, len(sorted_trials)))]
+    search_results_dict = [sorted_trials[i]['hyperparameters']['values'] for i in
+                           range(min(best_num, len(sorted_trials)))]
     search_results_DF = pd.DataFrame(search_results_dict)
     # score再单独列出,放在最后DataFrame最后一列
     search_results_score = [sorted_trials[i]['score'] for i in range(min(best_num, len(sorted_trials)))]
@@ -388,6 +313,7 @@ def result_summary_DataFrame(path,best_num, save_path ):
         search_results_DF.to_json(save_path)
 
     return search_results_DF
+
 
 if __name__ == '__main__':
     # Random Search:
@@ -407,21 +333,19 @@ if __name__ == '__main__':
     search_result = tuner.results_summary()
     print(search_result)
 
-    path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
+    path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
     best_num = 10
-    save_path = '{}RandomSearch{}_PPO.json'.format(path,best_num,)
-    result_summary = result_summary_DataFrame(path,best_num=best_num,save_path=save_path)
+    save_path = '{}RandomSearch{}_PPO.json'.format(path, best_num, )
+    result_summary = result_summary_DataFrame(path, best_num=best_num, save_path=save_path)
 
     # result_summary.to_csv('{}RandomSearch{}.csv'.format(path,best_num))
     # read_path = '{}RandomSearch{}.json'.format(path,best_num)
     # result_summary = pd.read_json(read_path,)
 
-
-
     # best_hp = tuner.get_best_hyperparameters()[0]
-    best_hp= result_summary.iloc[0] # 获得最佳的第一行;
-    best_hp = best_hp.drop('score') # 去除'score'列,因为score不属于FinRobot模型的参数;
-    best_hp = best_hp.to_dict() # 转换成字典;
+    best_hp = result_summary.iloc[0]  # 获得最佳的第一行;
+    best_hp = best_hp.drop('score')  # 去除'score'列,因为score不属于FinRobot模型的参数;
+    best_hp = best_hp.to_dict()  # 转换成字典;
     print(best_hp)
     # 使用best_hp来训练,训练次数为FinRobotSearchSpace中定义的DQN_episode,DDQN_episode,updates
     # FinRobotSearchSpace(**best_hp, DQN_DDQN_PPO='PPO',)
