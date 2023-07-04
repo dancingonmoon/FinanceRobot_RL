@@ -82,9 +82,9 @@ def FinRobotSearchSpace(
     :return: 验证数据,全部经模型策略后的total reward
     """
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
     EndDate = "2023-09-10"
@@ -247,7 +247,7 @@ def FinRobotSearchSpace(
         action_strategy_mode = 'tfp.distribution'
 
     BacktestEvent = BacktestingEventV2(env_test, model, initial_amount=1000, percent_commission=0.001,
-                                       fixed_commission=0., verbose=True, MinUnit_1Position=-8, )
+                                       fixed_commission=0., verbose=False, MinUnit_1Position=-8, )
     BacktestEvent.backtest_strategy_WO_RM(action_strategy_mode=action_strategy_mode)
 
     return BacktestEvent.net_wealths
@@ -258,18 +258,18 @@ class FinRobotTuner(keras_tuner.RandomSearch):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
-            horizon=hp.Int('horizon', min_value=2, max_value=15, step=2),
+            horizon=hp.Int('horizon', min_value=1, max_value=10, step=1),
             lookback=hp.Choice('lookback', [225, 365, 730]),
             MarketFactor=hp.Boolean('MarketFactor'),
             DQN_DDQN_PPO="PPO",  # , "DDQN", "PPO"
-            lags=hp.Choice('lags', [5, 7, 14, 20, 30]),
-            gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.95, 0.97, 0.98]),
+            lags=hp.Choice('lags', [3, 5, 7, 14, 20]),
+            gamma=hp.Choice('gamma', [.45,0.5, 0.6, 0.7, 0.8,.85, 0.9, 0.92, 0.95, 0.98]),
             memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),  # PPO时,不需要
             batch_size=hp.Choice("batch_size", [16, 32]),
-            n_step=hp.Choice("n_step", [3, 5, 10, 20, 32, 64, 128]),
-            gae_lambda=hp.Choice("gae_lambda", [0.9, 0.94, 0.96, 0.97, 0.98]),
-            gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
-            epochs=hp.Choice("epochs", [3, 5, 8]),
+            n_step=hp.Choice("n_step", [1, 3, 5, 10, 20, 32, 64, 128]),
+            gae_lambda=hp.Choice("gae_lambda", [0.8,0.85,0.9,.92, 0.94, 0.96, 0.98]),
+            gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
+            epochs=hp.Choice("epochs", [3, 5]),
             actor_lr=hp.Choice("actor_lr", [1e-3, 5e-3, 1e-4, 5e-4, 1e-5]),
             critic_lr=hp.Choice("critic_lr", [5e-3, 1e-4, 5e-04, 1e-5, 5e-5]),
         )
@@ -333,7 +333,7 @@ if __name__ == '__main__':
     search_result = tuner.results_summary()
     print(search_result)
 
-    path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/keras_tuner/'
+    path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
     best_num = 10
     save_path = '{}RandomSearch{}_PPO.json'.format(path, best_num, )
     result_summary = result_summary_DataFrame(path, best_num=best_num, save_path=save_path)
