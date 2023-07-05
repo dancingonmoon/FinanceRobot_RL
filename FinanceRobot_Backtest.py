@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
-    EndDate = "2023-06-10"
+    EndDate = "2023-09-10"
     BTC_json = "BTC_h12.json"
     BinanceBTC_json = "BinanceBTC_h12.json"
 
@@ -55,12 +55,12 @@ if __name__ == '__main__':
 
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
-    horizon = 14 # best for DDQN 14; PPO 4
-    lookback = 225 #best for DDQN 225; PPO 365;
-    MarketFactor = True #best for DDQN True; PPO False
+    horizon = 2 # best for DDQN 14; PPO 2
+    lookback = 225 #best for DDQN 225; PPO 225;
+    MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
+                                                    FromWeb=True, close_colName='close', lags=0, window=20, horizon=horizon,
                                                     interval='12h', MarketFactor=MarketFactor, weekdays=7)
     if MarketFactor:
         normalize_columns = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     #             close_colName,
     #         ]
     # split 训练数据,验证数据:
-    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
+    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-06-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
     Test_flag = True
@@ -86,12 +86,9 @@ if __name__ == '__main__':
     Pretrained_model = True
 
     DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
-    # DDQN_flag = True
-    # DQN_flag = False
-    # PPO_flag = False
-    lags = 7 # best for DDQN 7; PPO 7
+    lags = 5 # best for DDQN 7; PPO 5
     action_n = 3
-    gamma = 0.8 # best for DDQN 0.98; PPO 0.8
+    gamma = 0.5 # best for DDQN 0.98; PPO 0.5
     memory_size = 512
     replay_batch_size = 256
     batch_size = 16 # best for DDQN 16; PPO 16
@@ -103,15 +100,17 @@ if __name__ == '__main__':
 
     # PPO部分
     n_worker = 8
-    n_step = 5
+    n_step = 3
     mini_batch_size = int(n_worker*n_step/4)  # int(n_worker * n_step / 4)
-    gae_lambda = 0.96
-    gradient_clip_norm = .5
-    epochs = 5
-    updates = 2000
+    gae_lambda = 0.9
+    gradient_clip_norm = .2
+    epochs = 3
+    actor_lr= 1e-3
+    critic_lr= 5e-3
+    updates = 10000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230703-1"
+    PPO_saved_model_filename = "230705-4"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
@@ -218,9 +217,8 @@ if __name__ == '__main__':
             for i in range(n_worker):
                 worker = Worker(dataset=iter_dataset_train, dataset_type='ndarray_iterator', action_dim=action_n)
                 workers.append(worker)
-            FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=1e-4, critic_lr=5e-04,
-                                  gae_lambda=gae_lambda,
-                                  gamma=gamma,
+            FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=actor_lr, critic_lr=critic_lr,
+                                  gae_lambda=gae_lambda,gamma=gamma,
                                   c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step, epochs=epochs,
                                   mini_batch_size=mini_batch_size)
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
@@ -341,6 +339,6 @@ if __name__ == '__main__':
     saved_path = '{}gamma0{}_lag{}_{}_{}.html'.format(saved_path_prefix, str(int(gamma * 100)), lags,
                                                       train_test_text_add, last_date)
     # 将BacktestEvent.net_wealths (pandas) 存盘:
-    BacktestEvent.net_wealths.to_json(f'{saved_path_prefix}_netwealths_{train_test_text_add}_{last_date}.json')
+    # BacktestEvent.net_wealths.to_json(f'{saved_path_prefix}_netwealths_{train_test_text_add}_{last_date}.json')
 
     fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)

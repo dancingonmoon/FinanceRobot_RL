@@ -317,26 +317,27 @@ def result_summary_DataFrame(path, best_num, save_path):
 
 if __name__ == '__main__':
     # Random Search:
-    tuner = FinRobotTuner(
-        # Objective is one of the keys.
-        objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=50, overwrite=True, directory="saved_model", project_name="keras_tuner",
-    )
+    # tuner = FinRobotTuner(
+    #     # Objective is one of the keys.
+    #     objective=keras_tuner.Objective("net_wealth", "max"),
+    #     max_trials=50, overwrite=True, directory="saved_model", project_name="keras_tuner",
+    # )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
     #     # Objective is one of the keys.
     #     objective=keras_tuner.Objective("net_wealth", "max"),
     #     max_epochs=6, overwrite=True, directory="saved_model", project_name="keras_tuner",
     # )
-    tuner.search()
+    # tuner.search()
     # Retraining the model
-    search_result = tuner.results_summary()
-    print(search_result)
+    # search_result = tuner.results_summary()
+    # print(search_result)
 
-    path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
+    save_path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
+    read_path = f'{save_path}keras_tuner'
     best_num = 10
-    save_path = '{}RandomSearch{}_PPO.json'.format(path, best_num, )
-    result_summary = result_summary_DataFrame(path, best_num=best_num, save_path=save_path)
+    save_path = '{}RandomSearch{}_PPO.json'.format(save_path, best_num, )
+    result_summary = result_summary_DataFrame(read_path, best_num=best_num, save_path=save_path)
 
     # result_summary.to_csv('{}RandomSearch{}.csv'.format(path,best_num))
     # read_path = '{}RandomSearch{}.json'.format(path,best_num)
@@ -346,6 +347,7 @@ if __name__ == '__main__':
     best_hp = result_summary.iloc[0]  # 获得最佳的第一行;
     best_hp = best_hp.drop('score')  # 去除'score'列,因为score不属于FinRobot模型的参数;
     best_hp = best_hp.to_dict()  # 转换成字典;
-    print(best_hp)
+    for key, value in best_hp.items():
+        print(f"{key}={value}")
     # 使用best_hp来训练,训练次数为FinRobotSearchSpace中定义的DQN_episode,DDQN_episode,updates
     # FinRobotSearchSpace(**best_hp, DQN_DDQN_PPO='PPO',)
