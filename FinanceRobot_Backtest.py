@@ -60,7 +60,7 @@ if __name__ == '__main__':
     MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=True, close_colName='close', lags=0, window=20, horizon=horizon,
+                                                    FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
                                                     interval='12h', MarketFactor=MarketFactor, weekdays=7)
     if MarketFactor:
         normalize_columns = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     #########Arguments Optimization#############
     Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
-    Pretrained_model = True
+    Train_with_Pretrained_model = False
 
     DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
     lags = 5 # best for DDQN 7; PPO 5
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     updates = 10000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230705-4"
+    PPO_saved_model_filename = "230707-7"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
@@ -222,7 +222,7 @@ if __name__ == '__main__':
                                   c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step, epochs=epochs,
                                   mini_batch_size=mini_batch_size)
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
-            if Pretrained_model: # 调用预训练模型
+            if Train_with_Pretrained_model: # 调用预训练模型
                 ckpt = tf.train.Checkpoint(actormodel=Actor, criticmodel=Critic)
                 saved_path = saved_path_prefix + PPO_saved_model_filename
                 ckpt.restore(
