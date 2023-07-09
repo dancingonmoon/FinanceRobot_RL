@@ -60,7 +60,7 @@ if __name__ == '__main__':
     MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
+                                                    FromWeb=True, close_colName='close', lags=0, window=20, horizon=horizon,
                                                     interval='12h', MarketFactor=MarketFactor, weekdays=7)
     if MarketFactor:
         normalize_columns = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     updates = 10000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230707-7"
+    PPO_saved_model_filename = "Archive230707"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
