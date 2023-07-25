@@ -131,6 +131,8 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags)])  # (lags, N, features)
     data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
                      lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
+    # 值得注意的是,以上的for lag in range(lags)使得:
+    # (N,lags,features)里面的lags的时刻顺序是倒序的,即(N,0,features)是最后一个时刻的features
 
     date_list = np.expand_dims(data.index.astype('string')[lags - 1:],axis=-1)
 
@@ -494,7 +496,10 @@ class Finance_Environment_V2:
         if self.dataset_type == 'ndarray':
             date, _, non_state = self.dataset  # ( (N,),(N,lags,state_features),(N,lags,non_state_features))
             # date = date[:, -1]  # (N,)->(N,)
-            non_state = non_state[:, -1, :]  # (N,lags,non_state_features) ->(N,non_state_features)
+            # non_state = non_state[:, -1, :]  # (N,lags,non_state_features) ->(N,non_state_features)
+            non_state = non_state[:, 0, :]  # (N,lags,non_state_features) ->(N,non_state_features)
+            # 注: 这里取的lags=-1时,对应的时刻为最后的时刻倒数lags;当lags=0时,对应的时刻是最后一个时刻;
+            # 这个是由于ndarray_Generator函数生成dataset的过程,使用了for lag in lags列表表达式;
             date = np.array(date, dtype=np.datetime64)
             date = np.array(date,dtype=object).reshape(-1,1) # 先转换成object对象,才能concatenate,再增加一个维度;
             log_return = np.log(
@@ -513,7 +518,7 @@ class Finance_Environment_V2:
                 date = date[0, -1]
                 if isinstance(date, tf.Tensor):
                     date = date.numpy()  # tensor->字节字符串->文本字符串.
-                non_state = non_state[0, -1, :]
+                non_state = non_state[0, 0, :]  # 这里取lags=0,获得最后时刻的feature;如果lags=-1,则获得的是倒数lags个时刻
                 dates[bar] = np.datetime64(date)
                 datas[bar, 0] = np.log(
                     non_state[horizon_price_column] / non_state[close_price_column])  # 计算horizon_log_return
