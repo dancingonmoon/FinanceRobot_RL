@@ -579,7 +579,7 @@ class Finance_Environment_V2:
         """
 
         # non_state: (N,lags,non_state_features), 包括未曾标准化/归一化的,'horizon_price','close';
-        horizon_price, current_price = self.non_state[0, -1, :]
+        horizon_price, current_price = self.non_state[0, 0, :] # lags=0时,为最后时刻;lags=-1时,为倒数lags个时刻;
         # trading_cost = self.trading_commission * np.log(current_price)
         info = {'bar': self.bar,
                 'price': current_price,
