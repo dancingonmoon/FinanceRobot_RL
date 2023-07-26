@@ -332,7 +332,7 @@ if __name__ == '__main__':
     search_result = tuner.results_summary()
     print(search_result)
 
-    save_path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
+    save_path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
     read_path = f'{save_path}keras_tuner'
     best_num = 10
     save_path = '{}RandomSearch{}_PPO.json'.format(save_path, best_num, )
