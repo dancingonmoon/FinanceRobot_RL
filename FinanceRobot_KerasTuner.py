@@ -82,9 +82,9 @@ def FinRobotSearchSpace(
     :return: 验证数据,全部经模型策略后的total reward
     """
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
     EndDate = "2023-09-10"
@@ -113,7 +113,7 @@ def FinRobotSearchSpace(
     #             close_colName,
     #         ]
     # split 训练数据,验证数据:
-    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
+    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
     Pretrained_model = False
@@ -264,7 +264,7 @@ class FinRobotTuner(keras_tuner.RandomSearch):
             DQN_DDQN_PPO="PPO",  # , "DDQN", "PPO"
             lags=hp.Choice('lags', [3, 5, 7, 14, 20]),
             gamma=hp.Choice('gamma', [.45,0.5, 0.6, 0.7, 0.8,.85, 0.9, 0.92, 0.95, 0.98]),
-            memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),  # PPO时,不需要
+            # memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),  # PPO时,不需要
             batch_size=hp.Choice("batch_size", [16, 32]),
             n_step=hp.Choice("n_step", [1, 3, 5, 10, 20, 32, 64, 128]),
             gae_lambda=hp.Choice("gae_lambda", [0.8,0.85,0.9,.92, 0.94, 0.96, 0.98]),
@@ -317,21 +317,20 @@ def result_summary_DataFrame(path, best_num, save_path):
 
 if __name__ == '__main__':
     # Random Search:
-    # tuner = FinRobotTuner(
-    #     # Objective is one of the keys.
-    #     objective=keras_tuner.Objective("net_wealth", "max"),
-    #     max_trials=50, overwrite=True, directory="saved_model", project_name="keras_tuner",
-    # )
+    tuner = FinRobotTuner(
+        # Objective is one of the keys.
+        objective=keras_tuner.Objective("net_wealth", "max"),
+        max_trials=50, overwrite=True, directory="saved_model", project_name="keras_tuner",
+    )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
     #     # Objective is one of the keys.
     #     objective=keras_tuner.Objective("net_wealth", "max"),
     #     max_epochs=6, overwrite=True, directory="saved_model", project_name="keras_tuner",
     # )
-    # tuner.search()
-    # Retraining the model
-    # search_result = tuner.results_summary()
-    # print(search_result)
+    tuner.search()
+    search_result = tuner.results_summary()
+    print(search_result)
 
     save_path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
     read_path = f'{save_path}keras_tuner'
@@ -339,9 +338,9 @@ if __name__ == '__main__':
     save_path = '{}RandomSearch{}_PPO.json'.format(save_path, best_num, )
     result_summary = result_summary_DataFrame(read_path, best_num=best_num, save_path=save_path)
 
-    # result_summary.to_csv('{}RandomSearch{}.csv'.format(path,best_num))
+    # result_summary.to_csv('{}RandomSearch{}.csv'.format(save_path,best_num))
     # read_path = '{}RandomSearch{}.json'.format(path,best_num)
-    # result_summary = pd.read_json(read_path,)
+    # result_summary = pd.read_json(save_path,)
 
     # best_hp = tuner.get_best_hyperparameters()[0]
     best_hp = result_summary.iloc[0]  # 获得最佳的第一行;
@@ -349,5 +348,6 @@ if __name__ == '__main__':
     best_hp = best_hp.to_dict()  # 转换成字典;
     for key, value in best_hp.items():
         print(f"{key}={value}")
+    # Retraining the model
     # 使用best_hp来训练,训练次数为FinRobotSearchSpace中定义的DQN_episode,DDQN_episode,updates
     # FinRobotSearchSpace(**best_hp, DQN_DDQN_PPO='PPO',)

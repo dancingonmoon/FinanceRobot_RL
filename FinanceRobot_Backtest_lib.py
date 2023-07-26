@@ -103,7 +103,7 @@ def Dataset_Generator(data, data_columns_state=None, data_columns_non_state=None
 
 def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None, lags=20):
     """
-    从交易数据Dataframe,生成numpy dataset; 之所以在dataset_Generator函数(从Dataframe到tensorflow的Dataset),
+    从交易数据Dataframe,生成numpy dataset; 之所以在dataset_Generator函数(从Dataframe到tensorflow的Dataset)之外再定义ndarray_G,
     是因为multiProcessing库中,多进程时Dataset的environment不能在多进程中被序列化,需要将environment改写成numpy的data;
     args:
         data: Dataframe格式的数据(N,features);
