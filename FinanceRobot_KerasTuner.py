@@ -82,9 +82,9 @@ def FinRobotSearchSpace(
     :return: 验证数据,全部经模型策略后的total reward
     """
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     URL = 'https://data.binance.com'
     StartDate = "2023-1-20"
     EndDate = "2023-09-10"
@@ -113,7 +113,7 @@ def FinRobotSearchSpace(
     #             close_colName,
     #         ]
     # split 训练数据,验证数据:
-    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
+    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
     Pretrained_model = False
@@ -136,7 +136,7 @@ def FinRobotSearchSpace(
     gae_lambda = gae_lambda
     gradient_clip_norm = gradient_clip_norm
     epochs = epochs
-    updates = 1200
+    updates = 2000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
     PPO_saved_model_filename = '230703-10'
 
@@ -258,20 +258,20 @@ class FinRobotTuner(keras_tuner.RandomSearch):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
-            horizon=hp.Int('horizon', min_value=1, max_value=10, step=1),
+            horizon=hp.Int('horizon', min_value=1, max_value=7, step=1),
             lookback=hp.Choice('lookback', [225, 365, 730]),
             MarketFactor=hp.Boolean('MarketFactor'),
             DQN_DDQN_PPO="PPO",  # , "DDQN", "PPO"
-            lags=hp.Choice('lags', [3, 5, 7, 14, 20]),
-            gamma=hp.Choice('gamma', [.45,0.5, 0.6, 0.7, 0.8,.85, 0.9, 0.92, 0.95, 0.98]),
+            lags=hp.Choice('lags', [3, 5, 7, 8, 10, 14, 20]),
+            gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, .85, 0.9, 0.92, 0.95, 0.98]),
             # memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),  # PPO时,不需要
             batch_size=hp.Choice("batch_size", [16, 32]),
-            n_step=hp.Choice("n_step", [1, 3, 5, 10, 20, 32, 64, 128]),
-            gae_lambda=hp.Choice("gae_lambda", [0.8,0.85,0.9,.92, 0.94, 0.96, 0.98]),
+            n_step=hp.Choice("n_step", [1, 3, 5, 7, 10, 20, 32, 64]),
+            gae_lambda=hp.Choice("gae_lambda", [0.8, 0.85, 0.9, .92, 0.94, 0.96, 0.98, 0.99]),
             gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
             epochs=hp.Choice("epochs", [3, 5]),
-            actor_lr=hp.Choice("actor_lr", [1e-3, 5e-3, 1e-4, 5e-4, 1e-5]),
-            critic_lr=hp.Choice("critic_lr", [5e-3, 1e-4, 5e-04, 1e-5, 5e-5]),
+            actor_lr=hp.Choice("actor_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
+            critic_lr=hp.Choice("critic_lr", [1e-3, 5e-4, 1e-04, 5e-5, 1e-5]),
         )
         # Return a dictionary of metrics for KerasTuner to track.
         metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
@@ -320,7 +320,7 @@ if __name__ == '__main__':
     tuner = FinRobotTuner(
         # Objective is one of the keys.
         objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=50, overwrite=True, directory="saved_model", project_name="keras_tuner",
+        max_trials=60, overwrite=True, directory="saved_model", project_name="keras_tuner",
     )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
@@ -332,7 +332,7 @@ if __name__ == '__main__':
     search_result = tuner.results_summary()
     print(search_result)
 
-    save_path = r'e:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
+    save_path = r'l:/Python_WorkSpace/量化交易/FinanceRobot/saved_model/'
     read_path = f'{save_path}keras_tuner'
     best_num = 10
     save_path = '{}RandomSearch{}_PPO.json'.format(save_path, best_num, )
