@@ -142,6 +142,12 @@ if __name__ == '__main__':
             saved_path_prefix = 'saved_model/BTC_DDQN_'
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
             if not Test_flag:
+                if Train_with_Pretrained_model:  # 调出之前训练的模型,接续训练:
+                    ckpt = tf.train.Checkpoint(model=Q)
+                    saved_path = saved_path_prefix + DDQN_saved_model_filename
+                    ckpt.restore(
+                        saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
+
                 # DDQN 训练过程:
                 FinR_Agent_DDQN.learn(episodes=DDQN_episode)
                 print(f"{'-' * 40}finished{'-' * 40}")
@@ -166,6 +172,12 @@ if __name__ == '__main__':
             saved_path_prefix = 'saved_model/BTC_DQN_'
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
             if not Test_flag:
+                if Train_with_Pretrained_model:  # 调出之前训练的模型,接续训练:
+                    ckpt = tf.train.Checkpoint(model=Q)
+                    saved_path = saved_path_prefix + DDQN_saved_model_filename
+                    ckpt.restore(
+                        saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
+
                 # DDQN 训练过程:
                 FinR_Agent_DQN.learn(episodes=DQN_episode)
                 print(f"{'-' * 40}finished{'-' * 40}")
