@@ -44,6 +44,7 @@ def FinRobotSearchSpace(
         lags=14,
         gamma=0.5,
         memory_size=2000,
+        DQN_lr=5e-4,
         batch_size=64,
         n_step=128,
         mini_batch_size=32,
@@ -124,6 +125,7 @@ def FinRobotSearchSpace(
     memory_size = memory_size
     replay_batch_size = int(memory_size / 2)
     batch_size = batch_size
+    DQN_lr = DQN_lr
     DQN_episode = 80
     DDQN_episode = 80
 
@@ -162,10 +164,10 @@ def FinRobotSearchSpace(
         Q = Decompose_FF_Linear(seq_len=lags, in_features=obs_n, out_features=action_n, )
         Q_target = deepcopy(Q)
         # actions = model(state) # (N,1, action_n)
-        FinR_Agent_DQN = FinRobotAgentDQN(Q, Q_target, gamma=gamma, learning_rate=5e-4, learn_env=env,
+        FinR_Agent_DQN = FinRobotAgentDQN(Q, Q_target, gamma=gamma, learning_rate=DQN_lr, learn_env=env,
                                           memory_size=memory_size,
                                           replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
-        FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=gamma, learning_rate=5e-4, learn_env=env,
+        FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=gamma, learning_rate=DQN_lr, learn_env=env,
                                             memory_size=memory_size,
                                             replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
         # 生成FinR_Agent 训练,存盘,调出训练模型
@@ -258,20 +260,21 @@ class FinRobotTuner(keras_tuner.RandomSearch):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
-            horizon=hp.Int('horizon', min_value=1, max_value=7, step=1),
+            horizon=hp.Int('horizon', min_value=1, max_value=15, step=1),
             lookback=hp.Choice('lookback', [225, 365, 730]),
             MarketFactor=hp.Boolean('MarketFactor'),
-            DQN_DDQN_PPO="PPO",  # , "DDQN", "PPO"
+            DQN_DDQN_PPO="DDQN",  # , "DDQN", "PPO"
             lags=hp.Choice('lags', [3, 5, 7, 8, 10, 14, 20]),
             gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, .85, 0.9, 0.92, 0.95, 0.98]),
-            # memory_size=hp.Choice("memory_size", [32, 64, 256, 512, 1024, 2000]),  # PPO时,不需要
-            batch_size=hp.Choice("batch_size", [16, 32]),
-            n_step=hp.Choice("n_step", [1, 3, 5, 7, 10, 20, 32, 64]),
-            gae_lambda=hp.Choice("gae_lambda", [0.8, 0.85, 0.9, .92, 0.94, 0.96, 0.98, 0.99]),
+            DQN_lr=hp.Choice("DQN_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
+            memory_size=hp.Choice("memory_size", [64, 256, 512, 1024, 2000]),  # PPO时,不需要
+            batch_size=hp.Choice("batch_size", [16, 32, 64]),
+            # n_step=hp.Choice("n_step", [1, 3, 5, 7, 10, 20, 32, 64]),
+            # gae_lambda=hp.Choice("gae_lambda", [0.8, 0.85, 0.9, .92, 0.94, 0.96, 0.98, 0.99]),
             gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
-            epochs=hp.Choice("epochs", [3, 5]),
-            actor_lr=hp.Choice("actor_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
-            critic_lr=hp.Choice("critic_lr", [1e-3, 5e-4, 1e-04, 5e-5, 1e-5]),
+            # epochs=hp.Choice("epochs", [3, 5]),
+            # actor_lr=hp.Choice("actor_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
+            # critic_lr=hp.Choice("critic_lr", [1e-3, 5e-4, 1e-04, 5e-5, 1e-5]),
         )
         # Return a dictionary of metrics for KerasTuner to track.
         metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
