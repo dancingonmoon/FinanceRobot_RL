@@ -41,9 +41,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-4-20"
@@ -55,9 +55,9 @@ if __name__ == '__main__':
 
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
-    horizon = 6 # best for DDQN 14; PPO 2
-    lookback = 365 #best for DDQN 225; PPO 225;
-    MarketFactor = True #best for DDQN True; PPO False
+    horizon = 4 # best for DDQN 14; PPO 2
+    lookback = 225#best for DDQN 225; PPO 225;
+    MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
                                                     FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
@@ -81,29 +81,30 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = True
+    Test_flag = False
     train_test_text_add = 'test' if Test_flag else 'train'
     Train_with_Pretrained_model = False
 
-    DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
+    DQN_DDQN_PPO = 'DDQN' # 或者"DQN", "PPO"
     lags = 10 # best for DDQN 7; PPO 5
     action_n = 3
-    gamma = 0.98 # best for DDQN 0.98; PPO 0.5
-    memory_size = 512
-    replay_batch_size = 256
-    batch_size = 16 # best for DDQN 16; PPO 16
+    gamma = 0.5 # best for DDQN 0.98; PPO 0.5
+    memory_size = 256
+    replay_batch_size = int(memory_size/2)
+    batch_size = 32 # best for DDQN 16; PPO 16
+    DQN_lr = 1e-5
     DQN_episode = 80
     DDQN_episode = 80
 
     DQN_saved_model_filename = "230610-51"
-    DDQN_saved_model_filename = "230701-39"
+    DDQN_saved_model_filename = "230730-46"
 
     # PPO部分
     n_worker = 8
     n_step = 7
     mini_batch_size = int(n_worker*n_step/4)  # int(n_worker * n_step / 4)
     gae_lambda = 0.94
-    gradient_clip_norm = .5
+    gradient_clip_norm = 10.
     epochs = 3
     actor_lr= 1e-3
     critic_lr= 1e-3
@@ -131,10 +132,10 @@ if __name__ == '__main__':
         Q = Decompose_FF_Linear(seq_len=lags, in_features=obs_n, out_features=action_n, )
         Q_target = deepcopy(Q)
         # actions = model(state) # (N,1, action_n)
-        FinR_Agent_DQN = FinRobotAgentDQN(Q, Q_target, gamma=gamma, learning_rate=5e-4, learn_env=env,
+        FinR_Agent_DQN = FinRobotAgentDQN(Q, Q_target, gamma=gamma, learning_rate=DQN_lr, learn_env=env,
                                           memory_size=memory_size,
                                           replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
-        FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=gamma, learning_rate=5e-4, learn_env=env,
+        FinR_Agent_DDQN = FinRobotAgentDDQN(Q, Q_target, gamma=gamma, learning_rate=DQN_lr, learn_env=env,
                                             memory_size=memory_size,
                                             replay_batch_size=replay_batch_size, fit_batch_size=batch_size, )
         # 生成FinR_Agent 训练,存盘,调出训练模型

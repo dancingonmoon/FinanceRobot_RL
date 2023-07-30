@@ -124,11 +124,13 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_state = data[data.columns[data_columns_state]]
     data_non_state = data[data.columns[data_columns_non_state]]
 
-    data_state = np.array([data_state.shift(lag) for lag in range(lags)])  # (lags, N, features)
+    data_state = np.array([data_state.shift(lag) for lag in range(lags,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
+    # data_state = np.array([data_state.shift(lag) for lag in range(lags)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     data_state = np.transpose(data_state, axes=[1, 0, 2])[
                  lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
 
-    data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags)])  # (lags, N, features)
+    data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
+    # data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
                      lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
     # 值得注意的是,以上的for lag in range(lags)使得:
@@ -496,10 +498,11 @@ class Finance_Environment_V2:
         if self.dataset_type == 'ndarray':
             date, _, non_state = self.dataset  # ( (N,),(N,lags,state_features),(N,lags,non_state_features))
             # date = date[:, -1]  # (N,)->(N,)
-            # non_state = non_state[:, -1, :]  # (N,lags,non_state_features) ->(N,non_state_features)
-            non_state = non_state[:, 0, :]  # (N,lags,non_state_features) ->(N,non_state_features)
+            non_state = non_state[:, -1, :]  # (N,lags,non_state_features) ->(N,non_state_features)
+            # 对于DDQN/DQN,其dataset_type = 'tensorflow_Dataset',生成dataset时,lags维度的排序是按照时间顺排,即lag=0为当前时刻倒数lags个时刻;而lag=-1时,为最后一个时刻;
+            # 对于PPO而言,其dataset_type = 'ndarray_iterator',生成ndarry时,是用列表表达式for lag in range(lags, -1, -1)倒序,这样lags维度也是按照时间顺序排列;
             # 注: 这里取的lags=-1时,对应的时刻为最后的时刻倒数lags;当lags=0时,对应的时刻是最后一个时刻;
-            # 这个是由于ndarray_Generator函数生成dataset的过程,使用了for lag in lags列表表达式;
+            # 这个是由于ndarray_Generator函数生成dataset的过程,使用了for lag in lags列表表达式; 注: 7/29日更改为for lag in range(lags,-1,-1)
             date = np.array(date, dtype=np.datetime64)
             date = np.array(date,dtype=object).reshape(-1,1) # 先转换成object对象,才能concatenate,再增加一个维度;
             log_return = np.log(
@@ -518,7 +521,9 @@ class Finance_Environment_V2:
                 date = date[0, -1]
                 if isinstance(date, tf.Tensor):
                     date = date.numpy()  # tensor->字节字符串->文本字符串.
-                non_state = non_state[0, 0, :]  # 这里取lags=0,获得最后时刻的feature;如果lags=-1,则获得的是倒数lags个时刻
+                non_state = non_state[0, -1, :]  # 这里取lags=-1,获得最后时刻的feature;如果lags=0,则获得的是倒数lags个时刻;
+                # 对于DDQN/DQN,其dataset_type = 'tensorflow_Dataset',生成dataset时,lags维度的排序是按照时间顺排,即lag=0为当前时刻倒数lags个时刻;而lag=-1时,为最后一个时刻;
+                # 对于PPO而言,其dataset_type = 'ndarray_iterator',生成ndarry时,是用列表表达式for lag in range(lags, -1, -1)倒序,这样lags维度也是按照时间顺序排列;
                 dates[bar] = np.datetime64(date)
                 datas[bar, 0] = np.log(
                     non_state[horizon_price_column] / non_state[close_price_column])  # 计算horizon_log_return
@@ -579,7 +584,9 @@ class Finance_Environment_V2:
         """
 
         # non_state: (N,lags,non_state_features), 包括未曾标准化/归一化的,'horizon_price','close';
-        horizon_price, current_price = self.non_state[0, 0, :] # lags=0时,为最后时刻;lags=-1时,为倒数lags个时刻;
+        horizon_price, current_price = self.non_state[0, -1, :] # lags=-1时,为最后时刻;lags=0时,为倒数lags个时刻;
+        # 对于DDQN/DQN,其dataset_type = 'tensorflow_Dataset',生成dataset时,lags维度的排序是按照时间顺排,即lag=0为当前时刻倒数lags个时刻;而lag=-1时,为最后一个时刻;
+        # 对于PPO而言,其dataset_type = 'ndarray_iterator',生成ndarry时,是用列表表达式for lag in range(lags, -1, -1)倒序,这样lags维度也是按照时间顺序排列;
         # trading_cost = self.trading_commission * np.log(current_price)
         info = {'bar': self.bar,
                 'price': current_price,

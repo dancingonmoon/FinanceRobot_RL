@@ -127,7 +127,7 @@ def FinRobotSearchSpace(
     batch_size = batch_size
     DQN_lr = DQN_lr
     DQN_episode = 80
-    DDQN_episode = 80
+    DDQN_episode = 5
 
     DQN_saved_model_filename = "230610-51"
     DDQN_saved_model_filename = "230630-32"
@@ -261,7 +261,7 @@ class FinRobotTuner(keras_tuner.RandomSearch):
         hp = trial.hyperparameters
         Backtest_wealth = FinRobotSearchSpace(
             horizon=hp.Int('horizon', min_value=1, max_value=15, step=1),
-            lookback=hp.Choice('lookback', [225, 365, 730]),
+            lookback=hp.Choice('lookback', [180, 225, 365, 730]),
             MarketFactor=hp.Boolean('MarketFactor'),
             DQN_DDQN_PPO="DDQN",  # , "DDQN", "PPO"
             lags=hp.Choice('lags', [3, 5, 7, 8, 10, 14, 20]),
