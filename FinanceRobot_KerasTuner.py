@@ -131,6 +131,7 @@ def FinRobotSearchSpace(
 
     DQN_saved_model_filename = "230610-51"
     DDQN_saved_model_filename = "230630-32"
+
     # PPO部分
     n_worker = 8
     n_step = n_step
@@ -263,18 +264,18 @@ class FinRobotTuner(keras_tuner.RandomSearch):
             horizon=hp.Int('horizon', min_value=1, max_value=15, step=1),
             lookback=hp.Choice('lookback', [180, 225, 365, 730]),
             MarketFactor=hp.Boolean('MarketFactor'),
-            DQN_DDQN_PPO="DDQN",  # , "DDQN", "PPO"
+            DQN_DDQN_PPO="PPO",  # , "DDQN", "PPO"
             lags=hp.Choice('lags', [3, 5, 7, 8, 10, 14, 20]),
             gamma=hp.Choice('gamma', [0.5, 0.6, 0.7, 0.8, .85, 0.9, 0.92, 0.95, 0.98]),
-            DQN_lr=hp.Choice("DQN_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
-            memory_size=hp.Choice("memory_size", [64, 256, 512, 1024, 2000]),  # PPO时,不需要
+            # DQN_lr=hp.Choice("DQN_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]), # PPO时,不需要
+            # memory_size=hp.Choice("memory_size", [64, 256, 512, 1024, 2000]),  # PPO时,不需要
             batch_size=hp.Choice("batch_size", [16, 32, 64]),
-            # n_step=hp.Choice("n_step", [1, 3, 5, 7, 10, 20, 32, 64]),
-            # gae_lambda=hp.Choice("gae_lambda", [0.8, 0.85, 0.9, .92, 0.94, 0.96, 0.98, 0.99]),
+            n_step=hp.Choice("n_step", [1, 3, 5, 7, 10, 20, 32, 64]),
+            gae_lambda=hp.Choice("gae_lambda", [0.8, 0.85, 0.9, .92, 0.94, 0.96, 0.98, 0.99]),
             gradient_clip_norm=hp.Choice("gradient_clip_norm", [0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]),
-            # epochs=hp.Choice("epochs", [3, 5]),
-            # actor_lr=hp.Choice("actor_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
-            # critic_lr=hp.Choice("critic_lr", [1e-3, 5e-4, 1e-04, 5e-5, 1e-5]),
+            epochs=hp.Choice("epochs", [3, 5]),
+            actor_lr=hp.Choice("actor_lr", [1e-3, 5e-4, 1e-4, 5e-5, 1e-5]),
+            critic_lr=hp.Choice("critic_lr", [1e-3, 5e-4, 1e-04, 5e-5, 1e-5]),
         )
         # Return a dictionary of metrics for KerasTuner to track.
         metrics_dict = {"net_wealth": Backtest_wealth["net_wealth"][-1]}  # 取最终的net_wealth
@@ -323,7 +324,7 @@ if __name__ == '__main__':
     tuner = FinRobotTuner(
         # Objective is one of the keys.
         objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=60, overwrite=True, directory="saved_model", project_name="keras_tuner",
+        max_trials=70, overwrite=True, directory="saved_model", project_name="keras_tuner",
     )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
