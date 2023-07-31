@@ -124,12 +124,12 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_state = data[data.columns[data_columns_state]]
     data_non_state = data[data.columns[data_columns_non_state]]
 
-    data_state = np.array([data_state.shift(lag) for lag in range(lags,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
+    data_state = np.array([data_state.shift(lag) for lag in range(lags-1,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     # data_state = np.array([data_state.shift(lag) for lag in range(lags)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     data_state = np.transpose(data_state, axes=[1, 0, 2])[
                  lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
 
-    data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
+    data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags-1,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     # data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
                      lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
