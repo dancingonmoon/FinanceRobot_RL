@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
-    horizon = 12 # best for DDQN 14; PPO 2
+    horizon = 1 # best for DDQN 14; PPO 2
     lookback = 730#best for DDQN 225; PPO 225;
     MarketFactor = True #best for DDQN True; PPO False
 
@@ -86,25 +86,25 @@ if __name__ == '__main__':
     Train_with_Pretrained_model = False
 
     DQN_DDQN_PPO = 'DDQN' # 或者"DQN", "PPO"
-    lags = 5 # best for DDQN 7; PPO 5
+    lags = 3 # best for DDQN 7; PPO 5
     action_n = 3
-    gamma = 0.6 # best for DDQN 0.98; PPO 0.5
-    memory_size = 64
+    gamma = 0.92 # best for DDQN 0.98; PPO 0.5
+    memory_size = 2000
     replay_batch_size = int(memory_size/2)
-    batch_size = 16 # best for DDQN 16; PPO 16
-    DQN_lr = 5e-5
+    batch_size = 64 # best for DDQN 16; PPO 16
+    DQN_lr = 1e-5
     DQN_episode = 80
     DDQN_episode = 80
 
     DQN_saved_model_filename = "230610-51"
-    DDQN_saved_model_filename = "230731-104"
+    DDQN_saved_model_filename = "230801-60"
 
     # PPO部分
     n_worker = 8
     n_step = 7
     mini_batch_size = int(n_worker*n_step/4)  # int(n_worker * n_step / 4)
     gae_lambda = 0.94
-    gradient_clip_norm = 10.
+    gradient_clip_norm = 1.
     epochs = 3
     actor_lr= 1e-3
     critic_lr= 1e-3
