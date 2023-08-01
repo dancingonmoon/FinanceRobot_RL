@@ -93,7 +93,8 @@ class Step_LRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 # In[32]:
 
 
-def worker_process(conn2, dataset, dataset_type, action_dim, trading_commission=0.001):
+def worker_process(conn2, dataset, dataset_type, action_dim, trading_commission=0.001, min_performance=0.,
+                   min_accuracy=0.):
     """
     conn2 : Multiprocess的Pipe的第2个控制端口,用于控制Pipe的端口2的recv和send
     env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
@@ -101,7 +102,7 @@ def worker_process(conn2, dataset, dataset_type, action_dim, trading_commission=
     # env = gym.make('LunarLander-v2', render_mode='rgb_array')
     env = Finance_Environment_V2(dataset, dataset_type=dataset_type, action_n=action_dim,
                                  trading_commission=trading_commission,
-                                 min_performance=0., min_accuracy=0.1)
+                                 min_performance=min_performance, min_accuracy=min_accuracy)
 
     while True:
         cmd, data = conn2.recv()
@@ -124,7 +125,8 @@ def worker_process(conn2, dataset, dataset_type, action_dim, trading_commission=
 
 
 class Worker:
-    def __init__(self, dataset, dataset_type, action_dim, trading_commission=0.001):
+    def __init__(self, dataset, dataset_type, action_dim, trading_commission=0.001, min_performance=0.,
+                 min_accuracy=0.):
         """"
         env: 一个environment;conn2端口控制的对象,实现environment的reset,step,close指令;
         """
@@ -134,7 +136,8 @@ class Worker:
 
         self.conn1, conn2 = mp.Pipe()  # conn1通过send(command,data),控制conn2;
         self.process = mp.Process(target=worker_process,
-                                  args=(conn2, dataset, dataset_type, action_dim, trading_commission))
+                                  args=(conn2, dataset, dataset_type, action_dim, trading_commission, min_performance,
+                                        min_accuracy))
         self.process.start()
 
 

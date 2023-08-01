@@ -41,9 +41,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-4-20"
@@ -55,12 +55,13 @@ if __name__ == '__main__':
 
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
-    horizon = 12 # best for DDQN 14; PPO 2
-    lookback = 730#best for DDQN 225; PPO 225;
-    MarketFactor = True #best for DDQN True; PPO False
+    horizon = 15  # best for DDQN 14; PPO 2
+    lookback = 180  # best for DDQN 225; PPO 225;
+    MarketFactor = True  # best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=False, close_colName='close', lags=0, window=20, horizon=horizon,
+                                                    FromWeb=False, close_colName='close', lags=0, window=20,
+                                                    horizon=horizon,
                                                     interval='12h', MarketFactor=MarketFactor, weekdays=7)
     if MarketFactor:
         normalize_columns = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -81,17 +82,17 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = True
+    Test_flag = False
     train_test_text_add = 'test' if Test_flag else 'train'
     Train_with_Pretrained_model = False
 
-    DQN_DDQN_PPO = 'DDQN' # 或者"DQN", "PPO"
-    lags = 5 # best for DDQN 7; PPO 5
+    DQN_DDQN_PPO = 'PPO'  # 或者"DQN", "PPO"
+    lags = 20  # best for DDQN 7; PPO 5
     action_n = 3
-    gamma = 0.6 # best for DDQN 0.98; PPO 0.5
+    gamma = 0.85  # best for DDQN 0.98; PPO 0.5
     memory_size = 64
-    replay_batch_size = int(memory_size/2)
-    batch_size = 16 # best for DDQN 16; PPO 16
+    replay_batch_size = int(memory_size / 2)
+    batch_size = 64  # best for DDQN 16; PPO 16
     DQN_lr = 5e-5
     DQN_episode = 80
     DDQN_episode = 80
@@ -101,13 +102,13 @@ if __name__ == '__main__':
 
     # PPO部分
     n_worker = 8
-    n_step = 7
-    mini_batch_size = int(n_worker*n_step/4)  # int(n_worker * n_step / 4)
-    gae_lambda = 0.94
-    gradient_clip_norm = 10.
+    n_step = 5
+    mini_batch_size = int(n_worker * n_step / 4)  # int(n_worker * n_step / 4)
+    gae_lambda = 0.96
+    gradient_clip_norm = 0.5
     epochs = 3
-    actor_lr= 1e-3
-    critic_lr= 1e-3
+    actor_lr = 1e-3
+    critic_lr = 1e-4
     updates = 25000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
@@ -121,9 +122,11 @@ if __name__ == '__main__':
         dataset_test = Dataset_Generator(data_normalized[split:], lags=lags,
                                          data_columns_state=normalize_columns)
         # 训练environment, 测试environment:
-        env = Finance_Environment_V2(dataset_train, dataset_type='tensorflow_Dataset', action_n=action_n, min_performance=0.,
+        env = Finance_Environment_V2(dataset_train, dataset_type='tensorflow_Dataset', action_n=action_n,
+                                     min_performance=0.,
                                      min_accuracy=0.0)  # 允许做空,允许大亏,使得更多的训练数据出现
-        env_test = Finance_Environment_V2(dataset_test, dataset_type='tensorflow_Dataset', action_n=action_n, min_performance=0.,
+        env_test = Finance_Environment_V2(dataset_test, dataset_type='tensorflow_Dataset', action_n=action_n,
+                                          min_performance=0.,
                                           min_accuracy=0.0)  # 允许做空,允许大亏,使得更多的训练数据出现
 
         # 生成模型,以及FinR_Agent:
@@ -228,14 +231,16 @@ if __name__ == '__main__':
             # 训练用 多进程 建模
             workers = []
             for i in range(n_worker):
-                worker = Worker(dataset=iter_dataset_train, dataset_type='ndarray_iterator', action_dim=action_n)
+                worker = Worker(dataset=iter_dataset_train, dataset_type='ndarray_iterator', action_dim=action_n,
+                                trading_commission=0.001, min_performance=0., min_accuracy=0.)
                 workers.append(worker)
             FinR_Agent_PPO = PPO2(workers, Actor, Critic, action_n, lags, obs_n, actor_lr=actor_lr, critic_lr=critic_lr,
-                                  gae_lambda=gae_lambda,gamma=gamma,
-                                  c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step, epochs=epochs,
+                                  gae_lambda=gae_lambda, gamma=gamma,
+                                  c1=1., gradient_clip_norm=gradient_clip_norm, n_worker=n_worker, n_step=n_step,
+                                  epochs=epochs,
                                   mini_batch_size=mini_batch_size)
             saved_path = '{}gamma0{}_lag{}_{}.h5'.format(saved_path_prefix, str(int(gamma * 100)), lags, today_date)
-            if Train_with_Pretrained_model: # 调用预训练模型
+            if Train_with_Pretrained_model:  # 调用预训练模型
                 ckpt = tf.train.Checkpoint(actormodel=Actor, criticmodel=Critic)
                 saved_path = saved_path_prefix + PPO_saved_model_filename
                 ckpt.restore(
