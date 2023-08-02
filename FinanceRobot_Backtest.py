@@ -83,7 +83,7 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = False
+    Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
     Train_with_Pretrained_model = False
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     DDQN_episode = 80
 
     DQN_saved_model_filename = "230610-51"
-    DDQN_saved_model_filename = "230801-60"
+    DDQN_saved_model_filename = "230802-43"
 
     # PPO部分
     n_worker = 8

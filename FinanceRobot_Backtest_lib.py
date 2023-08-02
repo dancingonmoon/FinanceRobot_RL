@@ -598,15 +598,16 @@ class Finance_Environment_V2:
 
         if self.bar < self.dataset_len - 1 and not tf.experimental.numpy.isnan(horizon_price):
             done = False
-            margin_ratio = 1  # 初始赋值,避免条件遗漏出现无赋值;
+            # margin_ratio = 1  # 初始赋值,避免条件遗漏出现无赋值;
             if horizon_price > current_price * (1 + self.trading_commission):
                 reward_1 = action - 1
-                margin_ratio = (horizon_price - current_price * (1 + self.trading_commission)) / current_price
+                margin_ratio = (horizon_price - current_price * self.trading_commission) / current_price
             elif horizon_price < current_price * (1 - self.trading_commission):
                 reward_1 = 1 - action
-                margin_ratio = (current_price * (1 - self.trading_commission) - horizon_price) / current_price
+                margin_ratio = (horizon_price + current_price * self.trading_commission) / current_price
             else:
                 reward_1 = 1 if action == 1 else 0
+                margin_ratio = 1 # log1 = 0
             # reward_1 = int(horizon_price > current_price) * (action - 1)
             # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
             # 每个t时刻的状态包括收盘价,t时刻生成策略action,t时刻后执行action(buy/hold/sell),收益为:
