@@ -124,19 +124,21 @@ def ndarray_Generator(data, data_columns_state=None, data_columns_non_state=None
     data_state = data[data.columns[data_columns_state]]
     data_non_state = data[data.columns[data_columns_non_state]]
 
-    data_state = np.array([data_state.shift(lag) for lag in range(lags-1,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
+    data_state = np.array([data_state.shift(lag) for lag in
+                           range(lags - 1, -1, -1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     # data_state = np.array([data_state.shift(lag) for lag in range(lags)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     data_state = np.transpose(data_state, axes=[1, 0, 2])[
                  lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
 
-    data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags-1,-1,-1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
+    data_non_state = np.array([data_non_state.shift(lag) for lag in
+                               range(lags - 1, -1, -1)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     # data_non_state = np.array([data_non_state.shift(lag) for lag in range(lags)])  # (lags, N, features) #range(lags,-1,-1)为倒序,为了实现lag按时序顺序递增;
     data_non_state = np.transpose(data_non_state, axes=[1, 0, 2])[
                      lags - 1:]  # (lags, N, features)-> (N,lags,features)->(N-lags-1,lags,features)(去除Nan)
     # 值得注意的是,以上的for lag in range(lags)使得:
     # (N,lags,features)里面的lags的时刻顺序是倒序的,即(N,0,features)是最后一个时刻的features
 
-    date_list = np.expand_dims(data.index.astype('string')[lags - 1:],axis=-1)
+    date_list = np.expand_dims(data.index.astype('string')[lags - 1:], axis=-1)
 
     return (date_list, data_state, data_non_state)  # ((N,),(N,lags, state_features), (N,lags, non_state_features))
 
@@ -381,6 +383,7 @@ class Finance_Environment:
         info = {}
         return self.state, reward_1 + reward_2 * 5, done, info  # reward_2*5 5倍或者几倍,以后再调节
 
+
 def Data_Generator(data):
     """生成器,以节约内存;
     in:
@@ -392,6 +395,7 @@ def Data_Generator(data):
     for i in range(data[0].shape[0]):
         result = tuple(np.expand_dims(x[i], axis=0) for x in data)  # (lags,features)->(1,lags,features)
         yield result
+
 
 class TupleIterator:
     """
@@ -464,11 +468,11 @@ class Finance_Environment_V2:
             self.iter_dataset = TupleIterator(dataset)
             self.dataset_len, self.lags, self.features = dataset[1].shape
         elif dataset_type == 'ndarray_iterator':
-            self.iter_dataset = dataset # dataset 作为类型3, 输入的时候,就已经是加载了dataset的迭代器,可以通过将self.index=0 来复位迭代器,从而减小内存;
+            self.iter_dataset = dataset  # dataset 作为类型3, 输入的时候,就已经是加载了dataset的迭代器,可以通过将self.index=0 来复位迭代器,从而减小内存;
             _, self.lags, self.features = self.iter_dataset.__next__()[1].shape
-            self.dataset.index = 0 # 复位以获得len值完整
+            self.dataset.index = 0  # 复位以获得len值完整
             self.dataset_len = len(list(self.iter_dataset))
-            self.dataset.index = 0 # 复位一次,以免以后不匹配
+            self.dataset.index = 0  # 复位一次,以免以后不匹配
 
         self.leverage = leverage  # 杠杆
         self.trading_commission = trading_commission
@@ -504,7 +508,7 @@ class Finance_Environment_V2:
             # 注: 这里取的lags=-1时,对应的时刻为最后的时刻倒数lags;当lags=0时,对应的时刻是最后一个时刻;
             # 这个是由于ndarray_Generator函数生成dataset的过程,使用了for lag in lags列表表达式; 注: 7/29日更改为for lag in range(lags,-1,-1)
             date = np.array(date, dtype=np.datetime64)
-            date = np.array(date,dtype=object).reshape(-1,1) # 先转换成object对象,才能concatenate,再增加一个维度;
+            date = np.array(date, dtype=object).reshape(-1, 1)  # 先转换成object对象,才能concatenate,再增加一个维度;
             log_return = np.log(
                 non_state[:, horizon_price_column] / non_state[:, close_price_column])  # 计算horizon_log_return
             log_return = np.expand_dims(log_return, axis=-1)  # (N,) -> (N,1)
@@ -514,8 +518,8 @@ class Finance_Environment_V2:
             dates = np.empty(self.dataset_len, dtype=object)  # object
             datas = np.empty(shape=(self.dataset_len, 3), dtype=np.float32)
             # self.dataset 迭代器复位一次:
-            if isinstance(self.dataset,TupleIterator):
-                self.dataset.index = 0 # 如果是迭代器就复位
+            if isinstance(self.dataset, TupleIterator):
+                self.dataset.index = 0  # 如果是迭代器就复位
             for bar, data in tqdm(enumerate(self.dataset), total=self.dataset_len):
                 date, _, non_state = data  # ((1,20),(1,20,16),(1,20,2)
                 date = date[0, -1]
@@ -549,10 +553,9 @@ class Finance_Environment_V2:
             state = np.expand_dims(self.dataset[1][bar], 0)  # (1,lags,state_features)
             non_state = np.expand_dims(self.dataset[2][bar], 0)  # (1,lags,non_state_features)
         elif self.dataset_type == 'ndarray_iterator':
-            self.iter_dataset.index = 0 # 迭代器复位一次;
+            self.iter_dataset.index = 0  # 迭代器复位一次;
             element = [d for i, d in enumerate(self.iter_dataset) if i == bar][0]
             date, state, non_state = element  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
-
 
         return date, state, non_state
 
@@ -570,7 +573,7 @@ class Finance_Environment_V2:
         elif self.dataset_type == 'ndarray':
             self.iter_dataset = TupleIterator(self.dataset)
         elif self.dataset_type == 'ndarray_iterator':
-            self.iter_dataset.index = 0 # 迭代器复位
+            self.iter_dataset.index = 0  # 迭代器复位
 
         self.bar = 0
         _, self.state, self.non_state = self.iter_dataset.__next__()  # (1,date),(1,lags,state_features),(1,lags,non_state_features)
@@ -584,7 +587,7 @@ class Finance_Environment_V2:
         """
 
         # non_state: (N,lags,non_state_features), 包括未曾标准化/归一化的,'horizon_price','close';
-        horizon_price, current_price = self.non_state[0, -1, :] # lags=-1时,为最后时刻;lags=0时,为倒数lags个时刻;
+        horizon_price, current_price = self.non_state[0, -1, :]  # lags=-1时,为最后时刻;lags=0时,为倒数lags个时刻;
         # 对于DDQN/DQN,其dataset_type = 'tensorflow_Dataset',生成dataset时,lags维度的排序是按照时间顺排,即lag=0为当前时刻倒数lags个时刻;而lag=-1时,为最后一个时刻;
         # 对于PPO而言,其dataset_type = 'ndarray_iterator',生成ndarry时,是用列表表达式for lag in range(lags, -1, -1)倒序,这样lags维度也是按照时间顺序排列;
         # trading_cost = self.trading_commission * np.log(current_price)
@@ -595,17 +598,20 @@ class Finance_Environment_V2:
 
         if self.bar < self.dataset_len - 1 and not tf.experimental.numpy.isnan(horizon_price):
             done = False
+            margin_ratio = 1  # 初始赋值,避免条件遗漏出现无赋值;
             if horizon_price > current_price * (1 + self.trading_commission):
                 reward_1 = action - 1
+                margin_ratio = (horizon_price - current_price * (1 + self.trading_commission)) / current_price
             elif horizon_price < current_price * (1 - self.trading_commission):
                 reward_1 = 1 - action
+                margin_ratio = (current_price * (1 - self.trading_commission) - horizon_price) / current_price
             else:
                 reward_1 = 1 if action == 1 else 0
             # reward_1 = int(horizon_price > current_price) * (action - 1)
             # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
             # 每个t时刻的状态包括收盘价,t时刻生成策略action,t时刻后执行action(buy/hold/sell),收益为:
             # 价格收益-佣金: [horizon_price - current_price * commission * (action - 1) ] / current_price
-            margin_ratio = horizon_price / current_price - self.trading_commission * abs(action - 1)
+            # margin_ratio = (horizon_price / current_price -1) *(action-1)- self.trading_commission * abs(action - 1)
             reward_2 = np.log(margin_ratio) * (action - 1)
             # reward_2 = np.log(horizon_price * (1 - self.trading_commission * abs(action - 1)) / current_price)
             reward = reward_1 + reward_2 * 5
@@ -1378,9 +1384,9 @@ class BacktestingEventV2:
 
             # 以下输出资产/交易状态:
             # 计算减去交易手续费之后的收益率,以观察动作策略的准确性:
-            if action_strategy_mode == 'argmax': # horizon_price为tensor
+            if action_strategy_mode == 'argmax':  # horizon_price为tensor
                 horizon_return_after_ptc = (info['horizon_price'].numpy() - price * (1 - self.ptc)) / price
-            elif action_strategy_mode == 'tfp.distribution': # horizon_price为ndarray
+            elif action_strategy_mode == 'tfp.distribution':  # horizon_price为ndarray
                 horizon_return_after_ptc = (info['horizon_price'] - price * (1 - self.ptc)) / price
             else:
                 print(f'invalid action_strategy_mode:{action_strategy_mode}')
