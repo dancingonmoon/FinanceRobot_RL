@@ -324,7 +324,7 @@ if __name__ == '__main__':
     tuner = FinRobotTuner(
         # Objective is one of the keys.
         objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=70, overwrite=True, directory="saved_model", project_name="keras_tuner",
+        max_trials=80, overwrite=True, directory="saved_model", project_name="keras_tuner",
     )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
