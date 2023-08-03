@@ -56,9 +56,9 @@ if __name__ == '__main__':
     BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
 
-    horizon = 1 # best for DDQN 14; PPO 2
-    lookback = 730#best for DDQN 225; PPO 225;
-    MarketFactor = True #best for DDQN True; PPO False
+    horizon = 5 # best for DDQN 14; PPO 2
+    lookback = 180#best for DDQN 225; PPO 225;
+    MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
                                                     FromWeb=False, close_colName='close', lags=0, window=20,
@@ -83,14 +83,14 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = True
+    Test_flag = False
     train_test_text_add = 'test' if Test_flag else 'train'
-    Train_with_Pretrained_model = False
+    Train_with_Pretrained_model = True
 
-    DQN_DDQN_PPO = 'DDQN' # 或者"DQN", "PPO"
-    lags = 3 # best for DDQN 7; PPO 5
+    DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
+    lags = 7 # best for DDQN 7; PPO 5
     action_n = 3
-    gamma = 0.92 # best for DDQN 0.98; PPO 0.5
+    gamma = 0.7 # best for DDQN 0.98; PPO 0.5
     memory_size = 2000
     replay_batch_size = int(memory_size/2)
     batch_size = 64 # best for DDQN 16; PPO 16
@@ -103,17 +103,17 @@ if __name__ == '__main__':
 
     # PPO部分
     n_worker = 8
-    n_step = 7
+    n_step = 1
     mini_batch_size = int(n_worker*n_step/4)  # int(n_worker * n_step / 4)
     gae_lambda = 0.94
-    gradient_clip_norm = 1.
-    epochs = 3
-    actor_lr = 1e-3
-    critic_lr = 1e-4
+    gradient_clip_norm = 0.5
+    epochs = 5
+    actor_lr = 5e-4
+    critic_lr = 1e-5
     updates = 25000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230728-25"
+    PPO_saved_model_filename = "230803-2"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
