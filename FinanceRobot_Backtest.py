@@ -110,7 +110,7 @@ if __name__ == '__main__':
     epochs = 5
     actor_lr = 5e-4
     critic_lr = 1e-5
-    updates = 25000
+    updates = 75000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
     PPO_saved_model_filename = "230803-2"

@@ -1,6 +1,6 @@
-model_checkpoint_path: "BTC_PPO_230803-2"
-all_model_checkpoint_paths: "BTC_PPO_230803-1"
+model_checkpoint_path: "BTC_PPO_230803-1"
 all_model_checkpoint_paths: "BTC_PPO_230803-2"
-all_model_checkpoint_timestamps: 1691070745.4056404
+all_model_checkpoint_paths: "BTC_PPO_230803-1"
 all_model_checkpoint_timestamps: 1691071265.3859894
+all_model_checkpoint_timestamps: 1691074740.8791819
 last_preserved_timestamp: 1687499055.0113618
