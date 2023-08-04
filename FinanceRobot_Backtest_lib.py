@@ -598,23 +598,19 @@ class Finance_Environment_V2:
 
         if self.bar < self.dataset_len - 1 and not tf.experimental.numpy.isnan(horizon_price):
             done = False
-            # margin_ratio = 1  # 初始赋值,避免条件遗漏出现无赋值;
             if horizon_price > current_price * (1 + self.trading_commission):
                 reward_1 = action - 1
                 margin_ratio = (horizon_price - current_price * self.trading_commission) / current_price
+                reward_2 = np.log(margin_ratio) * (action - 1)
             elif horizon_price < current_price * (1 - self.trading_commission):
                 reward_1 = 1 - action
                 margin_ratio = (horizon_price + current_price * self.trading_commission) / current_price
+                reward_2 = np.log(margin_ratio) * (action - 1)
             else:
-                reward_1 = 1 if action == 1 else 0
-                margin_ratio = 1 # log1 = 0
-            # reward_1 = int(horizon_price > current_price) * (action - 1)
-            # 相对于前日盈利,则奖励按杠杆率加权;亏损,则惩罚也同比按杠杆率加权
-            # 每个t时刻的状态包括收盘价,t时刻生成策略action,t时刻后执行action(buy/hold/sell),收益为:
-            # 价格收益-佣金: [horizon_price - current_price * commission * (action - 1) ] / current_price
-            # margin_ratio = (horizon_price / current_price -1) *(action-1)- self.trading_commission * abs(action - 1)
-            reward_2 = np.log(margin_ratio) * (action - 1)
-            # reward_2 = np.log(horizon_price * (1 - self.trading_commission * abs(action - 1)) / current_price)
+                reward_1 = 1 - abs(action - 1) # reward_1=1 if action==1 else 0
+                margin_ratio = horizon_price/current_price
+                reward_2 = - abs(np.log(margin_ratio) * (action - 1)) # action!=1时,总是有惩罚因子;action==1时,reward_2=0
+
             reward = reward_1 + reward_2 * 5
             # self.treward += reward_1  # 表示的是,当action=1,即策略认为产生正收益action的执行次数;
             if reward_1 == 1:

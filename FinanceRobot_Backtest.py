@@ -41,9 +41,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-4-20"
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-02-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = False
+    Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
     Train_with_Pretrained_model = True
 
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     updates = 75000
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230803-2"
+    PPO_saved_model_filename = "230803-1"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
