@@ -41,9 +41,9 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
     StartDate = "2023-4-20"
@@ -110,10 +110,10 @@ if __name__ == '__main__':
     epochs = 5
     actor_lr = 5e-4
     critic_lr = 1e-5
-    updates = 75000
+    updates = int(3782*20)
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230803-1"
+    PPO_saved_model_filename = "Archive230805-2"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
@@ -250,6 +250,9 @@ if __name__ == '__main__':
             FinR_Agent_PPO.nworker_nstep_training_loop(updates=updates)
             FinR_Agent_PPO.close_process()
             print(f"{'-' * 40}finished{'-' * 40}")
+            # 获得average_treward列表,以观察训练收敛情况:
+            average_trewards = FinR_Agent_PPO.avg_trewards
+
             input_env = env
             model = Actor
             action_strategy_mode = 'tfp.distribution'
@@ -311,7 +314,7 @@ if __name__ == '__main__':
         name="股/币数",
         showlegend=False,
         xhoverformat="%y/%m/%d_%H:00",
-        yhoverformat="B,.5f",
+        yhoverformat=".5f",
         marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
                     colorscale=['red', 'yellow', 'green'], showscale=True),
         # hovertemplate='日期:%{x},价格: %{y:$.0f}',
@@ -325,7 +328,7 @@ if __name__ == '__main__':
         name="horizon涨跌幅",
         showlegend=False,
         xhoverformat="%y/%m/%d_%H:00",
-        yhoverformat="R,.4f",
+        yhoverformat=".4f",
         marker=dict(color=BacktestEvent.net_wealths['action'], line_width=0.5,
                     colorscale=['red', 'yellow', 'green'], showscale=True),
         # hovertemplate='日期:%{x},价格: %{y:$.0f}',
@@ -361,3 +364,29 @@ if __name__ == '__main__':
     # BacktestEvent.net_wealths.to_json(f'{saved_path_prefix}_netwealths_{train_test_text_add}_{last_date}.json')
 
     fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)
+
+    # -------------------------------------
+    # 如果是训练过程的话,对average_trewards绘图,以观察收敛情况:
+    if not Test_flag :
+        trace = go.Scatter(  #
+            x=list(range(len(average_trewards))),
+            y=average_trewards,
+            mode="lines+markers",  # mode模式
+            name="avg_trewards",
+            showlegend=False,
+            # xhoverformat='.f',
+            yhoverformat=".2f",
+            )
+        layout = dict(
+            title=dict(text='Average Total Rewards (50个连续) 训练收敛情况:', font=dict(
+                color='rgb(0,125,125)', family='SimHei', size=20)),
+            margin=dict(l=50, b=10, t=50, r=15, pad=0),
+            )
+        fig = go.Figure()
+        fig.add_traces(data=[trace])
+        fig.update_layout(layout)
+        fig.update_yaxes(title="avg_trewards", tickformat='')
+
+        saved_path = '{}gamma0{}_lag{}_avg_trewards_{}.html'.format(saved_path_prefix, str(int(gamma * 100)), lags,
+                                                          last_date)
+        fig.write_html(saved_path, include_plotlyjs=True, auto_open=False)

@@ -534,7 +534,7 @@ class PPO2:
             self.nworker_nstep_train(samples)
 
             avg_treward = self.avg_trewards[-1] if self.avg_trewards else -np.infty
-            if (update + 1) % 20 == 0:
+            if (update + 1) % 25 == 0:
                 time_spend = (time.time() - update_start_time) / 60
                 t_time_spend = (time.time() - start_time) / 60
                 loss = self.losses[-1] if self.losses else -np.infty
