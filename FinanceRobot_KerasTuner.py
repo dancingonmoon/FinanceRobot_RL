@@ -114,7 +114,7 @@ def FinRobotSearchSpace(
     #             close_colName,
     #         ]
     # split 训练数据,验证数据:
-    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-01-01', tz='UTC'))[0, 0]
+    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-07-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
     Pretrained_model = False
@@ -139,7 +139,7 @@ def FinRobotSearchSpace(
     gae_lambda = gae_lambda
     gradient_clip_norm = gradient_clip_norm
     epochs = epochs
-    updates = 2000
+    updates = 4100
     today_date = pd.Timestamp.today().strftime('%y%m%d')
     PPO_saved_model_filename = '230703-10'
 
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     tuner = FinRobotTuner(
         # Objective is one of the keys.
         objective=keras_tuner.Objective("net_wealth", "max"),
-        max_trials=70, overwrite=True, directory="saved_model", project_name="keras_tuner",
+        max_trials=60, overwrite=True, directory="saved_model", project_name="keras_tuner",
     )
     # Hyperband Search: # 不知道为什么,hyperband 算法,会在执行到tuner.search()时,直接显示result summary,然后退出;
     # tuner = FinRobotTuner(
