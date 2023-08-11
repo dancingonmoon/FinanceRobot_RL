@@ -41,19 +41,20 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
-    StartDate = "2023-4-20"
-    EndDate = "2023-09-10"
+    StartDate = "2019-11-09"
+    EndDate = "2020-09-01"
     BTC_json = "BTC_h12.json"
-    BinanceBTC_json = "BinanceBTC_h12.json"
+    # BinanceBTC_json = "BinanceBTC_h12.json"
+    BinanceBTC_json = "BinanceBTC_h1.json"
 
     api_key, api_secret = get_api_key(config_file_path)
 
-    BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json,
+    BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json, BinanceBTC_json=BinanceBTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
 
     horizon = 1 # best for DDQN 14; PPO 2
@@ -61,9 +62,9 @@ if __name__ == '__main__':
     MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=False, close_colName='close', lags=0, window=20,
+                                                    FromWeb=True, close_colName='close', lags=0, window=20,
                                                     horizon=horizon,
-                                                    interval='12h', MarketFactor=MarketFactor, weekdays=7)
+                                                    interval='1h', MarketFactor=MarketFactor, weekdays=7)
     if MarketFactor:
         normalize_columns = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     else:
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-07-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = False
+    Test_flag = True
     train_test_text_add = 'test' if Test_flag else 'train'
     Train_with_Pretrained_model = True
 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     updates = int(4100*50) # 230701分离数据,则update=4100时,一轮数据训练;230201,则update=3782,一轮数据
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "230807-4"
+    PPO_saved_model_filename = "Archive230809-4"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
@@ -216,10 +217,10 @@ if __name__ == '__main__':
         # 训练environment, 测试environment:
         env = Finance_Environment_V2(iter_dataset_train, dataset_type='ndarray_iterator', action_n=action_n,
                                      min_performance=0.,
-                                     min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+                                     min_accuracy=0.0)  # 允许做空,允许大亏,使得更多的训练数据出现
         env_test = Finance_Environment_V2(iter_dataset_test, dataset_type='ndarray_iterator', action_n=action_n,
                                           min_performance=0.,
-                                          min_accuracy=0.1)  # 允许做空,允许大亏,使得更多的训练数据出现
+                                          min_accuracy=0.0)  # 允许做空,允许大亏,使得更多的训练数据出现
         _, obs_n = env.observation_space.shape
 
         # PPO 建模:

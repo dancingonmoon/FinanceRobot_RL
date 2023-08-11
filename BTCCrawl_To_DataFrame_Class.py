@@ -12,6 +12,7 @@ import datetime
 import json
 # import time
 import sys
+import os
 
 import numpy as np
 import pandas as pd
@@ -106,11 +107,7 @@ class BTC_data_acquire:
             DataFrame.index: open_time, 时间戳;DataFrame.clolums:
             [open,high,low,close,volume,amount,num_trades,bid_volume,bid_amount]
         """
-        # 从硬盘上读取以历史BTC数据
-        # Binance API是基于UTC时区,在转换成时间戳于json写入再读出,失去了时区属性;'
-        Data = pd.read_json(self.Directory + self.BinanceBTC_json)
-        # 1)先恢复UTC时区属性 2) 与爬取数据合并后,再转换到Asia/Shanghai时区
-        Data.index = Data.index.tz_localize('UTC')
+
 
         if FromWeb:
 
@@ -156,30 +153,43 @@ class BTC_data_acquire:
             data.index.rename('open_time', inplace=True)  # 更index名;
             # --------------------------------------------------------
 
-            Data = pd.concat([Data, data], join='inner')
-            # 非常漂亮的删除重复Index行(并且有选择的保留first行,或者last行)的方法,
-            Data = Data.loc[~Data.index.duplicated(keep='last')]
+            # 从硬盘上读取以历史BTC数据
+            if os.path.exists(self.Directory + self.BinanceBTC_json):
+                # Binance API是基于UTC时区,在转换成时间戳于json写入再读出,失去了时区属性;
+                Data = pd.read_json(self.Directory + self.BinanceBTC_json)
+                # 1)先恢复UTC时区属性 2) 与爬取数据合并后,再转换到Asia/Shanghai时区
+                Data.index = Data.index.tz_localize('UTC')
 
-            # 将数据转换成float16,用于避免当不经过写入读取Json文件进行d_return计算,Data['close'] / Data['close'].shift()会导致运算失败
-            Data = Data[Data.columns[:]].astype('float32')
-            print('从web中读出Data.info:{}'.format(Data.info()))
+                Data = pd.concat([Data, data], join='inner')
+                # 非常漂亮的删除重复Index行(并且有选择的保留first行,或者last行)的方法,
+                Data = Data.loc[~Data.index.duplicated(keep='last')]
 
-            # 因为合并后的数据,有可能出现index的时间戳穿插;即后爬取的时间段比json存储的时间段还要早,导致爬取的早先时间段会放在json较后的时间段之后的情况,所以这里排序一下
-            data.index = data.index.sort_values()  # sort方法缺省升序排列
+                # 将数据转换成float16,用于避免当不经过写入读取Json文件进行d_return计算,Data['close'] / Data['close'].shift()会导致运算失败
+                Data = Data[Data.columns[:]].astype('float32')
+                print('从web中读出Data.info:{}'.format(Data.info()))
+
+                # 因为合并后的数据,有可能出现index的时间戳穿插;即后爬取的时间段比json存储的时间段还要早,导致爬取的早先时间段会放在json较后的时间段之后的情况,所以这里排序一下
+                # data.index = data.index.sort_values()  # sort方法缺省升序排列
+                Data.index = Data.index.sort_values()  # sort方法缺省升序排列
+            else: # 硬盘上没有历史BTC数据时,即需要将第一次爬取data,赋入Data,后面存盘.
+                Data = data
 
             # 爬取的最新数据,与硬盘上历史数据合并后,重新存储Json
             Data.to_json(self.Directory + self.BinanceBTC_json)
             print('BTC数据合并存入:{}'.format(self.Directory + self.BinanceBTC_json))
         else:
-            print('从json中读出Data.info:{}'.format(Data.info()))
-
-        # print('有重复Index的行共有:{}'.format(len(Data.index[Data.index.duplicated()])))
-
-        # ------------------------------------------------------------
-
-        Data.index = Data.index.tz_convert(
-            'Asia/Shanghai')  # 1) 上面已经基于UTC时区, Data合并, 2)再将时区从UTC更改到上海时间
-
+            # 从硬盘上读取以历史BTC数据
+            if os.path.exists(self.Directory + self.BinanceBTC_json):
+                # Binance API是基于UTC时区,在转换成时间戳于json写入再读出,失去了时区属性;
+                Data = pd.read_json(self.Directory + self.BinanceBTC_json)
+                # 1)先恢复UTC时区属性 2) 与爬取数据合并后,再转换到Asia/Shanghai时区
+                Data.index = Data.index.tz_localize('UTC')
+                Data.index = Data.index.tz_convert(
+                    'Asia/Shanghai')  # 1) 上面已经基于UTC时区, Data合并, 2)再将时区从UTC更改到上海时间
+                print('从json中读出Data.info:{}'.format(Data.info()))
+            else:
+                print('试图从硬盘中获取历史BTC数据,但是硬盘上却没有{}文件'.format(self.Directory + self.BinanceBTC_json))
+                Data = f"历史BTC数据{self.Directory + self.BinanceBTC_json}不存在"
         return Data
 
     def crawl_DataFrame(
