@@ -119,10 +119,10 @@ class BTC_data_acquire:
             ping = client.ping()
 
             if ping == {}:
-                print('Binance Rest API 联通测试通过 !')
+                print('Binance Rest API Connection Test Succeed !')
             else:
                 print(ping)
-                print('Binance Rest API 联通测试失败,请检查网络,或者VPN, (注:美国的IP地址暂不为接受)')
+                print('Binance Rest API Connection Test Failed, pls ensure your Internet/VPN out of GFW is reachable, pls take the notice that IP address within USA is to be rejected by Binance for now !')
                 sys.exit(0)
 
             StartTime = Datetime2Timstamp13bit(self.StartDate)

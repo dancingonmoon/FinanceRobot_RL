@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -41,13 +44,13 @@ from BTCCrawl_To_DataFrame_Class import get_api_key
 if __name__ == '__main__':
 
     # 调用BTC爬取部分
-    sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    sys.path.append("l:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
+    Folder_base = "l:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "l:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://data.binance.com'
-    StartDate = "2019-11-09"
-    EndDate = "2020-09-01"
+    StartDate = "2023-8-8"
+    EndDate = "2023-11-11"
     BTC_json = "BTC_h12.json"
     # BinanceBTC_json = "BinanceBTC_h12.json"
     BinanceBTC_json = "BinanceBTC_h1.json"
@@ -62,7 +65,7 @@ if __name__ == '__main__':
     MarketFactor = False #best for DDQN True; PPO False
 
     data = BTC_data.MarketFactor_ClosePriceFeatures(by_BinanceAPI=True,
-                                                    FromWeb=True, close_colName='close', lags=0, window=20,
+                                                    FromWeb=False, close_colName='close', lags=0, window=20,
                                                     horizon=horizon,
                                                     interval='1h', MarketFactor=MarketFactor, weekdays=7)
     if MarketFactor:
@@ -84,9 +87,9 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-07-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = True
+    Test_flag = False
     train_test_text_add = 'test' if Test_flag else 'train'
-    Train_with_Pretrained_model = True
+    Train_with_Pretrained_model = False
 
     DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
     lags = 3 # best for DDQN 7; PPO 5
