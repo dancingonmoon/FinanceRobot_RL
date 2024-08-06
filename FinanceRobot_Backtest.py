@@ -47,8 +47,7 @@ if __name__ == '__main__':
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     # URL = 'https://data.binance.com'
     URL = 'https://api.binance.com'
-    StartDate = "2020-8-15"
-    # StartDate = "2024-7-25"
+    StartDate = "2019-11-09"
     EndDate = "2024-10-01"
     BTC_json = "BTC_h12.json"
     # BinanceBTC_json = "BinanceBTC_h12.json"

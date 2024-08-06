@@ -119,7 +119,7 @@ class BTC_data_acquire:
             ping = client.ping()
 
             if ping == {}:
-                print('Binance Rest API 联通测试通过 !')
+                print('Binance Rest API Connection Test Succeed !')
             else:
                 print('Binance Rest API 联通测试失败,请检查网络,或者VPN, (注:美国的IP地址暂不为接受)')
                 print(ping)
