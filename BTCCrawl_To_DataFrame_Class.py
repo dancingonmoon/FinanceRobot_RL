@@ -121,8 +121,8 @@ class BTC_data_acquire:
             if ping == {}:
                 print('Binance Rest API 联通测试通过 !')
             else:
-                print(ping)
                 print('Binance Rest API 联通测试失败,请检查网络,或者VPN, (注:美国的IP地址暂不为接受)')
+                print(ping)
                 sys.exit(0)
 
             StartTime = Datetime2Timstamp13bit(self.StartDate)
