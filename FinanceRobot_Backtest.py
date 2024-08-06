@@ -42,8 +42,8 @@ if __name__ == '__main__':
 
     # 调用BTC爬取部分
     sys.path.append("e:/Python_WorkSpace/量化交易/")  # 增加指定的绝对路径,进入系统路径,从而便于该目录下的库调用
-    Folder_base = "e:/Python_WorkSpace/量化交易/data/"
-    config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
+    BTC_jsonData_path = "e:/Python_WorkSpace/量化交易/data/"
+    config_file_path = "e:/Python_WorkSpace/config/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
     URL = 'https://api.binance.com'
     StartDate = "2024-8-5"
@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     api_key, api_secret = get_api_key(config_file_path)
 
-    BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, Folder_base, BTC_json, BinanceBTC_json=BinanceBTC_json,
+    BTC_data = BTC_DataAcquire(URL, StartDate, EndDate, BTC_jsonData_path, BTC_json, BinanceBTC_json=BinanceBTC_json,
                                binance_api_key=api_key, binance_api_secret=api_secret)
 
     horizon = 1 # best for DDQN 14; PPO 2
@@ -81,11 +81,10 @@ if __name__ == '__main__':
     #             close_colName,
     #         ]
     # split 训练数据,验证数据:
-    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-07-01', tz='UTC'))[0, 0]
+    split = np.argwhere(data_normalized.index == pd.Timestamp('2023-7-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
     Test_flag = False
-    train_test_text_add = 'test' if Test_flag else 'train'
     Train_with_Pretrained_model = False
 
     DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
@@ -180,11 +179,11 @@ if __name__ == '__main__':
             if not Test_flag:
                 if Train_with_Pretrained_model:  # 调出之前训练的模型,接续训练:
                     ckpt = tf.train.Checkpoint(model=Q)
-                    saved_path = saved_path_prefix + DDQN_saved_model_filename
+                    saved_path = saved_path_prefix + DQN_saved_model_filename
                     ckpt.restore(
                         saved_path)  # 奇葩(搞笑)的是,这里的saved_path不能带.index的文件类型后缀,必须是完整的文件名不带文件类型后缀,
 
-                # DDQN 训练过程:
+                # DQN 训练过程:
                 FinR_Agent_DQN.learn(episodes=DQN_episode)
                 print(f"{'-' * 40}finished{'-' * 40}")
                 # 最后训练模型h5格式存盘
@@ -202,9 +201,6 @@ if __name__ == '__main__':
                 input_env = env_test
                 model = Q
                 action_strategy_mode = 'argmax'
-            # DQN 训练过程:
-            FinR_Agent_DQN.learn(episodes=70)
-            print(f"{'-' * 40}finished{'-' * 40}")
 
 
     elif DQN_DDQN_PPO == 'PPO':  # PPO
@@ -359,6 +355,7 @@ if __name__ == '__main__':
     last_date = BacktestEvent.net_wealths.index[-1]
     last_date = last_date.strftime('%y%m%dH%H')
 
+    train_test_text_add = 'test' if Test_flag else 'train' # 文件名标注train, test
     saved_path = '{}gamma0{}_lag{}_{}_{}.html'.format(saved_path_prefix, str(int(gamma * 100)), lags,
                                                       train_test_text_add, last_date)
     # 将BacktestEvent.net_wealths (pandas) 存盘:

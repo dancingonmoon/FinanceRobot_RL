@@ -149,17 +149,16 @@ def data_normalization(data, lookback=252,
     将data (N,features),进行函数变换,实现每个mean=0,std=1的标准化;
     利用tf.keras.layers.Normalization().adapt()方法,获取每个ds元素的mean与std,
     然后将,ds每个元素的最后一个数值,标准化成新的数值;
-    :param:
-        data: pandas, (N,features);
-        lookback: int, 往回lookback的t时刻;在lookback的时间段内,采样mean,std,以将lookback的最后时刻数据标准化;
-        normalize_columns: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
-        最后两列,'horizon_price','close'不参与标准化
-        Binance采集的Data列可能为:
-        ['log_return', 'Roll_price_sma', 'Roll_price_min', 'Roll_price_max',
-       'Roll_return_mom', 'Roll_return_std', 'volume', 'RSI_7',
-       'Log_close_weeklag', 'Log_high_low', 'Log_open_weeklag',
-       'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades','bid_volume',
-       "log_return_unnormalized",'horizon_price', 'close']
+    :param    data: pandas, (N,features);
+    :param    lookback: int, 往回lookback的t时刻;在lookback的时间段内,采样mean,std,以将lookback的最后时刻数据标准化;
+    :param    normalize_columns: data的特征列中,需要normalization的列的list;缺省=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+            最后两列,'horizon_price','close'不参与标准化
+            Binance采集的Data列可能为:
+            ['log_return', 'Roll_price_sma', 'Roll_price_min', 'Roll_price_max',
+            'Roll_return_mom', 'Roll_return_std', 'volume', 'RSI_7',
+            'Log_close_weeklag', 'Log_high_low', 'Log_open_weeklag',
+            'open_pre_close', 'high_pre_close', 'low_pre_close', 'num_trades','bid_volume',
+            "log_return_unnormalized",'horizon_price', 'close']
     :return:
         data: pandas, (N-lookback,features);
     """
@@ -1330,9 +1329,9 @@ class BacktestingEventV2:
         没有做空,只有做多;
         bar 从 0 时刻开始,因为即使是第0个时刻,也是有收盘价;第0时刻的状态预测action,0时刻后执行;
 
-        action_strategy_mode: 动作策略获取模式;对于DQN与DDQN算法,其动作策略是通过argmax()实现;
-            而PPO的动作策略是通过tfp.distribution.categorical()生成一个分布pi, 再通过pi.sample()来获得;
-            action_strategy_mode = "argmax" 或者 'tfp.distribution'
+        :param action_strategy_mode: 动作策略获取模式;对于DQN与DDQN算法,其动作策略是通过argmax()实现;
+                而PPO的动作策略是通过tfp.distribution.categorical()生成一个分布pi, 再通过pi.sample()来获得;
+                action_strategy_mode = "argmax" 或者 'tfp.distribution'
         """
         self.units = 0
         self.position = 0  # 用于存放头寸的状态;

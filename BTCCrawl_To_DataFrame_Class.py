@@ -28,7 +28,7 @@ from configparser import ConfigParser
 # "paribu" "poloniex" "probit" "qryptos" "quoine" "therocktrading" "tidex" "wazirx" "whitebit" #"zb"  ]
 # poloniex交易所到2022年8月1日数据停止
 
-# Folder_base = "E:/Python_WorkSpace/量化交易/股票分析/"
+# BTC_jsonData_path = "E:/Python_WorkSpace/量化交易/股票分析/"
 # URL = "https://api.coincap.io/v2/candles?exchange=huobi&interval=h12&baseId=bitcoin&quoteId=tether"
 # StartDate = "2022-06-15"
 # EndDate = "2022-10-01"
@@ -252,7 +252,7 @@ class BTC_data_acquire:
             # display(Data.tail(2))
             # Data.info()
             # 更新(添加)存储的Json文件数据
-            # Data_update = pd.read_json(Folder_base+'BTC_h8_20210825_20210903.json')
+            # Data_update = pd.read_json(BTC_jsonData_path+'BTC_h8_20210825_20210903.json')
             # 添加 上面API读出的数据: Candle
             Data_update = Candle
             Data = pd.concat([Data, Data_update], join='inner')
