@@ -45,9 +45,11 @@ if __name__ == '__main__':
     Folder_base = "e:/Python_WorkSpace/量化交易/data/"
     config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
-    URL = 'https://data.binance.com'
-    StartDate = "2019-11-09"
-    EndDate = "2020-09-01"
+    # URL = 'https://data.binance.com'
+    URL = 'https://api.binance.com'
+    StartDate = "2020-8-15"
+    # StartDate = "2024-7-25"
+    EndDate = "2024-10-01"
     BTC_json = "BTC_h12.json"
     # BinanceBTC_json = "BinanceBTC_h12.json"
     BinanceBTC_json = "BinanceBTC_h1.json"
