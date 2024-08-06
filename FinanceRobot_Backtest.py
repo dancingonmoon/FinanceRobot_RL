@@ -45,9 +45,8 @@ if __name__ == '__main__':
     Folder_base = "e:/Python_WorkSpace/量化交易/data/"
     config_file_path = "e:/Python_WorkSpace/量化交易/BTCCrawl_To_DataFrame_Class_config.ini"
     # URL = "https://api.coincap.io/v2/candles?exchange=binance&interval=h12&baseId=bitcoin&quoteId=tether"
-    # URL = 'https://data.binance.com'
     URL = 'https://api.binance.com'
-    StartDate = "2019-11-09"
+    StartDate = "2024-8-5"
     EndDate = "2024-10-01"
     BTC_json = "BTC_h12.json"
     # BinanceBTC_json = "BinanceBTC_h12.json"
@@ -85,9 +84,9 @@ if __name__ == '__main__':
     split = np.argwhere(data_normalized.index == pd.Timestamp('2023-07-01', tz='UTC'))[0, 0]
 
     #########Arguments Optimization#############
-    Test_flag = True
+    Test_flag = False
     train_test_text_add = 'test' if Test_flag else 'train'
-    Train_with_Pretrained_model = True
+    Train_with_Pretrained_model = False
 
     DQN_DDQN_PPO = 'PPO' # 或者"DQN", "PPO"
     lags = 3 # best for DDQN 7; PPO 5
@@ -115,7 +114,7 @@ if __name__ == '__main__':
     updates = int(4100*50) # 230701分离数据,则update=4100时,一轮数据训练;230201,则update=3782,一轮数据
     today_date = pd.Timestamp.today().strftime('%y%m%d')
 
-    PPO_saved_model_filename = "Archive230809-4"
+    PPO_saved_model_filename = "Archive240806-0"
     ####################
 
     if DQN_DDQN_PPO == "DQN" or DQN_DDQN_PPO == "DDQN":
